@@ -3,15 +3,18 @@ import { onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import WorkspaceShell from '@/components/studio/WorkspaceShell.vue'
 import Icon from '@/components/ui/Icon.vue'
+import { useToast } from '@/composables/useToast'
 import { useProjectStore } from '@/stores/projects'
 import { loadTemplateCatalog, type TemplateCatalogItem } from '@/services/templates'
 
 const router = useRouter()
 const projectStore = useProjectStore()
+const toast = useToast()
 const selectedTemplate = ref('recruit')
 const templates = ref<TemplateCatalogItem[]>([])
 const title = ref('摄影社 2026 秋季招新')
 const org = ref('光影摄影社')
+const activityType = ref('招新')
 const prompt = ref(
   '做一个摄影社秋季招新页面，需要社团介绍、三个部门、活动照片、报名表和负责人联系方式。整体风格温暖、有胶片感。'
 )
@@ -34,7 +37,7 @@ async function ensureProject() {
   const project = await projectStore.createProjectRemote({
     title: title.value,
     org: org.value,
-    type: template?.name || '校园活动',
+    type: activityType.value.trim() || template?.name || '校园活动',
     templateId: selectedTemplate.value,
   })
   pendingProjectId = project.id
@@ -42,13 +45,29 @@ async function ensureProject() {
 }
 
 async function startWithTemplate(): Promise<void> {
-  const project = await ensureProject()
-  router.push(`/editor/${project.id}`)
+  try {
+    const project = await ensureProject()
+    await router.push(`/editor/${project.id}`)
+  } catch (error) {
+    toast.pushToast(error instanceof Error ? error.message : '创建项目失败，请稍后重试', 'error')
+  }
 }
 
-async function openCreate(tab: 'ai' | 'poster'): Promise<void> {
-  const project = await ensureProject()
-  router.push({ path: `/editor/${project.id}`, query: { create: tab } })
+async function openCreate(tab: 'poster'): Promise<void> {
+  try {
+    const project = await ensureProject()
+    await router.push({ path: `/editor/${project.id}`, query: { create: tab } })
+  } catch (error) {
+    toast.pushToast(error instanceof Error ? error.message : '创建项目失败，请稍后重试', 'error')
+  }
+}
+
+function openAiGenerator(): void {
+  const value = prompt.value.trim()
+  void router.push({
+    path: '/ai',
+    query: value ? { prompt: value } : undefined,
+  })
 }
 
 function templateTone(id: string): string {
@@ -93,15 +112,15 @@ function templateTone(id: string): string {
           </label>
           <div class="field-row">
             <label class="field"><span>组织者</span><input v-model="org" /></label>
-            <label class="field"
-              ><span>活动类型</span
-              ><select>
-                <option>招新</option>
-                <option>比赛</option>
-                <option>讲座</option>
-                <option>志愿服务</option>
-              </select></label
-            >
+            <label class="field">
+              <span>活动类型</span>
+              <select v-model="activityType">
+                <option value="招新">招新</option>
+                <option value="比赛">比赛</option>
+                <option value="讲座">讲座</option>
+                <option value="志愿服务">志愿服务</option>
+              </select>
+            </label>
           </div>
 
           <div class="create-divider" />
@@ -149,7 +168,7 @@ function templateTone(id: string): string {
 
           <div class="create-form-actions">
             <RouterLink class="app-button app-button--secondary" to="/projects">取消</RouterLink>
-            <button class="app-button app-button--secondary" type="button" @click="openCreate('ai')">
+            <button class="app-button app-button--secondary" type="button" @click="openAiGenerator">
               <Icon name="spark" :size="16" /> AI 生成
             </button>
             <button class="app-button app-button--primary" type="button" @click="startWithTemplate">

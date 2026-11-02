@@ -8,7 +8,7 @@ import { appRoutes } from '@/router'
 /**
  * 这两个功能是「点了有没有反应」型的，光看代码不算数，得真挂载一次：
  *   1. 模板灵感 —— 从死锚点改成真路由，页面上要真有 4 张模板卡
- *   2. AI 生成 —— 左侧栏按钮要能打开抽屉（抽屉 Teleport 到 body，只能去 document 里找）
+ *   2. AI 生成 —— 左侧栏按钮要进入独立的全屏生成页
  */
 
 async function mountAt(path: string) {
@@ -22,7 +22,7 @@ async function mountAt(path: string) {
   return wrapper
 }
 
-describe('模板灵感与 AI 生成入口', () => {
+describe('模板灵感与 AI 生成页面', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
     localStorage.clear()
@@ -51,24 +51,28 @@ describe('模板灵感与 AI 生成入口', () => {
     wrapper.unmount()
   })
 
-  it('点「AI 生成」会打开抽屉', async () => {
+  it('左侧栏「AI 生成」进入独立创作页', async () => {
     const wrapper = await mountAt('/projects')
-    expect(document.body.querySelector('.ai-drawer')).toBeNull()
+    expect(wrapper.find('.ai-page').exists()).toBe(false)
 
-    const buttons = wrapper.findAll('.workspace-nav-item--button')
-    expect(buttons.length).toBeGreaterThan(0)
-    const aiButton = buttons[0]
-    expect(aiButton).toBeDefined()
-    await aiButton!.trigger('click')
+    const aiButton = wrapper.find('.workspace-nav-item.is-ai')
+    expect(aiButton.exists()).toBe(true)
+    await aiButton.trigger('click')
     await flushPromises()
 
-    expect(document.body.querySelector('.ai-drawer')).not.toBeNull()
-    expect(document.body.textContent).toContain('AI 生成活动页面')
+    expect(wrapper.find('.ai-page').exists()).toBe(true)
+    expect(wrapper.text()).toContain('开始 AI 活动创作')
 
-    const close = document.body.querySelector('.ai-drawer__close') as HTMLButtonElement | null
-    close?.click()
-    await flushPromises()
-    expect(document.body.querySelector('.ai-drawer')).toBeNull()
+    wrapper.unmount()
+  })
+
+  it('场景卡片会把示例需求填入大输入框', async () => {
+    const wrapper = await mountAt('/ai')
+    const scenes = wrapper.findAll('.ai-scene-grid button')
+    expect(scenes.length).toBe(4)
+
+    await scenes[0]!.trigger('click')
+    expect((wrapper.find('.ai-composer textarea').element as HTMLTextAreaElement).value).toContain('摄影社')
 
     wrapper.unmount()
   })

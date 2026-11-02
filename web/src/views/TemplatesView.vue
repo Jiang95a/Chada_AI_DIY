@@ -3,7 +3,6 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import WorkspaceShell from '@/components/studio/WorkspaceShell.vue'
 import Icon from '@/components/ui/Icon.vue'
-import { useAiDrawer } from '@/composables/useAiDrawer'
 import { useToast } from '@/composables/useToast'
 import { useProjectStore } from '@/stores/projects'
 import { loadTemplateCatalog, type TemplateCatalogItem } from '@/services/templates'
@@ -22,7 +21,6 @@ import { loadTemplateCatalog, type TemplateCatalogItem } from '@/services/templa
 const router = useRouter()
 const toast = useToast()
 const projectStore = useProjectStore()
-const { openDrawer } = useAiDrawer()
 
 const creatingId = ref('')
 const catalog = ref<TemplateCatalogItem[]>([])
@@ -87,7 +85,11 @@ async function useTemplate(card: TemplateCard): Promise<void> {
 }
 
 function askAi(prompt = aiPrompt.value): void {
-  openDrawer(prompt.trim())
+  const value = prompt.trim()
+  void router.push({
+    path: '/ai',
+    query: value ? { prompt: value } : undefined,
+  })
 }
 </script>
 

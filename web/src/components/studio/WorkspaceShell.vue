@@ -2,8 +2,6 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import Icon from '@/components/ui/Icon.vue'
-import AiComposerDrawer from '@/components/ai/AiComposerDrawer.vue'
-import { useAiDrawer } from '@/composables/useAiDrawer'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/projects'
@@ -14,7 +12,6 @@ const router = useRouter()
 const auth = useAuthStore()
 const projectStore = useProjectStore()
 const toast = useToast()
-const { openDrawer } = useAiDrawer()
 const { workspaces, selected: currentWorkspace, selectWorkspace } = useWorkspace()
 const rootRef = ref<HTMLElement | null>(null)
 const searchRef = ref<HTMLInputElement | null>(null)
@@ -53,6 +50,7 @@ const pageTitle = computed(() => {
   if (route.path === '/campus') return '校园活动'
   if (route.path === '/projects/new') return '新建活动'
   if (route.path === '/templates') return '模板灵感'
+  if (route.path === '/ai') return 'AI 生成'
   if (route.path === '/profile') return '个人资料'
   if (route.path === '/settings') return '偏好设置'
   if (route.path === '/help') return '帮助与反馈'
@@ -62,9 +60,9 @@ const pageTitle = computed(() => {
   return '工作台'
 })
 
-/** 左侧栏的「AI 生成」：全局抽屉，任何页面都能开 */
+/** 左侧栏的「AI 生成」：进入独立的全屏创作页 */
 function openAiComposer(): void {
-  openDrawer()
+  void router.push('/ai')
 }
 
 /**
@@ -219,7 +217,12 @@ onBeforeUnmount(() => {
           <Icon :name="item.icon" :size="17" />
           <span>{{ item.label }}</span>
         </RouterLink>
-        <button class="workspace-nav-item workspace-nav-item--button is-ai" type="button" @click="openAiComposer">
+        <button
+          class="workspace-nav-item workspace-nav-item--button is-ai"
+          :class="{ 'is-active': route.path === '/ai' }"
+          type="button"
+          @click="openAiComposer"
+        >
           <Icon name="wand" :size="17" />
           <span>AI 生成</span>
           <em class="workspace-nav-badge">AI</em>
@@ -357,8 +360,6 @@ onBeforeUnmount(() => {
       </header>
       <div class="workspace-content"><slot /></div>
     </div>
-
-    <AiComposerDrawer />
   </div>
 </template>
 

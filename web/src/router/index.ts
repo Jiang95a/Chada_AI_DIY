@@ -11,6 +11,7 @@ import ProfileView from '@/views/ProfileView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 import HelpView from '@/views/HelpView.vue'
 import LandingView from '@/views/LandingView.vue'
+import AiGeneratorView from '@/views/AiGeneratorView.vue'
 import { getAccessToken } from '@/services/http'
 
 export const appRoutes: RouteRecordRaw[] = [
@@ -40,6 +41,11 @@ export const appRoutes: RouteRecordRaw[] = [
     path: '/templates',
     name: 'templates',
     component: TemplatesView,
+  },
+  {
+    path: '/ai',
+    name: 'ai-generator',
+    component: AiGeneratorView,
   },
   {
     path: '/campus',

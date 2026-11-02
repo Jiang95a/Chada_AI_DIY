@@ -6,11 +6,14 @@ import { normalizeDoc } from '@/utils/doc'
 import { slugify, uid } from '@/utils/misc'
 import {
   createProject as createProjectApi,
+  duplicateProject as duplicateProjectApi,
   getProject as getProjectApi,
   listProjects as listProjectsApi,
+  removeProject as removeProjectApi,
   type ProjectApiRecord,
 } from '@/services/projects'
 import { putDraft } from '@/services/draft'
+import { ApiError } from '@/services/http'
 
 export type ProjectStatus = 'draft' | 'published' | 'unpublished' | 'archived'
 
@@ -37,6 +40,7 @@ interface CreateProjectInput {
 }
 
 const STORAGE_KEY = 'diy-campus:projects:v1'
+const REMOTE_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 function cloneDocument(document: Doc): Doc {
   return JSON.parse(JSON.stringify(document)) as Doc
@@ -313,7 +317,11 @@ export const useProjectStore = defineStore('projects', () => {
       projects.value.unshift(remote)
       return remote
     } catch (error) {
-      remoteError.value = error instanceof Error ? error.message : '后端创建失败，已使用本地模式'
+      if (!(error instanceof ApiError) || error.status !== 0) {
+        remoteError.value = error instanceof Error ? error.message : '项目创建失败'
+        throw error
+      }
+      remoteError.value = '后端暂时无法连接，项目已保存为本地离线草稿'
       return createProject(input)
     }
   }
@@ -396,8 +404,40 @@ export const useProjectStore = defineStore('projects', () => {
     return copy
   }
 
+  async function duplicateProjectRemote(projectId: string): Promise<ProjectRecord> {
+    const source = getById(projectId)
+    if (!source) throw new Error('要复制的项目不存在')
+    if (!REMOTE_ID_PATTERN.test(projectId)) {
+      const copy = duplicateProject(projectId)
+      if (!copy) throw new Error('复制项目失败')
+      return copy
+    }
+    try {
+      const remote = fromApi(await duplicateProjectApi(projectId, `${source.document.title}（副本）`))
+      projects.value.unshift(remote)
+      return remote
+    } catch (error) {
+      remoteError.value = error instanceof Error ? error.message : '复制项目失败'
+      throw error
+    }
+  }
+
   function removeProject(projectId: string): void {
     projects.value = projects.value.filter((project) => project.id !== projectId)
+  }
+
+  async function removeProjectRemote(projectId: string): Promise<void> {
+    if (!REMOTE_ID_PATTERN.test(projectId)) {
+      removeProject(projectId)
+      return
+    }
+    try {
+      await removeProjectApi(projectId)
+      removeProject(projectId)
+    } catch (error) {
+      remoteError.value = error instanceof Error ? error.message : '删除项目失败'
+      throw error
+    }
   }
 
   return {
@@ -419,6 +459,8 @@ export const useProjectStore = defineStore('projects', () => {
     publishProject,
     unpublishProject,
     duplicateProject,
+    duplicateProjectRemote,
     removeProject,
+    removeProjectRemote,
   }
 })

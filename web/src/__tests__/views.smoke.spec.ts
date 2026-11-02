@@ -6,10 +6,11 @@ import App from '@/App.vue'
 import { appRoutes } from '@/router'
 
 const cases = [
-  { path: '/', selector: '.landing-page', text: '更快被看见' },
+  { path: '/', selector: '.landing-page', text: '让校园活动，更快被看见' },
   { path: '/projects', selector: '.studio-dashboard', text: '项目工作台' },
   { path: '/projects/new', selector: '.studio-create', text: '把一个想法变成活动页面' },
   { path: '/templates', selector: '.templates-page', text: '模板灵感' },
+  { path: '/ai', selector: '.ai-page', text: '开始 AI 活动创作' },
   { path: '/campus', selector: '.campus-page', text: '校园活动' },
   { path: '/profile', selector: '.account-page', text: '个人资料' },
   { path: '/settings', selector: '.settings-page', text: '偏好设置' },

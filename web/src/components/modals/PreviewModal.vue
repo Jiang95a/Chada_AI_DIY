@@ -47,9 +47,9 @@ function onSubmit(): void {
   const success = doc.value.pages.find((item) => item.role === 'success')
   if (success) {
     pageId.value = success.id
-    toast.pushToast('提交成功（本地演示，数据不会真的上传）', 'success')
+    toast.pushToast('表单校验通过（预览模式，报名数据未提交）', 'success')
   } else {
-    toast.pushToast('提交成功（这个项目还没有「成功页」）', 'warn')
+    toast.pushToast('表单校验通过（这个项目还没有「成功页」）', 'warn')
   }
 }
 
@@ -83,7 +83,7 @@ function onKey(event: KeyboardEvent): void {
             <span class="pv__logo"><Icon name="phone" :size="14" /></span>
             <div>
               <p class="pv__title">{{ doc.title }}</p>
-              <p class="pv__sub">参与者视角 · 真机尺寸预览</p>
+              <p class="pv__sub">参与者视角 · 编辑器本地预览</p>
             </div>
           </div>
 
@@ -129,7 +129,7 @@ function onKey(event: KeyboardEvent): void {
           </div>
         </div>
 
-        <p class="pv__hint">按钮可以点，表单可以填，提交会跳到「成功页」；数据不会真的上传（后端还没接）。</p>
+        <p class="pv__hint">这是编辑器预览，只检查页面和表单交互，不会写入报名数据；真实报名请发布后从公开链接进入。</p>
       </div>
     </Transition>
   </Teleport>

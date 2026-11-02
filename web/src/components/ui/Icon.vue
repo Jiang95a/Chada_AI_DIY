@@ -55,6 +55,8 @@ const ICONS: Record<string, string> = {
   radio: '<circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="3.2" fill="currentColor" stroke="none"/>',
   checkbox: '<rect x="3.6" y="3.6" width="16.8" height="16.8" rx="3.4"/><path d="M7.8 12.2l2.8 2.8 5.6-6"/>',
   divider: '<path d="M3 12h18"/><path d="M7 6.4h10M7 17.6h10" opacity=".38"/>',
+  calendar:
+    '<rect x="3.5" y="5" width="17" height="15" rx="2.3"/><path d="M7.5 3v4M16.5 3v4M3.5 9.5h17M8 13h2M14 13h2M8 16.5h2M14 16.5h2"/>',
   clock: '<circle cx="12" cy="12" r="8.4"/><path d="M12 7.4V12l3.1 2"/>',
   alert: '<path d="M12 3.6l8.8 15.4H3.2z"/><path d="M12 9.2v4.4M12 16.4v.4"/>',
   check: '<path d="M4.6 12.6l5 5 9.8-10.4"/>',
