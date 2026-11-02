@@ -74,6 +74,16 @@ public interface AiMapper {
     @Select("SELECT " + PROPOSAL_COLUMNS + " FROM ai_proposals WHERE id = #{id} LIMIT 1")
     AiProposalEntity findProposal(@Param("id") String id);
 
+    /**
+     * 按 job 反查提案。
+     *
+     * <p>insert 之后要拿到完整实体（created_at 等由库填的列），最稳的做法是按刚刚插入的主键回查；
+     * 但调用方手里常常只有 jobId，所以单独给一个按 job 查的入口 ——
+     * 原来错用 {@link #findProposal} 传 jobId 会查不到、返回 null 再 NPE。
+     */
+    @Select("SELECT " + PROPOSAL_COLUMNS + " FROM ai_proposals WHERE job_id = #{jobId} LIMIT 1")
+    AiProposalEntity findProposalByJobId(@Param("jobId") String jobId);
+
     @Update("""
             UPDATE ai_proposals
                SET status = 'applied',

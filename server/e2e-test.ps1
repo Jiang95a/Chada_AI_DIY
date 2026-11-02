@@ -579,6 +579,159 @@ try {
     if (Test-Path $tmpPng) { Remove-Item $tmpPng -Force }
 }
 
+# ============================================================================
+# 19. AI Proposal 链路（队友反馈：agent 返回缺 id 的稿子时，应用会 422）
+#
+# 这一段不需要真的 agent 在线：它直接测「后端拿到畸形候选稿之后的行为」。
+#   - agent 不在线 → /ai/generate 必须 503（降级），不能 500
+#   - 手工往库里塞一条缺 id 的「遗留提案」→ apply 时后端要能自动补齐再落库
+# 真正跑通「模型长什么样」的验证见 docs/frontend-backend-handoff.md。
+# ============================================================================
+Write-Host "`n===== 19. AI Proposal 链路 =====" -ForegroundColor Cyan
+
+$r = Hit 'POST' '/projects' @{ title = 'AI 链路验收项目'; templateId = $tplId } $token
+Check 'POST /projects（AI 链路用）' $r.code 200
+$aiProj = ($r.body | ConvertFrom-Json).data
+$pidAi = $aiProj.id
+$revAi = [int]$aiProj.draftRevision
+
+$r = Hit 'POST' "/ai/projects/$pidAi/generate" @{
+    prompt           = '帮我做一个摄影社秋季招新页面'
+    baseRevision     = $revAi
+    clientRequestId  = "e2e-$(Get-Random)"
+} $token
+# agent 未启动时必须 503（能用模板兜底），不能是 500 把前端打挂
+if ($r.code -eq 200) {
+    Write-Host "  [INFO] agent 在线，生成成功，继续验证提案内容" -ForegroundColor Yellow
+    $prop = ($r.body | ConvertFrom-Json).data
+    $doc = $prop.candidateDocument
+    $allHaveId = $true
+    foreach ($pg in $doc.pages) {
+        if (-not $pg.id) { $allHaveId = $false }
+        foreach ($b in $pg.blocks) { if (-not $b.id) { $allHaveId = $false } }
+    }
+    if ($allHaveId) {
+        Write-Host "  [PASS] 候选稿的每个 page/block 都有 id（应用时不会 422）" -ForegroundColor Green
+        $pass++
+    } else {
+        Write-Host "  [FAIL] 候选稿里仍有缺 id 的 page/block" -ForegroundColor Red
+        $fail++
+    }
+    if ($prop.summary) {
+        Write-Host "  [PASS] summary 说明变更：$($prop.summary)" -ForegroundColor Green
+        $pass++
+    } else {
+        Write-Host "  [FAIL] summary 为空，前端没东西可提示" -ForegroundColor Red
+        $fail++
+    }
+    if ($null -ne $prop.operations -and $prop.operations.Count -gt 0) {
+        Write-Host "  [PASS] operations 带撤销方案（op=$($prop.operations[0].op)）" -ForegroundColor Green
+        $pass++
+    } else {
+        Write-Host "  [FAIL] operations 为空，前端无法做撤销" -ForegroundColor Red
+        $fail++
+    }
+} elseif ($r.code -eq 503) {
+    Write-Host "  [PASS] agent 不在线时 /ai/generate 返回 503（前端可退到本地模板）" -ForegroundColor Green
+    $pass++
+} else {
+    Write-Host "  [FAIL] /ai/generate 期望 503 或 200，实际 $($r.code)：$($r.body)" -ForegroundColor Red
+    $fail++
+}
+
+# 直接构造一条「老数据」：候选稿是缺 id 的 DocPlan（正是队友截图里说的 422 场景）
+#
+# 注意：SQL 必须写进临时文件再 source，不能走 -e "..."。
+# 从 PowerShell 传 -e 时，内层单引号会被吃掉，CAST('{"title":"老数据缺 id",...}' AS JSON)
+# 变成 CAST('' AS JSON)，MySQL 报 ERROR 3141，被 2>$null 一吞就变成「提案不存在 404」。
+$mysqlExe = 'D:\MySQL\MySQL Server 8.0\bin\mysql.exe'
+if (Test-Path $mysqlExe) {
+    function Invoke-MySql($sqlText) {
+        $f = Join-Path $env:TEMP ("e2e_" + [guid]::NewGuid().ToString('N') + ".sql")
+        [System.IO.File]::WriteAllText($f, $sqlText, (New-Object System.Text.UTF8Encoding($false)))
+        # 2>&1 会把 stderr 并进管道，所以函数返回的是「输出对象」而不是退出码。
+        # 必须先用变量接住输出、再单独取 $LASTEXITCODE 返回，否则调用方拿到的是 stderr 文本。
+        $out = & $mysqlExe --default-character-set=utf8mb4 -ucampus_app -pCampus_2026 campus_diy -e "source $f" 2>&1
+        $code = $LASTEXITCODE
+        Remove-Item $f -ErrorAction SilentlyContinue
+        if ($code -ne 0) { Write-Host ("    mysql: " + ($out -join ' ')) -ForegroundColor DarkGray }
+        return $code
+    }
+
+    $realJob = (& $mysqlExe -ucampus_app -pCampus_2026 campus_diy -N -B -e "SELECT id FROM ai_jobs WHERE project_id='$pidAi' ORDER BY created_at DESC LIMIT 1;" 2>$null)
+    $realJob = ("$realJob").Trim()
+    if (-not $realJob) {
+        # agent 离线时没有 job，伪造一个满足外键的
+        $realJob = [guid]::NewGuid().ToString()
+        $insJob = "INSERT INTO ai_jobs (id, project_id, user_id, kind, status, input_payload, started_at) " +
+                  "SELECT '$realJob', '$pidAi', owner_id, 'generate_from_prompt', 'succeeded', JSON_OBJECT(), NOW() FROM projects WHERE id='$pidAi';"
+        $rc = Invoke-MySql $insJob
+        if ($rc -ne 0) { Write-Host "  [WARN] 伪造 ai_jobs 失败 rc=$rc" -ForegroundColor Yellow }
+    }
+    $dirtyId = [guid]::NewGuid().ToString()
+    $candidate = '{"title":"老数据缺 id","pages":[{"role":"home","blocks":[{"type":"banner","props":{"title":"没有 id 的横幅"}},{"type":"text","props":{"text":"这一条正是会触发 422 的形状"}}]}]}'
+    $insProp = "INSERT INTO ai_proposals (id, job_id, project_id, base_revision, target, summary, candidate_document, operations, rationale, risk, status) " +
+               "VALUES ('$dirtyId','$realJob','$pidAi',$revAi,JSON_OBJECT(),'遗留脏提案',CAST('$candidate' AS JSON),JSON_ARRAY(),JSON_ARRAY(),'medium','proposed');"
+    $rc = Invoke-MySql $insProp
+    if ($rc -ne 0) { Write-Host "  [WARN] 插入遗留脏提案失败 rc=$rc（后面的用例会跟着 404）" -ForegroundColor Yellow }
+
+    $r = Hit 'GET' "/ai/proposals/$dirtyId" $null $token
+    Check 'GET /ai/proposals/{id}（遗留脏提案可读）' $r.code 200
+
+    # 应用遗留脏提案：后端应自动补齐 id 后成功，而不是 422
+    $r = Hit 'POST' "/ai/proposals/$dirtyId/apply" @{ baseRevision = $revAi } $token
+    if ($r.code -eq 200) {
+        $applied = ($r.body | ConvertFrom-Json).data
+        $pg0 = $applied.document.pages[0]
+        $hasIds = ($pg0.id -and $pg0.blocks[0].id -and $pg0.blocks[1].id)
+        if ($hasIds) {
+            Write-Host "  [PASS] 脏提案被自动补齐 id 后应用成功（revision=$($applied.revision)）" -ForegroundColor Green
+            $pass++
+        } else {
+            Write-Host "  [FAIL] 应用成功但仍缺 id" -ForegroundColor Red
+            $fail++
+        }
+        $revAi = [int]$applied.revision
+    } else {
+        Write-Host "  [FAIL] 脏提案应用失败：期望 200，实际 $($r.code)：$($r.body)" -ForegroundColor Red
+        $fail++
+    }
+
+    # 已应用过的提案再应用一次 → 409
+    $r = Hit 'POST' "/ai/proposals/$dirtyId/apply" @{ baseRevision = $revAi } $token
+    Check 'POST apply（重复应用）应 409' $r.code 409
+
+    # 过期 baseRevision → 409
+    $r = Hit 'GET' "/projects/$pidAi/draft" $null $token
+    $curRev = [int]($r.body | ConvertFrom-Json).data.revision
+    $staleId = [guid]::NewGuid().ToString()
+    $insStale = "INSERT INTO ai_proposals (id, job_id, project_id, base_revision, target, summary, candidate_document, operations, rationale, risk, status) " +
+                "VALUES ('$staleId','$realJob','$pidAi',$curRev,JSON_OBJECT(),'过期提案',CAST('$candidate' AS JSON),JSON_ARRAY(),JSON_ARRAY(),'medium','proposed');"
+    $rc = Invoke-MySql $insStale
+    if ($rc -ne 0) { Write-Host "  [WARN] 插入过期提案失败 rc=$rc" -ForegroundColor Yellow }
+    $r = Hit 'POST' "/ai/proposals/$staleId/apply" @{ baseRevision = ($curRev - 1) } $token
+    Check 'POST apply（baseRevision 过期）应 409' $r.code 409
+
+    # 经过 repair 的文档，用户写的内容和颜色不能被改坏
+    $r = Hit 'GET' "/projects/$pidAi/draft" $null $token
+    $finalDoc = ($r.body | ConvertFrom-Json).data.document
+    $b0 = $finalDoc.pages[0].blocks[0]
+    $b1 = $finalDoc.pages[0].blocks[1]
+    $okTitle = ($b0.props.title -eq '没有 id 的横幅')
+    $okText = ($b1.props.text -eq '这一条正是会触发 422 的形状')
+    $theme = $finalDoc.theme
+    $hasTheme = ($theme.primary -and $theme.bg -and $theme.text -and $theme.accent)
+    if ($okTitle -and $okText -and $hasTheme) {
+        Write-Host "  [PASS] 自动补齐不丢内容：标题/正文原样保留，theme 四色齐全" -ForegroundColor Green
+        $pass++
+    } else {
+        Write-Host "  [FAIL] 补齐后内容被改坏：title=$okTitle text=$okText theme=$hasTheme" -ForegroundColor Red
+        $fail++
+    }
+} else {
+    Write-Host "  [SKIP] 没找到 mysql.exe，跳过「遗留脏提案」用例（不影响其他用例）" -ForegroundColor Yellow
+}
+
 Write-Host ("`n================ 汇总：PASS {0} / FAIL {1} ================" -f $pass, $fail) -ForegroundColor Yellow
 if ($fail -eq 0) { Write-Host "全部通过" -ForegroundColor Green } else { Write-Host "有失败项，见上面 [FAIL]" -ForegroundColor Red }
 exit $(if ($fail -eq 0) { 0 } else { 1 })

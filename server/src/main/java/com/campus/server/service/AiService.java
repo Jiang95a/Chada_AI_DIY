@@ -10,6 +10,7 @@ import com.campus.server.security.CurrentUser;
 import com.campus.server.support.Ids;
 import com.campus.server.support.JsonUtil;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ import org.springframework.web.client.RestClientException;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,6 +45,12 @@ public class AiService {
 
     @Autowired
     private ProjectService projectService;
+
+    @Autowired
+    private DocumentRepair documentRepair;
+
+    @Autowired
+    private com.campus.server.common.PageDocumentValidator documentValidator;
 
     public AiService(AiMapper aiMapper, RestClient agentRestClient) {
         this.aiMapper = aiMapper;
@@ -136,13 +144,13 @@ public class AiService {
     public Dtos.AiProposalDto generateFromPrompt(String projectId, String prompt,
                                                  long baseRevision, String clientRequestId) {
         String userId = CurrentUser.require().userId();
-        projectService.loadOwned(projectId);
+        ProjectEntity project = projectService.loadOwned(projectId);
 
         // 同一次点击重发（前端连点、网络重试）直接返回原来那条提案
         if (clientRequestId != null && !clientRequestId.isBlank()) {
             AiJobEntity done = aiMapper.findLatestJobByClientRequest(userId, clientRequestId);
             if (done != null && "succeeded".equals(done.getStatus())) {
-                AiProposalEntity existing = aiMapper.findProposal(done.getId());
+                AiProposalEntity existing = aiMapper.findProposalByJobId(done.getId());
                 if (existing != null) {
                     return toProposalDto(existing);
                 }
@@ -166,6 +174,8 @@ public class AiService {
         aiMapper.insertJob(job);
 
         JsonNode document;
+        DocumentRepair.RepairResult repaired;
+        List<String> repairNotes;
         try {
             JsonNode reply = chat(prompt, null, PLAN_SYSTEM_EXTRA);
             String text = reply.path("reply").asText("");
@@ -176,14 +186,37 @@ public class AiService {
                         com.campus.server.common.ErrorCode.AGENT_UNAVAILABLE,
                         "智能体这次没给出可用的结构，请重试或改用手动搭建");
             }
+            // agent 产出的是「DocPlan」：页面和组件都没有 id，也没有 slug/theme/meta 兜底字段。
+            // 原样存进去的话，用户点「采用」会被 schema 校验拦成 422 —— 所以入库前先修成完整 PageDocument。
+            repaired = documentRepair.repair(document, project == null ? null : project.getTitle(),
+                    project == null ? null : project.getPublicSlug());
+            if (repaired == null) {
+                markFailed(job.getId(), "DOCUMENT", "智能体返回的页面结构里没有任何可用页面");
+                throw new com.campus.server.common.BizException(
+                        com.campus.server.common.ErrorCode.AGENT_UNAVAILABLE,
+                        "智能体这次没给出可用的页面结构，请重试或改用手动搭建");
+            }
+            document = repaired.document();
+            repairNotes = repaired.notes();
+            if (!repairNotes.isEmpty()) {
+                log.info("AI 候选稿已自动修复 {} 处：{}", repairNotes.size(), repairNotes);
+            }
+            // 修完还必须过一遍 schema —— 修复器不吞错，修不好就在这里变成 503，
+            // 而不是存进 ai_proposals 等到 apply 时才 422（那是队友反馈的原始问题）。
+            documentValidator.validateOrThrow(document);
         } catch (com.campus.server.common.BizException ex) {
-            // chat() 抛的 503 需要在 job 上留痕；格式错误上面已经记过了
-            if (ex.getCode() == com.campus.server.common.ErrorCode.AGENT_UNAVAILABLE
-                    && !"FORMAT".equals(lastErrorCode)) {
+            // 格式错误上面已经记过了，这里统一在 catch 里留痕
+            if (ex.getCode() == com.campus.server.common.ErrorCode.AGENT_UNAVAILABLE) {
                 markFailed(job.getId(), com.campus.server.common.ErrorCode.AGENT_UNAVAILABLE.name(),
                         ex.getMessage());
             }
             throw ex;
+        } catch (Exception ex) {
+            markFailed(job.getId(), "DOCUMENT", "候选稿校验未通过: " + ex.getMessage());
+            log.warn("AI 候选稿修复后仍无法通过校验: {}", ex.getMessage());
+            throw new com.campus.server.common.BizException(
+                    com.campus.server.common.ErrorCode.AGENT_UNAVAILABLE,
+                    "智能体返回的页面结构不完整，已尝试自动修复但仍不可用，请重试或改用手动搭建");
         }
 
         aiMapper.updateJobResult(job.getId(), "succeeded", JsonUtil.toJson(document),
@@ -198,13 +231,27 @@ public class AiService {
         proposal.setProjectId(projectId);
         proposal.setBaseRevision(baseRevision);
         proposal.setTarget(target);
-        proposal.setSummary("AI 生成的页面候选稿");
+        // summary 直接告诉用户「这次会改动什么」，前端不需要自己也复制一份 diff 逻辑
+        String summary = documentRepair.diffSummary(project == null ? null : project.getDraftDocument(), document);
+        proposal.setSummary(repairNotes.isEmpty() ? summary : summary + "（服务端已自动补齐 " + repairNotes.size() + " 处结构）");
         proposal.setCandidateDocument(document);
+        // operations 存「采用后怎么撤回」——前端撤销时按它回滚，而不是让用户自己找历史版本
+        proposal.setOperations(buildUndoOperations(project, document, baseRevision));
+        proposal.setRationale(repairNotes.isEmpty()
+                ? JsonUtil.mapper().createArrayNode()
+                : JsonUtil.mapper().valueToTree(repairNotes));
         proposal.setRisk("medium");
         proposal.setStatus("proposed");
         aiMapper.insertProposal(proposal);
 
-        return toProposalDto(aiMapper.findProposal(job.getId()));
+        AiProposalEntity saved = aiMapper.findProposal(proposal.getId());
+        if (saved == null) {
+            // 理论上不可能（insert 刚成功），但宁可报明确错误也不要把 NPE 抛给前端
+            throw new com.campus.server.common.BizException(
+                    com.campus.server.common.ErrorCode.INTERNAL_ERROR,
+                    "提案已生成但读取失败，请刷新项目后重试");
+        }
+        return toProposalDto(saved);
     }
 
     public Dtos.AiProposalDto getProposal(String proposalId) {
@@ -250,6 +297,26 @@ public class AiService {
             throw BizException.invalid("提案内容为空");
         }
 
+        // 兜底再修一次：老提案是修复器上线前生成的，里面仍是缺 id 的 DocPlan。
+        // 这一步保证「库里历史遗留的脏提案」也能被采用，而不是一路 422 把用户堵死。
+        DocumentRepair.RepairResult repaired = documentRepair.repair(candidate,
+                project.getTitle(), project.getPublicSlug());
+        if (repaired == null) {
+            throw BizException.invalid("提案里的页面结构已经损坏，无法采用，请重新生成");
+        }
+        candidate = repaired.document();
+        try {
+            documentValidator.validateOrThrow(candidate);
+        } catch (com.campus.server.common.BizException ex) {
+            log.warn("提案 {} 修复后仍不合法: {}", proposalId, ex.getMessage(), ex);
+            throw new com.campus.server.common.BizException(
+                    com.campus.server.common.ErrorCode.PAGE_DOCUMENT_INVALID,
+                    "提案内容不合法，无法应用：" + ex.getMessage());
+        }
+        if (!repaired.notes().isEmpty()) {
+            log.info("采用提案 {} 时补修 {} 处：{}", proposalId, repaired.notes().size(), repaired.notes());
+        }
+
         Dtos.SaveDraftRequest save = new Dtos.SaveDraftRequest(project.getDraftRevision(), candidate);
         projectService.saveDraft(project.getId(), save);
 
@@ -257,6 +324,44 @@ public class AiService {
         aiMapper.markApplied(proposalId, newRevision, CurrentUser.require().userId());
 
         return new Dtos.DraftDto(newRevision, candidate, Ids.nowIso());
+    }
+
+    /**
+     * 生成「怎么撤销这次采用」的说明，存进 {@code ai_proposals.operations}。
+     *
+     * <p>撤销不靠让用户自己翻历史版本，而是记下「恢复到哪一版 + 旧文档本体」，
+     * 前端拿着这段结构去 {@code PUT /draft} 就能一步撤回。
+     *
+     * <p><b>形状必须是数组</b>：{@code ai_proposals.operations} 上有
+     * {@code CHECK (json_type(operations) = 'ARRAY')}，写成对象会直接违反约束报 500。
+     * 数组元素是「操作」，以后要加别的操作（例如只回滚某一页）往数组里追加即可。
+     *
+     * <pre>
+     * [ { "op": "restore-draft", "fromRevision": 7, "toRevision": 8,
+     *     "pageCountBefore": 3, "pageCountAfter": 2, "document": {...} } ]
+     * </pre>
+     */
+    private JsonNode buildUndoOperations(ProjectEntity project, JsonNode candidate, long baseRevision) {
+        ArrayNode operations = JsonUtil.mapper().createArrayNode();
+        ObjectNode undo = JsonUtil.mapper().createObjectNode();
+        undo.put("op", "restore-draft");
+        undo.put("fromRevision", baseRevision);
+        undo.put("toRevision", baseRevision + 1);
+        undo.put("pageCountBefore", countPages(project == null ? null : project.getDraftDocument()));
+        undo.put("pageCountAfter", countPages(candidate));
+        undo.put("note", "撤回时把草稿恢复到 revision=" + baseRevision + " 即可，下面的 document 就是那一版的内容");
+        if (project != null && project.getDraftDocument() != null && !project.getDraftDocument().isNull()) {
+            undo.set("document", project.getDraftDocument());
+        }
+        operations.add(undo);
+        return operations;
+    }
+
+    private int countPages(JsonNode document) {
+        if (document == null || !(document.get("pages") instanceof com.fasterxml.jackson.databind.node.ArrayNode pages)) {
+            return 0;
+        }
+        return pages.size();
     }
 
     public Dtos.AiProposalDto toProposalDto(AiProposalEntity proposal) {
