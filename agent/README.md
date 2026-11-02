@@ -2,11 +2,11 @@
 
 FastAPI + LangChain + LangGraph。对话、工具调用、知识库检索（RAG）、海报理解（多模态）、MCP 协议、AI 护栏，六块都在这里。
 
-**当前状态：单元测试 98 条全过，离线自检 8/8，真模型与真视觉模型都实测过**（deepseek-chat 出方案、qwen3.8-max 读海报）。
+**当前状态：单元测试 136 条全过，离线自检 8/8，真模型与真视觉模型都实测过**（deepseek-chat 出方案、qwen3.8-max 读海报）。
 
 ```bash
 python selftest.py          # 不花钱，8 步验证
-python -m pytest tests -q   # 98 passed
+python -m pytest tests -q   # 136 passed
 ```
 
 ## 能力地图（答辩按这张表讲）
@@ -20,6 +20,7 @@ python -m pytest tests -q   # 98 passed
 | **MCP** | 自实现 JSON-RPC（零依赖）；stdio + HTTP 双传输，同一 dispatcher | `GET /mcp/manifest` | `app/mcp/` |
 | AI 安全 | 注入拦截 / 输出消毒 / 单 IP 限流 / 全量审计 | `GET /audit/logs` | `core/guard.py` |
 | 产品工具 | 出页面方案、校验方案、查报名数据（不编数字） | 工具调用 | `services/tools/planner.py` |
+| **PageDocument** | 出口就把方案补成完整文档（id / slug / theme / meta / 样式 / 按钮跳转），落库即可 apply | `POST /plan` | `services/page_document.py` |
 
 ## 启动
 
@@ -41,6 +42,7 @@ python selftest.py          # 不花钱
 |---|---|---|
 | POST | `/chat` | 一问一答。返回 `reply / tool_calls / rag_hits / flags / latency_ms` |
 | POST | `/chat/stream` | SSE 流式，每行 `data: {"delta": "..."}`，末尾 `data: [DONE]` |
+| POST | `/plan` | **直接产出一份完整的 PageDocument**（不调模型、可重复、能直接落库 apply） |
 | GET | `/chat/threads` | 最近的会话 id |
 | GET | `/chat/{thread_id}/history` | 某会话历史 |
 | DELETE | `/chat/{thread_id}` | 清空会话 |
@@ -54,6 +56,39 @@ python selftest.py          # 不花钱
 | GET | `/health` | 探活 + 能力开关（vision/rag/guard 是否就绪） |
 
 错误码：`422` 入参/图片不合法；`429` 被限流；`502` 模型异常；`503` 没配 key 或没配视觉模型（**前端据此降级**）。
+
+## PageDocument 怎么补（这一节解释「为什么不用后端兜底」）
+
+后端 `POST /ai/projects/{id}/generate` 会转调这里的 `/chat`，把 `reply` 里的 JSON
+原样存进 `ai_proposals`，用户点「采用」时才过 schema 校验。所以：
+
+**如果智能体只吐 DocPlan（页面和组件都没有 id，也没有 slug / theme / meta），
+用户点「采用」就会 422 —— 前端显示得好好的，一点就炸。**
+
+现在在**出口**就补齐（`services/page_document.py`）：
+
+| 补什么 | 从哪来 | 不补会怎样 |
+|---|---|---|
+| `id` / `slug` / `title` | 有就留，没有就生成；slug 逐条照抄后端 `Ids.slugify` | 缺 slug 发布链接算不出来 |
+| `theme` | 缺了用前端 DEFAULT_THEME | 页面变白底黑字的裸 HTML |
+| `meta` | 缺了给六个空字段 | `capacity` 读不到，报名上限失效 |
+| `page.id` / `block.id` | 有就留（**幂等**），没有才生成 | schema 的 required，缺了直接 422 |
+| `block.props` | 按 13 类受控组件逐个补默认值 | 编辑器属性面板读到 `undefined` |
+| `block.style.align` | 空串不在 enum 里 → 强制 `left` | **这一处就能把整份文档卡成 422** |
+| 按钮 `pageId` | 按 `targetRole` 找到真实页面 id | 前端预览能点，落库后点了没反应 |
+| `hidden` / `createdAt` / `published` | 补默认值 | 前端渲染时字段缺失 |
+
+两条硬性质：
+
+1. **幂等**：一份已经完整的文档再过一遍，id 一个都不变。否则重新生成会换掉 page id，
+   按钮跳转和已发出的二维码全部失联。
+2. **自检**：产出前按 `page-document.schema.json` 自己校一遍，不合法就不出门
+   （`/plan` 直接 422 并列出哪几个字段不对；`/chat` 则原样返回模型的文本，不做破坏性替换）。
+
+顺带修掉的一个跨端 bug：`SYSTEM_EXTRA_MAX_CHARS` 原来是 300，
+而后端规划提示词有 435 字，被截掉的正是尾巴上 `block.type 只能是：nav, … countdown`
+那段白名单 —— 等于模型从来没收到过受控组件清单。现在上限是 1000，
+`tests/test_page_document.py` 里有一条回归测试盯着它。
 
 ## RAG 怎么工作
 

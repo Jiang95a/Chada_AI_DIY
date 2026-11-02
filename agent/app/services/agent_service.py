@@ -37,6 +37,7 @@ from app.schemas.chat_schema import ChatResponse, ToolCallTrace
 from app.services import audit
 from app.services.llm_client import build_llm
 from app.services.memory.chat_history import get_history
+from app.services.page_document import upgrade_reply
 from app.services.rag import knowledge_message
 from app.services.tools import ALL_TOOLS, TOOL_MAP
 
@@ -245,8 +246,21 @@ def chat(
 
     # 输出侧再过一遍：剥掉可执行标签、截断、检查有没有把系统提示词抄出来
     screened = screen_output(reply)
-    reply = screened.text or reply
+    if screened.text:
+        reply = screened.text
+    elif screened.flags:
+        # 整段都被消毒掉了。此时**绝对不能**回退到 reply ——
+        # 那等于把没消过毒的原文原样吐回去，护栏就白装了。
+        reply = "（这段回复里有不允许的内容，已被拦截。换个说法再问一次。）"
     flags.extend(screened.flags)
+
+    # 模型这一轮如果给的是一份页面方案（DocPlan），在这里就补成完整 PageDocument。
+    # 后端的 /ai/projects/{id}/generate 会把 reply 原样解析后存进 ai_proposals；
+    # 缺 id / slug / theme / meta 的话，用户点「采用」时会被 schema 校验打回 422。
+    # 不是方案的回复（普通问答）原样返回，一个字都不动。
+    reply, document_notes, document = upgrade_reply(reply)
+    if document_notes:
+        logger.info("本轮回复已补齐为完整 PageDocument（%d 处）：%s", len(document_notes), document_notes)
 
     history.append(tid, "user", message)
     history.append(tid, "assistant", reply)
@@ -267,6 +281,7 @@ def chat(
         latency_ms=latency,
         flags=flags,
         rag_hits=rag_hits,
+        document=document,
     )
 
 

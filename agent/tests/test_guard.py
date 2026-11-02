@@ -42,8 +42,13 @@ def test_empty_extra_is_empty():
 
 
 def test_long_extra_is_truncated():
-    result = sanitize_system_extra("很" * 2000)
-    assert len(result.text) <= 400
+    # 断言跟着配置走，别再写死成 400 这种数字：
+    # 上限从 300 提到 1000 是为了不截断后端 435 字的规划提示词（见 config.py 注释）。
+    from app.core.config import get_settings
+
+    limit = get_settings().system_extra_max_chars
+    result = sanitize_system_extra("很" * (limit * 2))
+    assert len(result.text) == limit
     assert "system_extra_truncated" in result.flags
 
 

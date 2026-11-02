@@ -78,7 +78,11 @@ class Settings(BaseSettings):
     # ---- AI 安全 ----
     guard_enabled: bool = True
     rate_limit_per_minute: int = 40     # 单 IP 每分钟最多几次 AI 调用
-    system_extra_max_chars: int = 300   # 客户端可控的附加要求，卡死上限
+    # 客户端可控的附加要求，卡死上限。
+    # 原值 300 会截断后端 AiService.PLAN_SYSTEM_EXTRA（实测 435 字）——
+    # 被截掉的正好是尾巴上「block.type 只能是：nav, banner, … countdown」那段白名单，
+    # 等于模型从来没收到过受控组件清单。上限对齐 schemas/chat_schema.py 的 max_length=1000。
+    system_extra_max_chars: int = 1000
 
     # ---- 数据库 ----
     # sqlite：零依赖，开发与测试用；mysql：联调与部署用（需 pip install pymysql）

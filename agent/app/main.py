@@ -10,6 +10,7 @@ r"""FastAPI 入口。
 接口地图（答辩时按这个顺序讲）：
     POST /chat                     —— 主对话（带 RAG 检索 + 护栏 + 审计）
     POST /chat/stream              —— 同上，SSE 流式
+    POST /plan                     —— 直接产出一份完整的 PageDocument（不调模型）
     POST /poster/extract           —— 多模态：海报 -> 结构化活动信息
     POST /kb/search                —— RAG：检索命中了哪几块资料
     GET  /kb/stats                 —— 知识库里有几个文档、几块、几个场景
@@ -35,6 +36,7 @@ from app.routers import audit as audit_router
 from app.routers import chat as chat_router
 from app.routers import knowledge as kb_router
 from app.routers import mcp as mcp_router
+from app.routers import plan as plan_router
 from app.routers import vision as vision_router
 from app.schemas.chat_schema import HealthResponse
 from app.services.rag import store as kb_store
@@ -122,6 +124,7 @@ app.add_middleware(
 )
 
 app.include_router(chat_router.router)
+app.include_router(plan_router.router)
 app.include_router(vision_router.router)
 app.include_router(kb_router.router)
 app.include_router(mcp_router.router)
@@ -150,6 +153,7 @@ def index() -> dict:
             "POST /chat",
             "POST /chat/stream",
             "GET /chat/{thread_id}/history",
+            "POST /plan",
             "POST /poster/extract",
             "POST /kb/search",
             "GET /kb/stats",
