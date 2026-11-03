@@ -11,23 +11,23 @@ import type { Doc } from '@/types/editor'
 
 const EXAMPLES = [
   {
-    title: '社团招新',
-    prompt: '摄影社 2026 秋季招新，11月8日晚7点在三教402面试，招60人',
+    title: '心理社团招新',
+    prompt: '心屿心理协会秋季招新，包含社团介绍、活动方向和报名表',
     icon: 'users',
   },
   {
-    title: '活动报名',
-    prompt: '周五晚上校园荧光夜跑，3公里，报名送手环',
+    title: '心晴游园会',
+    prompt: '考试周心晴游园会，设置五个解压互动摊位，需要匿名报名',
     icon: 'calendar',
   },
   {
-    title: '投票评选',
-    prompt: '校园歌手大赛人气投票，全校师生都能投，每人一票',
+    title: '心理知识问答',
+    prompt: '做一次心理健康知识问答，完成后给出科普反馈，不做心理诊断',
     icon: 'check-circle',
   },
   {
-    title: '每日打卡',
-    prompt: '21 天阅读打卡挑战，每天 24:00 前提交',
+    title: '自我关怀打卡',
+    prompt: '21 天自我关怀打卡，每天完成一个轻量练习并记录一句感受',
     icon: 'clock',
   },
 ]
@@ -76,11 +76,11 @@ function useExample(text: string): void {
 }
 
 function guessType(text: string): string {
-  if (/招新|纳新|招募/.test(text)) return '社团招新'
-  if (/投票|评选|人气/.test(text)) return '投票评选'
-  if (/打卡|坚持|自律/.test(text)) return '每日打卡'
-  if (/报名|讲座|比赛|夜跑|分享会/.test(text)) return '活动报名'
-  return '校园活动'
+  if (/招新|纳新|心理社团/.test(text)) return '心理社团'
+  if (/问答|知识|科普/.test(text)) return '心理知识问答'
+  if (/打卡|关怀|练习/.test(text)) return '自我关怀'
+  if (/游园|团辅|报名|分享|讲座/.test(text)) return '心晴活动'
+  return '心理活动'
 }
 
 async function generate(): Promise<void> {
@@ -122,7 +122,7 @@ async function generate(): Promise<void> {
       }
     }
 
-    step.value = '正在匹配校园活动模板…'
+    step.value = '正在匹配心晴活动模板…'
     const local = localDoc(text)
     result.value = {
       doc: local.doc,
@@ -176,8 +176,8 @@ onMounted(async () => {
       <header class="ai-page-heading">
         <div>
           <p class="eyebrow">AI Activity Builder</p>
-          <h1>开始 AI 活动创作</h1>
-          <p>描述活动需求，AI 会规划页面、组件和报名流程，生成后继续进入编辑器自由调整。</p>
+          <h1>让 AI 一起构思心晴活动</h1>
+          <p>描述活动对象、参与方式和需要收集的信息，AI 会规划页面、组件与安心参与流程。</p>
         </div>
         <div :class="`ai-status is-${status}`"><i />{{ statusLabel }}</div>
       </header>
@@ -187,14 +187,14 @@ onMounted(async () => {
           <header class="ai-builder-intro">
             <span class="ai-builder-icon"><Icon name="spark" :size="22" /></span>
             <div>
-              <span>AI CAMPUS CREATOR</span>
-              <h2>从一个活动想法开始</h2>
-              <p>可以直接描述需求，也可以先选择一个校园活动场景。</p>
+              <span>AI WELLBEING CREATOR</span>
+              <h2>从一场心晴活动开始</h2>
+              <p>可以直接描述需求，也可以先选择一个心理社团常用场景。</p>
             </div>
           </header>
 
           <div class="ai-section-label">
-            <span>常用场景</span>
+            <span>心晴场景</span>
             <small>点击后填入示例，不会创建项目</small>
           </div>
           <div class="ai-scene-grid">
@@ -210,7 +210,7 @@ onMounted(async () => {
 
           <div class="ai-section-label ai-section-label--composer">
             <span>活动需求</span>
-            <small>建议写明时间、地点、参与方式和需要收集的信息</small>
+            <small>建议写明活动对象、参与方式、隐私范围和需要收集的信息</small>
           </div>
           <div class="ai-composer">
             <textarea
@@ -218,7 +218,7 @@ onMounted(async () => {
               v-model="prompt"
               rows="5"
               maxlength="1000"
-              placeholder="例如：做一个摄影社秋季招新页，要有社团介绍、部门展示和报名表，整体风格温暖、有胶片感…"
+              placeholder="例如：做一个考试周心晴游园会页面，要有活动介绍、摊位安排、匿名报名和保密说明，整体风格温柔、安静…"
               @keydown.ctrl.enter.prevent="generate"
               @keydown.meta.enter.prevent="generate"
             />
@@ -227,9 +227,9 @@ onMounted(async () => {
               <span>{{ prompt.length }} / 1000</span>
             </div>
             <div class="ai-composer-actions">
-              <RouterLink to="/templates"><Icon name="grid" :size="15" />改用手动模板</RouterLink>
+              <RouterLink to="/templates"><Icon name="grid" :size="15" />改用心晴模板</RouterLink>
               <button type="button" :disabled="busy" @click="generate">
-                <Icon name="spark" :size="17" />{{ busy ? '正在生成…' : '生成活动页面' }}
+                <Icon name="spark" :size="17" />{{ busy ? '正在生成…' : '生成心晴活动页' }}
               </button>
             </div>
           </div>
@@ -245,23 +245,23 @@ onMounted(async () => {
             <ol>
               <li>
                 <b>01</b>
-                <div><strong>规划页面结构</strong><small>首页、介绍、表单和成功页</small></div>
+                <div><strong>规划安心参与流程</strong><small>活动介绍、参与说明、表单和确认页</small></div>
               </li>
               <li>
                 <b>02</b>
-                <div><strong>匹配校园组件</strong><small>标题、图片、报名表、按钮等</small></div>
+                <div><strong>匹配合适组件</strong><small>活动信息、保密提示、参与表和按钮</small></div>
               </li>
               <li>
                 <b>03</b>
-                <div><strong>生成可编辑草稿</strong><small>进入编辑器后继续修改和发布</small></div>
+                <div><strong>生成可编辑草稿</strong><small>进入页面工坊继续修改和发布</small></div>
               </li>
             </ol>
           </article>
           <article class="ai-guide-note">
             <Icon name="wand" :size="18" />
             <div>
-              <strong>模型不可用时也能继续</strong>
-              <p>本地规则会提供一套可编辑方案，避免演示或联调被网络中断卡住。</p>
+              <strong>不做心理判断，只帮助组织活动</strong>
+              <p>AI 只生成页面与文案建议，不进行心理诊断，也不替组织者判断参与者的心理状态。</p>
             </div>
           </article>
         </aside>

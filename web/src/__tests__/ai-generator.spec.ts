@@ -7,7 +7,7 @@ import { appRoutes } from '@/router'
 
 /**
  * 这两个功能是「点了有没有反应」型的，光看代码不算数，得真挂载一次：
- *   1. 模板灵感 —— 从死锚点改成真路由，页面上要真有 4 张模板卡
+ *   1. 心晴模板 —— 从死锚点改成真路由，页面上要真有 4 张模板卡
  *   2. AI 生成 —— 左侧栏按钮要进入独立的全屏生成页
  */
 
@@ -22,7 +22,7 @@ async function mountAt(path: string) {
   return wrapper
 }
 
-describe('模板灵感与 AI 生成页面', () => {
+describe('心晴模板与 AI 生成页面', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
     localStorage.clear()
@@ -43,7 +43,7 @@ describe('模板灵感与 AI 生成页面', () => {
     wrapper.unmount()
   })
 
-  it('左侧栏「模板灵感」是真链接，不是死锚点', async () => {
+  it('左侧栏「心晴模板」是真链接，不是死锚点', async () => {
     const wrapper = await mountAt('/projects')
     const hrefs = wrapper.findAll('a.workspace-nav-item').map((node) => node.attributes('href'))
     expect(hrefs).toContain('/templates')
@@ -61,7 +61,7 @@ describe('模板灵感与 AI 生成页面', () => {
     await flushPromises()
 
     expect(wrapper.find('.ai-page').exists()).toBe(true)
-    expect(wrapper.text()).toContain('开始 AI 活动创作')
+    expect(wrapper.text()).toContain('让 AI 一起构思心晴活动')
 
     wrapper.unmount()
   })
@@ -72,7 +72,7 @@ describe('模板灵感与 AI 生成页面', () => {
     expect(scenes.length).toBe(4)
 
     await scenes[0]!.trigger('click')
-    expect((wrapper.find('.ai-composer textarea').element as HTMLTextAreaElement).value).toContain('摄影社')
+    expect((wrapper.find('.ai-composer textarea').element as HTMLTextAreaElement).value).toContain('心屿心理协会')
 
     wrapper.unmount()
   })

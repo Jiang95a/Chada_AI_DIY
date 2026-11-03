@@ -62,7 +62,7 @@ export function mapProject(dto: ApiProjectDto): ProjectApiRecord {
   return {
     id: dto.id,
     title: dto.title,
-    activityType: dto.activityType ?? dto.type ?? '校园活动',
+    activityType: dto.activityType ?? dto.type ?? '心理活动',
     status: dto.status ?? 'draft',
     coverTone: dto.coverTone ?? 'photo',
     coverCode: dto.coverCode ?? 'ACTIVITY',

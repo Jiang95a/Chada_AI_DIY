@@ -24,16 +24,47 @@ const workspaceName = computed(() => currentWorkspace.value.name)
 const workspaceType = computed(() => currentWorkspace.value.type)
 const workspaceAvatar = computed(() => currentWorkspace.value.avatar)
 
-const notifications = [
-  { title: '摄影社招新收到 126 份报名', detail: '活动状态正常，报名截止时间为 11 月 1 日', time: '刚刚' },
-  { title: '校园歌手投票页面已发布', detail: '可以复制链接或下载二维码分享给同学', time: '2 小时前' },
+const NOTIFICATION_READ_KEY = 'diy-campus:notifications-read:v1'
+
+function restoreReadNotifications(): Set<string> {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(NOTIFICATION_READ_KEY) ?? '[]') as unknown
+    return new Set(Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : [])
+  } catch {
+    return new Set()
+  }
+}
+
+const readNotificationIds = restoreReadNotifications()
+const notifications = ref([
+  {
+    id: 'recruit-submissions',
+    title: '心晴游园会收到新的报名',
+    detail: '前往参与数据查看最新报名与活动状态',
+    time: '刚刚',
+    target: '/published',
+    read: readNotificationIds.has('recruit-submissions'),
+  },
+  {
+    id: 'vote-published',
+    title: '心理知识问答页面已发布',
+    detail: '可以打开心理活动广场查看公开活动',
+    time: '2 小时前',
+    target: '/campus',
+    read: readNotificationIds.has('vote-published'),
+  },
+])
+const unreadNotificationCount = computed(() => notifications.value.filter((item) => !item.read).length)
+
+const serviceNavItems = [
+  { href: '/projects', label: '运营概览', icon: 'home' },
+  { href: '/campus', label: '心理活动', icon: 'pin' },
+  { href: '/published', label: '参与数据', icon: 'chart' },
 ]
 
-const navItems = [
-  { href: '/projects', label: '项目工作台', icon: 'home' },
-  { href: '/campus', label: '校园活动', icon: 'pin' },
-  { href: '/projects/new', label: '新建活动', icon: 'plus' },
-  { href: '/templates', label: '模板灵感', icon: 'grid' },
+const toolNavItems = [
+  { href: '/projects/new', label: '页面工坊', icon: 'plus' },
+  { href: '/templates', label: '心晴模板', icon: 'grid' },
 ]
 
 const isActive = computed(() => (href: string) => {
@@ -46,37 +77,24 @@ const isActive = computed(() => (href: string) => {
 })
 
 const pageTitle = computed(() => {
-  if (route.path === '/projects') return '项目工作台'
-  if (route.path === '/campus') return '校园活动'
-  if (route.path === '/projects/new') return '新建活动'
-  if (route.path === '/templates') return '模板灵感'
-  if (route.path === '/ai') return 'AI 生成'
+  if (route.path === '/projects') return '运营概览'
+  if (route.path === '/published') return '参与数据'
+  if (route.path === '/campus') return '心理活动'
+  if (route.path === '/projects/new') return '页面工坊'
+  if (route.path === '/templates') return '心晴模板'
+  if (route.path === '/ai') return 'AI 心情助手'
   if (route.path === '/profile') return '个人资料'
   if (route.path === '/settings') return '偏好设置'
   if (route.path === '/help') return '帮助与反馈'
-  if (/^\/projects\/[^/]+\/(analytics|submissions|exports)$/.test(route.path)) return '项目数据'
-  if (route.path.startsWith('/editor')) return '页面编辑器'
-  if (route.path.startsWith('/p/')) return '活动预览'
-  return '工作台'
+  if (/^\/projects\/[^/]+\/(analytics|submissions|exports)$/.test(route.path)) return '活动数据'
+  if (route.path.startsWith('/editor')) return '页面工坊'
+  if (route.path.startsWith('/p/')) return '心理活动预览'
+  return '心屿工作台'
 })
 
 /** 左侧栏的「AI 生成」：进入独立的全屏创作页 */
 function openAiComposer(): void {
   void router.push('/ai')
-}
-
-/**
- * 「页面编辑器」原来硬编码指向 /editor/demo —— demo 早不是真项目 id 了，
- * 点进去后端直接 404。改成「打开最近编辑的项目」，没有项目就引导去新建。
- */
-function openLatestEditor(): void {
-  const latest = projectStore.projects[0]
-  if (!latest) {
-    toast.pushToast('还没有项目，先创建一个吧', 'warn')
-    void router.push('/projects/new')
-    return
-  }
-  void router.push(`/editor/${latest.id}`)
 }
 
 const displayName = computed(() => auth.user?.displayName || 'Huiyi')
@@ -132,6 +150,34 @@ function chooseWorkspace(id: string): void {
   toast.pushToast(`已切换到「${name}」`, 'success')
 }
 
+function openNotification(id: string): void {
+  const item = notifications.value.find((notification) => notification.id === id)
+  if (!item) return
+  item.read = true
+  persistNotificationReads()
+  showNotifications.value = false
+  void router.push(item.target)
+}
+
+function markAllNotificationsRead(): void {
+  notifications.value.forEach((item) => {
+    item.read = true
+  })
+  persistNotificationReads()
+  toast.pushToast('通知已全部标为已读', 'success')
+}
+
+function persistNotificationReads(): void {
+  try {
+    localStorage.setItem(
+      NOTIFICATION_READ_KEY,
+      JSON.stringify(notifications.value.filter((item) => item.read).map((item) => item.id))
+    )
+  } catch {
+    // 浏览器禁用本地存储时不阻断通知交互。
+  }
+}
+
 function onDocumentClick(event: MouseEvent): void {
   if (!rootRef.value?.contains(event.target as Node)) {
     showOrgMenu.value = false
@@ -162,11 +208,11 @@ onBeforeUnmount(() => {
 <template>
   <div ref="rootRef" class="workspace-layout studio-workspace">
     <aside class="workspace-sidebar">
-      <RouterLink class="workspace-brand" to="/" aria-label="返回青搭产品首页">
+      <RouterLink class="workspace-brand" to="/" aria-label="返回心屿同行首页">
         <span class="workspace-brand-mark"><span /><span /></span>
         <span class="workspace-brand-copy">
-          <strong>青搭</strong>
-          <small>AI DIY Studio</small>
+          <strong>心屿同行</strong>
+          <small>校园心理服务</small>
         </span>
       </RouterLink>
 
@@ -199,16 +245,27 @@ onBeforeUnmount(() => {
             >
             <Icon v-if="currentWorkspace.id === workspace.id" name="check" :size="14" />
           </button>
-          <button class="workspace-menu-footer" type="button" @click="showOrgMenu = false">
+          <RouterLink class="workspace-menu-footer" to="/settings#workspace" @click="showOrgMenu = false">
             <Icon name="sliders" :size="14" />管理工作空间
-          </button>
+          </RouterLink>
         </div>
       </div>
 
-      <nav class="workspace-nav" aria-label="工作台导航">
-        <span class="workspace-nav-label">工作空间</span>
+      <nav class="workspace-nav" aria-label="心屿工作台导航">
+        <span class="workspace-nav-label">心理服务</span>
         <RouterLink
-          v-for="item in navItems"
+          v-for="item in serviceNavItems"
+          :key="item.href"
+          class="workspace-nav-item"
+          :class="{ 'is-active': isActive(item.href) }"
+          :to="item.href"
+        >
+          <Icon :name="item.icon" :size="17" />
+          <span>{{ item.label }}</span>
+        </RouterLink>
+        <span class="workspace-nav-label workspace-nav-label--tools">创作工具</span>
+        <RouterLink
+          v-for="item in toolNavItems"
           :key="item.href"
           class="workspace-nav-item"
           :class="{ 'is-active': isActive(item.href) }"
@@ -224,12 +281,8 @@ onBeforeUnmount(() => {
           @click="openAiComposer"
         >
           <Icon name="wand" :size="17" />
-          <span>AI 生成</span>
+          <span>AI 心情助手</span>
           <em class="workspace-nav-badge">AI</em>
-        </button>
-        <button class="workspace-nav-item workspace-nav-item--button" type="button" @click="openLatestEditor">
-          <Icon name="layout" :size="17" />
-          <span>页面编辑器</span>
         </button>
       </nav>
 
@@ -251,9 +304,9 @@ onBeforeUnmount(() => {
             </button>
           </div>
           <strong>快速开始</strong>
-          <p>从模板创建活动，在编辑器中修改页面，然后预览并发布。</p>
+          <p>从心晴模板开始，在页面工坊中调整内容，再发布给同学参与。</p>
           <div class="workspace-help-actions">
-            <RouterLink to="/projects/new" @click="showHelp = false">新建第一个活动</RouterLink>
+            <RouterLink to="/projects/new" @click="showHelp = false">制作第一个活动页</RouterLink>
             <RouterLink to="/help" @click="showHelp = false">进入帮助中心</RouterLink>
           </div>
         </div>
@@ -261,7 +314,7 @@ onBeforeUnmount(() => {
           <span class="workspace-profile-avatar">{{ avatarText }}</span>
           <span>
             <strong>{{ displayName }}</strong>
-            <small>活动管理员</small>
+            <small>心晴运营员</small>
           </span>
           <Icon name="sliders" :size="15" />
         </button>
@@ -271,7 +324,7 @@ onBeforeUnmount(() => {
     <div class="workspace-main">
       <header class="workspace-topbar">
         <div class="workspace-breadcrumb">
-          <RouterLink to="/projects"><Icon name="home" :size="13" />工作台</RouterLink>
+          <RouterLink to="/projects"><Icon name="home" :size="13" />心屿工作台</RouterLink>
           <span>/</span>
           <strong>{{ pageTitle }}</strong>
         </div>
@@ -282,7 +335,7 @@ onBeforeUnmount(() => {
               ref="searchRef"
               v-model="searchText"
               aria-label="搜索项目"
-              placeholder="搜索项目或活动..."
+              placeholder="搜索心理活动..."
               @input="syncSearch"
               @keydown.enter.prevent="submitSearch"
             />
@@ -306,14 +359,20 @@ onBeforeUnmount(() => {
               @click="showNotifications = !showNotifications"
             >
               <Icon name="bell" :size="17" />
-              <span class="workspace-notification-dot" />
+              <span v-if="unreadNotificationCount" class="workspace-notification-dot" />
             </button>
             <div v-if="showNotifications" class="workspace-popover workspace-notification-menu">
               <div class="workspace-popover-heading">
                 <strong>通知</strong>
-                <span>2 条未读</span>
+                <span>{{ unreadNotificationCount }} 条未读</span>
               </div>
-              <button v-for="item in notifications" :key="item.title" type="button" @click="showNotifications = false">
+              <button
+                v-for="item in notifications"
+                :key="item.id"
+                type="button"
+                :class="{ 'is-unread': !item.read }"
+                @click="openNotification(item.id)"
+              >
                 <span class="workspace-notification-icon"><Icon name="bell" :size="14" /></span>
                 <span
                   ><strong>{{ item.title }}</strong
@@ -321,8 +380,14 @@ onBeforeUnmount(() => {
                   ><em>{{ item.time }}</em></span
                 >
               </button>
-              <button class="workspace-menu-footer" type="button" @click="showNotifications = false">
-                查看全部通知
+              <button
+                class="workspace-menu-footer"
+                type="button"
+                :disabled="unreadNotificationCount === 0"
+                @click="markAllNotificationsRead"
+              >
+                <Icon name="check" :size="14" />
+                {{ unreadNotificationCount ? '全部标为已读' : '全部已读' }}
               </button>
             </div>
           </div>
@@ -341,7 +406,7 @@ onBeforeUnmount(() => {
                 <span class="workspace-profile-avatar">{{ avatarText }}</span>
                 <span
                   ><strong>{{ displayName }}</strong
-                  ><small>{{ auth.user?.email || 'huiyi11111 · 前端开发' }}</small></span
+                  ><small>{{ auth.user?.email || 'huiyi11111 · 心晴运营员' }}</small></span
                 >
               </div>
               <RouterLink to="/profile" @click="showUserMenu = false"
@@ -391,5 +456,25 @@ onBeforeUnmount(() => {
   font-size: 9px;
   font-style: normal;
   letter-spacing: 0.04em;
+}
+
+.workspace-notification-menu > button.is-unread {
+  background: #faf9ff;
+}
+
+.workspace-notification-menu > button.is-unread strong::after {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--brand-500, #6366f1);
+  content: '';
+  vertical-align: middle;
+}
+
+.workspace-notification-menu .workspace-menu-footer:disabled {
+  opacity: 0.48;
+  cursor: default;
 }
 </style>

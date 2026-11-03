@@ -37,10 +37,10 @@ const result = ref<{
 } | null>(null)
 
 const EXAMPLES = [
-  '摄影社招新，10月26日晚7点在阶梯教室面试，招60人',
-  '周五晚上校园荧光夜跑，3公里，报名送手环',
-  '摄影大赛人气投票，全校师生都能投，每人一票',
-  '14天早起打卡挑战，每天早上6:30打卡',
+  '心理协会秋季招新，需要社团介绍、活动方向和报名表',
+  '考试周心晴游园会，设置五个解压互动摊位，可匿名报名',
+  '心理健康知识问答，完成后给出科普反馈，不做心理诊断',
+  '21天自我关怀打卡，每天完成一个轻量练习',
 ]
 
 watch(
@@ -281,7 +281,7 @@ async function applyTemplate(id: string): Promise<void> {
 
 function applyPoster(): void {
   const build = buildQuickDoc({
-    title: posterForm.value.title || '校园活动',
+    title: posterForm.value.title || '心理活动',
     org: posterForm.value.org,
     startAt: posterForm.value.startAt,
     place: posterForm.value.place,
@@ -322,21 +322,21 @@ const FORM_FIELDS: { key: PosterTextKey; label: string; placeholder: string }[] 
 <template>
   <BaseModal
     :open="open"
-    title="创建活动页面"
-    subtitle="从活动需求、一个模板，或者一张海报开始"
+    title="制作心晴活动页面"
+    subtitle="从活动需求、一个心晴模板，或者一张海报开始"
     :width="840"
     @close="close"
   >
     <div class="create">
       <div class="create__tabs">
         <button type="button" class="ctab" :class="{ 'is-active': tab === 'ai' }" @click="tab = 'ai'">
-          <Icon name="spark" :size="14" /> AI 生成
+          <Icon name="spark" :size="14" /> AI 辅助生成
         </button>
         <button type="button" class="ctab" :class="{ 'is-active': tab === 'template' }" @click="tab = 'template'">
-          <Icon name="grid" :size="14" /> 选模板
+          <Icon name="grid" :size="14" /> 心晴模板
         </button>
         <button type="button" class="ctab" :class="{ 'is-active': tab === 'poster' }" @click="tab = 'poster'">
-          <Icon name="image" :size="14" /> 上传海报
+          <Icon name="image" :size="14" /> 上传活动海报
         </button>
         <button type="button" class="create__blank" @click="startBlankAndClose">
           <Icon name="file" :size="13" /> 从空白开始
@@ -346,12 +346,12 @@ const FORM_FIELDS: { key: PosterTextKey; label: string; placeholder: string }[] 
       <!-- AI -->
       <section v-if="tab === 'ai'" class="ai-tab">
         <label class="field">
-          <span class="field__label">描述活动需求</span>
+            <span class="field__label">描述心晴活动需求</span>
           <textarea
             v-model="prompt"
             class="textarea create__prompt"
             rows="3"
-            placeholder="例如：摄影社 10 月 26 日晚上 7 点在阶梯教室招新面试，招 60 人，需要填姓名、学号、手机号"
+            placeholder="例如：做一个考试周解压游园会，包含活动介绍、匿名报名和保密说明"
           />
         </label>
         <div class="create__examples">

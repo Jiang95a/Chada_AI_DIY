@@ -9,6 +9,7 @@ import Icon from '@/components/ui/Icon.vue'
 import FormFieldsEditor from './fields/FormFieldsEditor.vue'
 import InfoItemsEditor from './fields/InfoItemsEditor.vue'
 import ActionEditor from './fields/ActionEditor.vue'
+import PrivacySettingsPanel from './PrivacySettingsPanel.vue'
 
 const props = defineProps<{ tab: 'props' | 'style' }>()
 
@@ -493,6 +494,8 @@ function onPageRole(event: Event): void {
         <input class="input" :value="doc.title" @input="store.updateTitle(($event.target as HTMLInputElement).value)" />
         <p class="hint">会出现在浏览器标题、分享海报和二维码落地页。</p>
       </div>
+
+      <PrivacySettingsPanel :project-id="doc.id" :slug="doc.slug" :organizer="doc.meta.org" />
 
       <div class="insp__section">
         <p class="insp__sec-title">快捷入口</p>

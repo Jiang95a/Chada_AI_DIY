@@ -8,9 +8,9 @@ export interface WorkspaceOption {
 }
 
 const WORKSPACES: WorkspaceOption[] = [
-  { id: 'student-center', name: '学生活动中心', type: '团队工作空间', avatar: '学' },
+  { id: 'student-center', name: '心屿心理协会', type: '社团工作空间', avatar: '心' },
   { id: 'personal', name: 'Huiyi 的个人空间', type: '个人工作空间', avatar: 'H' },
-  { id: 'campus-life', name: '校园活动', type: '校园活动空间', avatar: '校' },
+  { id: 'campus-life', name: '心晴志愿队', type: '心理服务空间', avatar: '晴' },
 ]
 
 const STORAGE_KEY = 'diy-campus:workspace:v1'

@@ -211,11 +211,11 @@ onBeforeUnmount(() => {
   <main class="editor-shell studio-editor">
     <header class="editor-topbar">
       <div class="editor-project-area">
-        <RouterLink class="editor-back-link" to="/projects">
+        <RouterLink class="editor-back-link" to="/projects/new">
           <span>←</span>
-          工作台
+          页面工坊
         </RouterLink>
-        <RouterLink class="editor-logo" to="/projects" aria-label="返回工作台"
+        <RouterLink class="editor-logo" to="/projects/new" aria-label="返回页面工坊"
           ><span><i /><i /></span
         ></RouterLink>
         <div class="editor-project-copy">

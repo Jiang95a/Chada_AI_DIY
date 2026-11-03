@@ -1,42 +1,42 @@
 /* ==========================================================================
-   校园轻活动 AI DIY 工坊 —— 全局设计令牌与基础样式
+   心屿同行 · 校园心理社团服务平台 —— 全局设计令牌与基础样式
    ========================================================================== */
 
 :root {
-  --brand-50: #eef2ff;
-  --brand-100: #e0e7ff;
-  --brand-200: #c7d2fe;
-  --brand-300: #a5b4fc;
-  --brand-400: #818cf8;
-  --brand-500: #6366f1;
-  --brand-600: #4f46e5;
-  --brand-700: #4338ca;
-  --violet-500: #8b5cf6;
+  --brand-50: #edf5ef;
+  --brand-100: #dcecdf;
+  --brand-200: #bfd9c7;
+  --brand-300: #91b9a1;
+  --brand-400: #659579;
+  --brand-500: #43795d;
+  --brand-600: #2f634b;
+  --brand-700: #244e3b;
+  --violet-500: #c98976;
 
-  --ink-900: #0f172a;
-  --ink-800: #1e293b;
-  --ink-700: #344054;
-  --ink-600: #475467;
-  --ink-500: #667085;
-  --ink-400: #98a2b3;
-  --ink-300: #d0d5dd;
-  --ink-200: #e4e7ec;
-  --ink-100: #f2f4f7;
-  --ink-50: #f8fafc;
+  --ink-900: #1d2b24;
+  --ink-800: #2b3d33;
+  --ink-700: #40554a;
+  --ink-600: #586c61;
+  --ink-500: #71847a;
+  --ink-400: #94a49b;
+  --ink-300: #c1cdc5;
+  --ink-200: #dce5df;
+  --ink-100: #edf2ee;
+  --ink-50: #f6f8f5;
 
-  --bg: #f5f6fa;
+  --bg: #f1f5ef;
   --panel: #ffffff;
-  --line: #e9ecf3;
-  --line-strong: #dfe3ee;
+  --line: #dfe8e1;
+  --line-strong: #cfdcd3;
 
-  --mint-500: #10b981;
-  --mint-50: #ecfdf5;
-  --amber-500: #f59e0b;
-  --amber-50: #fffbeb;
+  --mint-500: #589777;
+  --mint-50: #edf7f1;
+  --amber-500: #d6a05b;
+  --amber-50: #fbf5e9;
   --rose-500: #ef4444;
   --rose-50: #fef2f2;
-  --sky-500: #0ea5e9;
-  --sky-50: #f0f9ff;
+  --sky-500: #6c95a1;
+  --sky-50: #edf5f6;
 
   --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
   --shadow-md: 0 10px 28px -14px rgba(16, 24, 40, 0.22);
@@ -186,14 +186,14 @@ svg {
   border-color: transparent;
   color: #fff;
   background: linear-gradient(135deg, var(--brand-600), var(--violet-500));
-  box-shadow: 0 8px 18px -10px rgba(79, 70, 229, 0.9);
+  box-shadow: 0 8px 18px -10px rgba(47, 99, 75, 0.65);
 }
 
 .btn--primary:hover {
   color: #fff;
   border-color: transparent;
-  background: linear-gradient(135deg, var(--brand-500), #9d6bff);
-  box-shadow: 0 10px 22px -10px rgba(79, 70, 229, 0.95);
+  background: linear-gradient(135deg, var(--brand-500), #d39a86);
+  box-shadow: 0 10px 22px -10px rgba(47, 99, 75, 0.72);
 }
 
 .btn--ghost {

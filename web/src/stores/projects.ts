@@ -14,6 +14,7 @@ import {
 } from '@/services/projects'
 import { putDraft } from '@/services/draft'
 import { ApiError } from '@/services/http'
+import { loadTemplateDocument } from '@/services/templates'
 
 export type ProjectStatus = 'draft' | 'published' | 'unpublished' | 'archived'
 
@@ -41,6 +42,9 @@ interface CreateProjectInput {
 
 const STORAGE_KEY = 'diy-campus:projects:v1'
 const REMOTE_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const LEGACY_DEMO_IDS = new Set(['prj-photo-club', 'prj-singing-vote', 'prj-reading-21', 'prj-volunteer-signup'])
+const LEGACY_DEMO_TITLE_PATTERN =
+  /光影摄影社|校园歌手大赛人气投票|21 天阅读打卡计划|迎新志愿者信息收集|第四届校园荧光夜跑|校学生会 2026 秋季招新/
 
 function cloneDocument(document: Doc): Doc {
   return JSON.parse(JSON.stringify(document)) as Doc
@@ -85,49 +89,49 @@ function makeSeedProject(
 
 function createSeedProjects(): ProjectRecord[] {
   return [
-    makeSeedProject('prj-photo-club', 'recruit', {
-      title: '光影摄影社 · 2026 秋季招新',
-      slug: 'photo-club-2026',
-      org: '光影摄影社',
-      type: '社团招新',
+    makeSeedProject('prj-heart-garden', 'recruit', {
+      title: '考试周心晴游园会',
+      slug: 'heart-garden',
+      org: '心屿心理协会',
+      type: '心晴游园会',
       status: 'published',
-      coverTone: 'photo',
-      coverCode: 'PHOTO / 26',
-      coverTitle: '寻找校园里的\n下一帧光',
+      coverTone: 'read',
+      coverCode: 'WELLBEING',
+      coverTitle: '给忙碌的心\n留一小块空地',
       submissionCount: 126,
     }),
-    makeSeedProject('prj-singing-vote', 'vote', {
-      title: '校园歌手大赛人气投票',
-      slug: 'voice-vote',
-      org: '校学生会文艺部',
-      type: '投票评选',
+    makeSeedProject('prj-self-care-21', 'checkin', {
+      title: '21 天自我关怀打卡',
+      slug: 'self-care-21',
+      org: '心晴志愿队',
+      type: '自我关怀',
       status: 'published',
-      coverTone: 'music',
-      coverCode: 'VOICE / LIVE',
-      coverTitle: '这一次\n由你来决定',
+      coverTone: 'photo',
+      coverCode: 'SELF CARE',
+      coverTitle: '把照顾自己\n变成一件小事',
       submissionCount: 238,
     }),
-    makeSeedProject('prj-reading-21', 'checkin', {
-      title: '21 天阅读打卡计划',
-      slug: 'reading-plan',
-      org: '图书馆学生协会',
-      type: '每日打卡',
+    makeSeedProject('prj-mindful-club', 'recruit', {
+      title: '心屿心理协会秋季招新',
+      slug: 'mindful-club',
+      org: '心屿心理协会',
+      type: '心理社团',
       status: 'draft',
-      coverTone: 'read',
-      coverCode: 'READ / 21',
-      coverTitle: '每天读一点\n把世界读厚',
+      coverTone: 'volunteer',
+      coverCode: 'JOIN XINYU',
+      coverTitle: '一起做有温度\n的校园心理活动',
       submissionCount: 0,
     }),
-    makeSeedProject('prj-volunteer-signup', 'signup', {
-      title: '迎新志愿者信息收集',
-      slug: 'volunteer-2026',
-      org: '青年志愿者协会',
-      type: '信息收集',
+    makeSeedProject('prj-anonymous-box', 'signup', {
+      title: '匿名心事提问箱',
+      slug: 'anonymous-box',
+      org: '心屿心理协会',
+      type: '安心表达',
       status: 'unpublished',
-      coverTone: 'volunteer',
-      coverCode: 'VOLUNTEER',
-      coverTitle: '一起迎接\n新的同学',
-      submissionCount: 64,
+      coverTone: 'music',
+      coverCode: 'SAFE SPACE',
+      coverTitle: '把想说的话\n轻轻放在这里',
+      submissionCount: 0,
     }),
   ]
 }
@@ -140,11 +144,13 @@ function restoreProjects(): ProjectRecord[] {
     if (!Array.isArray(parsed)) return createSeedProjects()
     const restored = parsed
       .map((item, index) => {
+        if (typeof item.id === 'string' && LEGACY_DEMO_IDS.has(item.id)) return null
         const document = normalizeDoc(item.document)
         if (!document) return null
+        if (LEGACY_DEMO_TITLE_PATTERN.test(document.title)) return null
         return {
           id: typeof item.id === 'string' ? item.id : `project-${index + 1}`,
-          type: typeof item.type === 'string' ? item.type : '校园活动',
+          type: typeof item.type === 'string' ? item.type : '心理活动',
           status: (item.status ?? 'draft') as ProjectStatus,
           coverTone: typeof item.coverTone === 'string' ? item.coverTone : 'photo',
           coverCode: typeof item.coverCode === 'string' ? item.coverCode : 'ACTIVITY',
@@ -211,7 +217,7 @@ export const useProjectStore = defineStore('projects', () => {
     try {
       const rows = await listProjectsApi({ page: 1, pageSize: 100, sort: 'updated_at' })
       // 后端成功返回时以后端数据为准；空数组也是有效结果，不能再回填本地示例项目。
-      projects.value = rows.map(fromApi)
+      projects.value = rows.filter((project) => !LEGACY_DEMO_TITLE_PATTERN.test(project.title)).map(fromApi)
     } catch (error) {
       remoteError.value = error instanceof Error ? error.message : '项目列表加载失败'
     } finally {
@@ -244,7 +250,7 @@ export const useProjectStore = defineStore('projects', () => {
   }
 
   function createProject(input: CreateProjectInput): ProjectRecord {
-    const title = input.title.trim() || '未命名校园活动'
+    const title = input.title.trim() || '未命名心晴活动'
     let document: Doc
     if (input.document) {
       document = normalizeDoc(cloneDocument(input.document)) ?? createBlankDoc()
@@ -268,7 +274,7 @@ export const useProjectStore = defineStore('projects', () => {
 
     const project: ProjectRecord = {
       id,
-      type: input.type?.trim() || '校园活动',
+      type: input.type?.trim() || '心理活动',
       status: 'draft',
       coverTone: 'photo',
       coverCode: 'NEW / DRAFT',
@@ -281,16 +287,18 @@ export const useProjectStore = defineStore('projects', () => {
   }
 
   async function createProjectRemote(input: CreateProjectInput): Promise<ProjectRecord> {
+    let initialDocument: Doc | undefined
     try {
-      const title = input.title.trim() || '未命名校园活动'
+      const title = input.title.trim() || '未命名心晴活动'
       const remoteTemplate =
         Boolean(input.templateId) &&
         /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.templateId ?? '')
-      let initialDocument: Doc | undefined
       if (input.document) {
         initialDocument = cloneDocument(input.document)
       } else if (input.templateId && !remoteTemplate) {
-        initialDocument = createDocFromTemplate(input.templateId, createDemoDoc())
+        initialDocument = input.templateId.startsWith('custom-')
+          ? await loadTemplateDocument(input.templateId)
+          : createDocFromTemplate(input.templateId, createDemoDoc())
       } else if (!input.templateId) {
         initialDocument = createBlankDoc()
       }
@@ -306,12 +314,12 @@ export const useProjectStore = defineStore('projects', () => {
       const remote = fromApi(
         await createProjectApi({
           title,
-          activityType: input.type?.trim() || '校园活动',
+          activityType: input.type?.trim() || '心理活动',
           templateId: remoteTemplate ? input.templateId : undefined,
           initialDocument,
           coverTone: 'photo',
           coverCode: 'NEW / DRAFT',
-          coverTitle: input.title.trim() || '未命名校园活动',
+          coverTitle: input.title.trim() || '未命名心晴活动',
         })
       )
       projects.value.unshift(remote)
@@ -322,7 +330,10 @@ export const useProjectStore = defineStore('projects', () => {
         throw error
       }
       remoteError.value = '后端暂时无法连接，项目已保存为本地离线草稿'
-      return createProject(input)
+      return createProject({
+        ...input,
+        document: initialDocument ?? input.document,
+      })
     }
   }
 

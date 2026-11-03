@@ -47,7 +47,7 @@ const projects = computed(() =>
     statusLabel: statusLabels[project.status],
     statusTone: statusTones[project.status],
     submissions: project.submissionCount
-      ? `${project.submissionCount} 条提交`
+      ? `${project.submissionCount} 人参与`
       : project.status === 'published'
         ? '暂无提交'
         : '尚未发布',
@@ -58,7 +58,7 @@ const projects = computed(() =>
 
 const stats = computed(() => [
   {
-    label: '全部项目',
+    label: '全部心晴活动',
     value: String(projectStore.projectCount),
     hint: `${projectStore.draftCount} 个正在编辑`,
     icon: 'layers',
@@ -67,12 +67,12 @@ const stats = computed(() => [
   {
     label: '已发布活动',
     value: String(projectStore.publishedCount),
-    hint: '可分享和收集数据',
+    hint: '正在开放参与',
     icon: 'eye',
     tone: 'green',
   },
   {
-    label: '累计提交',
+    label: '累计参与',
     value: String(projectStore.projects.reduce((sum, project) => sum + project.submissionCount, 0)),
     hint: '全部活动合计',
     icon: 'users',
@@ -188,13 +188,13 @@ async function confirmDelete(): Promise<void> {
     <main class="dashboard-page studio-dashboard">
       <section class="dashboard-heading">
         <div>
-          <p class="eyebrow">Workspace</p>
-          <h1>项目工作台</h1>
-          <p>管理校园活动页面，查看发布状态和报名数据。</p>
+          <p class="eyebrow">Wellbeing operations</p>
+          <h1>心晴运营台</h1>
+          <p>组织心理社团活动，查看参与状态，用更清晰的方式陪伴同学。</p>
         </div>
         <RouterLink class="app-button app-button--primary" to="/projects/new">
           <Icon name="plus" :size="16" />
-          新建活动
+          发起心晴活动
         </RouterLink>
       </section>
 
@@ -246,9 +246,9 @@ async function confirmDelete(): Promise<void> {
         </div>
 
         <div v-if="projectStore.remoteLoading && projectStore.projects.length === 0" class="project-empty-state">
-          <span><Icon name="layers" :size="22" /></span>
-          <strong>正在加载活动项目</strong>
-          <p>正在同步工作台数据，请稍候。</p>
+              <span><Icon name="layers" :size="22" /></span>
+              <strong>正在加载心晴活动</strong>
+              <p>正在同步运营数据，请稍候。</p>
         </div>
 
         <div v-else class="project-grid">
@@ -286,7 +286,7 @@ async function confirmDelete(): Promise<void> {
                       <Icon name="layout" :size="14" />继续编辑
                     </RouterLink>
                     <RouterLink :to="`/p/${project.slug}`" target="_blank" @click="closeProjectMenu">
-                      <Icon name="eye" :size="14" />预览活动
+                      <Icon name="eye" :size="14" />预览页面
                     </RouterLink>
                     <RouterLink :to="`/projects/${project.id}/analytics`" @click="closeProjectMenu">
                       <Icon name="chart" :size="14" />查看数据
@@ -324,11 +324,11 @@ async function confirmDelete(): Promise<void> {
 
           <div v-if="filteredProjects.length === 0" class="project-empty-state">
             <span><Icon :name="projectStore.projects.length === 0 ? 'file' : 'search'" :size="22" /></span>
-            <strong>{{ projectStore.projects.length === 0 ? '还没有校园活动' : '没有找到匹配的活动' }}</strong>
+            <strong>{{ projectStore.projects.length === 0 ? '还没有心晴活动' : '没有找到匹配的活动' }}</strong>
             <p>
               {{
                 projectStore.projects.length === 0
-                  ? '从模板、AI 或海报开始创建第一个可分享的校园活动页面。'
+                  ? '从心晴模板、AI 或海报开始制作第一个心理活动页面。'
                   : '尝试换一个关键词，或者清除当前搜索与筛选条件。'
               }}
             </p>
@@ -338,15 +338,15 @@ async function confirmDelete(): Promise<void> {
               to="/projects/new"
             >
               <Icon name="plus" :size="14" />
-              新建第一个活动
+              发起第一个心晴活动
             </RouterLink>
             <button v-else class="app-button app-button--secondary" type="button" @click="clearSearch">清除搜索</button>
           </div>
 
           <RouterLink v-if="projectStore.projects.length > 0" class="project-create-card" to="/projects/new">
             <span class="project-create-icon"><Icon name="plus" :size="21" /></span>
-            <strong>创建新的校园活动</strong>
-            <p>从模板开始，或者让 AI 根据海报生成。</p>
+            <strong>创建一场新的心晴活动</strong>
+            <p>从心理社团模板开始，或者让 AI 根据需求生成。</p>
             <span>开始创建 <Icon name="arrow-right" :size="14" /></span>
           </RouterLink>
         </div>

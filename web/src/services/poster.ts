@@ -140,7 +140,7 @@ export async function buildPosterCanvas(doc: Doc, url: string): Promise<HTMLCanv
 
   /* 小标签 */
   ctx.font = '600 15px "PingFang SC", "Microsoft YaHei", sans-serif'
-  const chipText = '校园活动 · 扫码查看'
+  const chipText = '心晴活动 · 扫码查看'
   const chipW = ctx.measureText(chipText).width + 28
   ctx.fillStyle = mixColor(primary, '#ffffff', 0.88)
   roundRect(ctx, contentX, card.y + 34, chipW, 32, 16)

@@ -25,12 +25,12 @@ describe('新建活动', () => {
     const wrapper = mount(App, { global: { plugins: [pinia, router] } })
 
     await flushPromises()
-    await wrapper.find('select').setValue('讲座')
+    await wrapper.find('select').setValue('心理科普')
     await wrapper.find('.create-form-actions .app-button--primary').trigger('click')
     await flushPromises()
 
     const projectStore = useProjectStore(pinia)
-    expect(projectStore.projects[0]?.type).toBe('讲座')
+    expect(projectStore.projects[0]?.type).toBe('心理科普')
 
     wrapper.unmount()
   })

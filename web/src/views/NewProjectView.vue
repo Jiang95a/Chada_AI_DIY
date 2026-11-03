@@ -12,11 +12,11 @@ const projectStore = useProjectStore()
 const toast = useToast()
 const selectedTemplate = ref('recruit')
 const templates = ref<TemplateCatalogItem[]>([])
-const title = ref('摄影社 2026 秋季招新')
-const org = ref('光影摄影社')
-const activityType = ref('招新')
+const title = ref('考试周心晴游园会')
+const org = ref('心屿心理协会')
+const activityType = ref('心晴活动')
 const prompt = ref(
-  '做一个摄影社秋季招新页面，需要社团介绍、三个部门、活动照片、报名表和负责人联系方式。整体风格温暖、有胶片感。'
+  '做一个考试周心晴游园会页面，需要活动介绍、互动摊位、匿名报名和保密说明。整体风格温柔、安静，不要做心理诊断。'
 )
 
 let pendingProjectId = ''
@@ -37,7 +37,7 @@ async function ensureProject() {
   const project = await projectStore.createProjectRemote({
     title: title.value,
     org: org.value,
-    type: activityType.value.trim() || template?.name || '校园活动',
+    type: activityType.value.trim() || template?.name || '心理活动',
     templateId: selectedTemplate.value,
   })
   pendingProjectId = project.id
@@ -85,10 +85,10 @@ function templateTone(id: string): string {
     <main class="create-page studio-create">
       <div class="create-heading">
         <div>
-          <RouterLink class="create-back" to="/projects"><span>←</span>返回项目工作台</RouterLink>
-          <p class="eyebrow">New activity</p>
-          <h1>把一个想法变成活动页面</h1>
-          <p>选择模板快速开始，也可以上传海报让 AI 自动整理内容。</p>
+          <RouterLink class="create-back" to="/projects"><span>←</span>返回心晴运营台</RouterLink>
+          <p class="eyebrow">Page workshop</p>
+          <h1>制作一个心晴活动页面</h1>
+          <p>从心理活动模板开始，也可以上传海报，让 AI 帮你整理活动信息。</p>
         </div>
         <div class="create-steps" aria-label="创建流程">
           <span class="is-active"><b>1</b> 描述活动</span><i /> <span><b>2</b> 生成页面</span><i />
@@ -115,10 +115,11 @@ function templateTone(id: string): string {
             <label class="field">
               <span>活动类型</span>
               <select v-model="activityType">
-                <option value="招新">招新</option>
-                <option value="比赛">比赛</option>
-                <option value="讲座">讲座</option>
-                <option value="志愿服务">志愿服务</option>
+                <option value="心理社团">心理社团</option>
+                <option value="心晴活动">心晴活动</option>
+                <option value="心理科普">心理科普</option>
+                <option value="自我关怀">自我关怀</option>
+                <option value="安心表达">安心表达</option>
               </select>
             </label>
           </div>
@@ -127,8 +128,8 @@ function templateTone(id: string): string {
           <div class="create-section-heading">
             <span>02</span>
             <div>
-              <h2>从模板开始</h2>
-              <p>模板已经包含常用页面和组件。</p>
+              <h2>从心晴模板开始</h2>
+              <p>模板已经包含心理活动常用页面和安心说明。</p>
             </div>
           </div>
           <div id="templates" class="template-grid">
@@ -151,8 +152,8 @@ function templateTone(id: string): string {
           <div class="create-section-heading">
             <span>03</span>
             <div>
-              <h2>让 AI 帮你生成</h2>
-              <p>描述活动需求，或者上传一张活动海报。</p>
+              <h2>让 AI 帮你构思页面</h2>
+              <p>描述活动对象和参与方式，或者上传一张活动海报。</p>
             </div>
           </div>
           <label class="field">
@@ -162,54 +163,54 @@ function templateTone(id: string): string {
           </label>
           <button class="poster-upload" type="button" @click="openCreate('poster')">
             <span class="poster-upload-icon"><Icon name="upload" :size="19" /></span>
-            <span><strong>上传活动海报</strong><small>AI 会提取活动名称、时间、地点和报名信息</small></span>
+            <span><strong>上传活动海报</strong><small>AI 会提取活动名称、时间、地点和参与信息</small></span>
             <span class="poster-upload-action">选择图片</span>
           </button>
 
           <div class="create-form-actions">
             <RouterLink class="app-button app-button--secondary" to="/projects">取消</RouterLink>
             <button class="app-button app-button--secondary" type="button" @click="openAiGenerator">
-              <Icon name="spark" :size="16" /> AI 生成
+              <Icon name="spark" :size="16" /> AI 辅助生成
             </button>
             <button class="app-button app-button--primary" type="button" @click="startWithTemplate">
-              <Icon name="wand" :size="16" /> 使用模板进入编辑器
+              <Icon name="wand" :size="16" /> 使用模板进入页面工坊
             </button>
           </div>
         </section>
 
         <aside class="create-preview">
           <div class="create-preview-header">
-            <span>AI 将为你准备</span>
+            <span>页面工坊将为你准备</span>
             <span class="create-preview-badge"><Icon name="spark" :size="12" />智能生成</span>
           </div>
           <div class="create-phone">
-            <div class="create-phone-nav"><span>摄影社</span><span>•••</span></div>
+            <div class="create-phone-nav"><span>心屿心理协会</span><span>•••</span></div>
             <div class="create-phone-hero">
-              <span>JOIN US · 2026</span><strong>寻找校园里的<br />下一帧光</strong><i />
+              <span>PAUSE · BREATHE · CONNECT</span><strong>给忙碌的心<br />留一小块空地</strong><i />
             </div>
             <div class="create-phone-content">
-              <span class="create-phone-kicker">ABOUT US</span>
-              <strong>用镜头记录校园的每一种可能</strong>
-              <p>从日常街拍到大型活动，摄影社期待和你一起发现更多故事。</p>
-              <div class="create-phone-info"><span>10 月 28 日 18:30</span><span>大学生活动中心 201</span></div>
-              <div class="create-phone-button">立即报名</div>
+              <span class="create-phone-kicker">A GENTLE EVENT</span>
+              <strong>考试周，也可以有一点轻松</strong>
+              <p>一起做几个轻量互动练习，不需要分享不想说的故事。</p>
+              <div class="create-phone-info"><span>本周五 18:30</span><span>心理健康中心活动室</span></div>
+              <div class="create-phone-button">匿名报名</div>
             </div>
           </div>
           <div class="create-preview-list">
             <div>
               <span class="create-preview-check"><Icon name="check" :size="11" /></span
-              ><span><strong>多页面 PageDocument</strong><small>首页、介绍、表单、成功页</small></span>
+              ><span><strong>多页面活动页</strong><small>介绍、参与说明、表单、确认页</small></span>
             </div>
             <div>
               <span class="create-preview-check"><Icon name="check" :size="11" /></span
-              ><span><strong>13 个智能组件</strong><small>文字、图片、表单、二维码</small></span>
+              ><span><strong>安心参与组件</strong><small>信息卡、保密提示、表单、二维码</small></span>
             </div>
             <div>
               <span class="create-preview-check"><Icon name="check" :size="11" /></span
-              ><span><strong>发布与海报</strong><small>实时预览、二维码和分享海报</small></span>
+              ><span><strong>发布与参与数据</strong><small>实时预览、分享二维码和参与统计</small></span>
             </div>
           </div>
-          <p class="create-preview-tip">生成后仍可以在编辑器里自由修改文案、图片、颜色和页面结构。</p>
+          <p class="create-preview-tip">生成后仍可以在页面工坊里自由修改文案、颜色和页面结构。</p>
         </aside>
       </div>
     </main>

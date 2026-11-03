@@ -147,14 +147,14 @@ function resetAll(): void {
                 :class="{ 'is-active': landing === '/projects' }"
                 @click="chooseLanding('/projects')"
               >
-                <Icon name="layout" :size="16" /><span><strong>项目工作台</strong><small>继续管理活动</small></span>
+                <Icon name="layout" :size="16" /><span><strong>心晴运营台</strong><small>继续管理心理活动</small></span>
               </button>
               <button
                 type="button"
                 :class="{ 'is-active': landing === '/templates' }"
                 @click="chooseLanding('/templates')"
               >
-                <Icon name="grid" :size="16" /><span><strong>模板灵感</strong><small>从模板开始创建</small></span>
+                <Icon name="grid" :size="16" /><span><strong>心晴模板</strong><small>从心理活动模板开始</small></span>
               </button>
             </div>
           </section>

@@ -425,13 +425,13 @@ interface SceneRule {
 }
 
 const SCENE_RULES: SceneRule[] = [
-  { id: 'recruit', test: /招新|纳新|招募|新成员|加入我们|社团/, label: '社团招新' },
-  { id: 'vote', test: /投票|票选|评选|人气|比拼|作品/, label: '投票评选' },
-  { id: 'checkin', test: /打卡|坚持|每日|习惯|早起|自律/, label: '每日打卡' },
+  { id: 'recruit', test: /心理社团|招新|纳新|招募|新成员|加入我们/, label: '心理社团招新' },
+  { id: 'vote', test: /知识问答|心理科普|科普|问答|测试/, label: '心理知识问答' },
+  { id: 'checkin', test: /自我关怀|正念|打卡|练习|习惯|情绪/, label: '自我关怀打卡' },
   {
     id: 'signup',
-    test: /报名|讲座|分享会|比赛|夜跑|活动|演出|沙龙|训练营/,
-    label: '活动报名',
+    test: /游园|团辅|报名|分享会|讲座|沙龙|活动/,
+    label: '心晴活动',
   },
 ]
 
@@ -581,14 +581,16 @@ const PLAN_SCHEMA = `{
 
 export function buildPlanPrompt(prompt: string): string {
   return [
-    `帮我做一个「${prompt}」的校园活动页面。`,
+    `帮我做一个「${prompt}」的校园心理活动页面。`,
     '请把页面方案写成下面的 JSON 结构，只输出 JSON：',
     PLAN_SCHEMA,
     '规则：',
     '1. block 的 type 只能用：nav/banner/heading/text/image/infoCard/button/form/radio/checkbox/qrcode/divider/countdown；',
     '2. 页面 3~5 个，role 只用 home/content/form/success，最后要有 form 页和 success 页；',
     '3. 用户没提供的时间、地点、人数一律留空字符串或 0，不要编造；',
-    '4. 文案要短，口语化，别用「诚挚邀请」这类公文腔。',
+    '4. 文案要短、温柔、口语化，别用「诚挚邀请」这类公文腔。',
+    '5. 只帮助组织活动，不做心理诊断，不生成风险判断或治疗建议。',
+    '6. 需要收集敏感信息时，加入说明用途、查看范围和匿名选项。',
   ].join('\n')
 }
 

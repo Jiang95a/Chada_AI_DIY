@@ -12,6 +12,10 @@ import SettingsView from '@/views/SettingsView.vue'
 import HelpView from '@/views/HelpView.vue'
 import LandingView from '@/views/LandingView.vue'
 import AiGeneratorView from '@/views/AiGeneratorView.vue'
+import PublishedDataView from '@/views/PublishedDataView.vue'
+import WellbeingResourcesView from '@/views/WellbeingResourcesView.vue'
+import WellbeingToolsView from '@/views/WellbeingToolsView.vue'
+import WellbeingAboutView from '@/views/WellbeingAboutView.vue'
 import { getAccessToken } from '@/services/http'
 
 export const appRoutes: RouteRecordRaw[] = [
@@ -38,6 +42,11 @@ export const appRoutes: RouteRecordRaw[] = [
     component: NewProjectView,
   },
   {
+    path: '/published',
+    name: 'published-data',
+    component: PublishedDataView,
+  },
+  {
     path: '/templates',
     name: 'templates',
     component: TemplatesView,
@@ -51,6 +60,25 @@ export const appRoutes: RouteRecordRaw[] = [
     path: '/campus',
     name: 'campus-activities',
     component: CampusActivitiesView,
+    meta: { public: true },
+  },
+  {
+    path: '/resources',
+    name: 'wellbeing-resources',
+    component: WellbeingResourcesView,
+    meta: { public: true },
+  },
+  {
+    path: '/tools',
+    name: 'wellbeing-tools',
+    component: WellbeingToolsView,
+    meta: { public: true },
+  },
+  {
+    path: '/about',
+    name: 'wellbeing-about',
+    component: WellbeingAboutView,
+    meta: { public: true },
   },
   {
     path: '/profile',
@@ -102,6 +130,17 @@ export const appRoutes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: appRoutes,
+  scrollBehavior(to, _from, savedPosition) {
+    if (savedPosition) return savedPosition
+    if (to.hash) {
+      return {
+        el: to.hash,
+        top: 84,
+        behavior: 'smooth',
+      }
+    }
+    return { top: 0 }
+  },
 })
 
 router.beforeEach((to) => {

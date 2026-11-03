@@ -55,7 +55,7 @@ const tabs = computed(() => [
   },
   {
     id: 'submissions' as const,
-    label: '报名提交',
+    label: '参与记录',
     hint: submissionTotal.value ? `${submissionTotal.value} 条记录` : '查看原始数据',
     icon: 'users',
     href: `${projectPath.value}/submissions`,
@@ -317,7 +317,7 @@ function exportStatusLabel(status: string): string {
 
 function exportFileName(job: ExportJob): string {
   const key = job.objectKey?.split('/').slice(-1)[0]
-  return key || `报名数据-${formatDateTime(job.createdAt).replace(/\//g, '-')}.csv`
+  return key || `心晴活动参与数据-${formatDateTime(job.createdAt).replace(/\//g, '-')}.csv`
 }
 
 async function requestExport(): Promise<void> {
@@ -399,10 +399,10 @@ watch(activeTab, async () => {
     <main class="data-dashboard">
       <header class="data-heading">
         <div>
-          <RouterLink class="data-back" to="/projects"><span>←</span>返回项目工作台</RouterLink>
-          <p class="eyebrow">Project intelligence</p>
-          <h1>项目数据</h1>
-          <p>{{ project?.document.title || '校园活动' }} · 浏览、报名和导出都在这里完成。</p>
+          <RouterLink class="data-back" to="/projects"><span>←</span>返回心晴运营台</RouterLink>
+          <p class="eyebrow">Activity intelligence</p>
+          <h1>活动参与数据</h1>
+          <p>{{ project?.document.title || '心理活动' }} · 浏览、参与和导出都在这里完成。</p>
         </div>
         <div class="data-heading-actions">
           <button class="app-button app-button--secondary" type="button" :disabled="loading" @click="refreshCurrentTab">
@@ -410,7 +410,7 @@ watch(activeTab, async () => {
             {{ loading ? '刷新中' : '刷新数据' }}
           </button>
           <RouterLink v-if="previewPath" class="app-button app-button--secondary" :to="previewPath" target="_blank">
-            <Icon name="eye" :size="15" />预览活动
+            <Icon name="eye" :size="15" />预览页面
           </RouterLink>
           <RouterLink class="app-button app-button--primary" :to="editPath">
             <Icon name="layout" :size="15" />继续编辑
@@ -418,7 +418,7 @@ watch(activeTab, async () => {
         </div>
       </header>
 
-      <nav class="data-tabs" aria-label="项目数据导航">
+      <nav class="data-tabs" aria-label="活动数据导航">
         <RouterLink
           v-for="tab in tabs"
           :key="tab.id"
@@ -523,7 +523,7 @@ watch(activeTab, async () => {
                 <div v-else class="data-empty data-empty--inset">
                   <Icon name="chart" :size="25" />
                   <strong>还没有访问趋势</strong>
-                  <p>发布活动并分享链接后，这里会按天汇总浏览与提交。</p>
+                  <p>发布心晴活动并分享链接后，这里会按天汇总浏览与参与。</p>
                 </div>
               </article>
 
@@ -547,7 +547,7 @@ watch(activeTab, async () => {
                 <div v-else class="data-empty data-empty--inset">
                   <Icon name="cursor" :size="25" />
                   <strong>还没有行为事件</strong>
-                  <p>同学打开或填写活动后，会产生浏览与提交事件。</p>
+                  <p>同学打开或填写活动页面后，会产生浏览与参与事件。</p>
                 </div>
               </article>
             </div>
@@ -578,7 +578,7 @@ watch(activeTab, async () => {
                   无效
                 </button>
               </div>
-              <span class="panel-count">共 {{ submissionTotal }} 条报名记录</span>
+              <span class="panel-count">共 {{ submissionTotal }} 条参与记录</span>
             </div>
 
             <article class="data-card submission-card">
@@ -627,9 +627,9 @@ watch(activeTab, async () => {
               </div>
               <div v-else class="data-empty">
                 <Icon name="users" :size="28" />
-                <strong>{{ submissionStatus ? '没有符合条件的提交' : '还没有报名提交' }}</strong>
+                <strong>{{ submissionStatus ? '没有符合条件的参与记录' : '还没有参与记录' }}</strong>
                 <p>
-                  {{ submissionStatus ? '切换筛选状态再查看。' : '发布活动并收到第一份报名后，记录会出现在这里。' }}
+                  {{ submissionStatus ? '切换筛选状态再查看。' : '发布活动并收到第一份参与记录后，会显示在这里。' }}
                 </p>
               </div>
             </article>
@@ -655,7 +655,7 @@ watch(activeTab, async () => {
                 <span class="export-file-icon"><Icon name="file" :size="25" /></span>
                 <div>
                   <p class="eyebrow">CSV export</p>
-                  <h2>把报名数据带回 Excel</h2>
+                  <h2>把参与数据带回 Excel</h2>
                   <p>导出包含提交时间、来源页面、表单状态和完整答案，文件生成后可下载 24 小时。</p>
                 </div>
               </div>
@@ -730,7 +730,7 @@ watch(activeTab, async () => {
               <div v-else class="data-empty data-empty--inset">
                 <Icon name="download" :size="27" />
                 <strong>还没有导出记录</strong>
-                <p>点击“生成 CSV 文件”，报名数据会整理成可直接打开的表格。</p>
+                <p>点击“生成 CSV 文件”，参与数据会整理成可直接打开的表格。</p>
               </div>
             </article>
           </section>

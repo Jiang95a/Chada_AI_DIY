@@ -26,11 +26,11 @@ describe('前端后端服务契约', () => {
           {
             id: 'template-1',
             code: 'recruitment-club',
-            name: '社团招新',
+            name: '心理社团招新',
             category: 'recruitment',
-            description: '四页招新',
+            description: '四页心理社团招新',
             document: {
-              title: '社团招新',
+              title: '心理社团招新',
               theme: { primary: '#2563eb', accent: '#7c3aed', bg: '#fff', text: '#111827' },
               pages: [{ name: '首页', role: 'home', blocks: [{ type: 'banner', props: { title: '招新' } }] }],
             },
@@ -41,9 +41,9 @@ describe('前端后端服务契约', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     const catalog = await loadTemplateCatalog()
-    expect(catalog).toHaveLength(1)
-    expect(catalog[0]?.source).toBe('remote')
-    expect(catalog[0]?.id).toBe('template-1')
+    const remote = catalog.find((item) => item.source === 'remote')
+    expect(remote?.id).toBe('template-1')
+    expect(catalog.length).toBeGreaterThanOrEqual(4)
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain('/api/v1/templates')
   })
 

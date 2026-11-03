@@ -35,11 +35,11 @@ async function submit(): Promise<void> {
     <section class="login-card">
       <div class="login-brand">
         <span><Icon name="spark" :size="20" /></span>
-        <div><strong>青搭 AI DIY 工坊</strong><small>校园活动页面制作平台</small></div>
+        <div><strong>心屿同行</strong><small>校园心理社团服务平台</small></div>
       </div>
-      <p class="login-eyebrow">CAMPUS ACTIVITY STUDIO</p>
-      <h1>{{ mode === 'login' ? '登录工作台' : '创建账号' }}</h1>
-      <p class="login-copy">登录后可创建活动、保存 PageDocument、发布页面并查看数据。</p>
+      <p class="login-eyebrow">CAMPUS WELLBEING STUDIO</p>
+      <h1>{{ mode === 'login' ? '登录心屿运营台' : '创建心晴账号' }}</h1>
+      <p class="login-copy">登录后可组织心理活动、使用页面工坊、发布页面并查看参与数据。</p>
 
       <form class="login-form" @submit.prevent="submit">
         <label v-if="mode === 'register'">
@@ -70,7 +70,7 @@ async function submit(): Promise<void> {
       <button class="login-switch" type="button" @click="mode = mode === 'login' ? 'register' : 'login'">
         {{ mode === 'login' ? '还没有账号？立即注册' : '已有账号？返回登录' }}
       </button>
-      <p class="login-server">业务后端：8080 · 智能体：8000</p>
+      <p class="login-server">心屿同行 · 关注参与，不做心理诊断</p>
     </section>
   </main>
 </template>

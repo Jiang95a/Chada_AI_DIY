@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import WorkspaceShell from '@/components/studio/WorkspaceShell.vue'
+import WellbeingPublicShell from '@/components/public/WellbeingPublicShell.vue'
 import Icon from '@/components/ui/Icon.vue'
 import { listPublicActivities, type PublicActivitySummary } from '@/services/public'
 import { useProjectStore } from '@/stores/projects'
@@ -46,7 +46,14 @@ async function load(): Promise<void> {
   loading.value = true
   error.value = ''
   try {
-    activities.value = await listPublicActivities({ pageSize: 50 })
+    const remote = await listPublicActivities({ pageSize: 50 })
+    const wellbeing = remote.filter((item) =>
+      /心理|心晴|关怀|情绪|正念|匿名|团辅|游园/.test(
+        `${item.title} ${item.description ?? ''} ${item.activityType ?? ''}`
+      )
+    )
+    activities.value = wellbeing
+    if (!wellbeing.length) throw new Error('当前没有心理主题活动')
   } catch (err) {
     const fallback = projectStore.projects.filter((project) => project.status === 'published')
     activities.value = fallback.map((project) => ({
@@ -60,7 +67,7 @@ async function load(): Promise<void> {
       status: project.status,
       updatedAt: new Date(project.document.updatedAt).toISOString(),
     }))
-    if (!activities.value.length) error.value = err instanceof Error ? err.message : '校园活动加载失败'
+    if (!activities.value.length) error.value = err instanceof Error ? err.message : '心理活动加载失败'
   } finally {
     loading.value = false
   }
@@ -78,39 +85,39 @@ onMounted(load)
 </script>
 
 <template>
-  <WorkspaceShell>
+  <WellbeingPublicShell>
     <main class="campus-page">
       <section class="campus-hero">
         <div class="campus-hero-copy">
-          <p class="eyebrow">Campus activities</p>
-          <h1>校园活动</h1>
-          <p>发现正在报名的社团招新、比赛、分享会与打卡计划，找到属于你的校园现场。</p>
+          <p class="eyebrow">Campus wellbeing</p>
+          <h1>心理活动广场</h1>
+          <p>发现心理社团活动、心晴游园会、自我关怀打卡与安心表达入口，找到适合自己的参与方式。</p>
           <div class="campus-hero-actions">
             <RouterLink class="app-button app-button--primary" to="/projects/new">
-              <Icon name="plus" :size="15" />发起活动
+              <Icon name="plus" :size="15" />发起心晴活动
             </RouterLink>
             <RouterLink class="app-button app-button--secondary" to="/templates">
-              <Icon name="grid" :size="15" />浏览模板
+              <Icon name="grid" :size="15" />浏览心晴模板
             </RouterLink>
           </div>
         </div>
         <RouterLink v-if="featured" :to="`/p/${featured.slug}`" class="campus-featured">
           <span>{{ featured.coverCode || 'FEATURED' }}</span>
           <strong>{{ featured.coverTitle || featured.title }}</strong>
-          <small>本周精选 · {{ featured.activityType || '校园活动' }}</small>
+          <small>本周心晴 · {{ featured.activityType || '心理活动' }}</small>
           <Icon name="arrow-right" :size="18" />
         </RouterLink>
         <div v-else class="campus-featured campus-featured--empty">
           <Icon name="pin" :size="26" />
-          <strong>校园现场正在准备</strong>
-          <small>发布第一个活动后，它会出现在这里。</small>
+          <strong>心晴活动正在准备</strong>
+          <small>发布第一个心理活动后，它会出现在这里。</small>
         </div>
       </section>
 
       <section class="campus-toolbar">
         <div class="campus-search">
           <Icon name="search" :size="16" />
-          <input v-model="search" placeholder="搜索活动、社团或关键词" aria-label="搜索校园活动" />
+          <input v-model="search" placeholder="搜索心晴活动、心理社团或关键词" aria-label="搜索心理活动" />
         </div>
         <div class="campus-types">
           <button
@@ -127,11 +134,11 @@ onMounted(load)
 
       <section v-if="loading" class="campus-state">
         <Icon name="refresh" :size="24" />
-        <strong>正在加载校园活动</strong>
+        <strong>正在加载心理活动</strong>
       </section>
       <section v-else-if="error" class="campus-state">
         <Icon name="alert" :size="24" />
-        <strong>校园活动暂时不可用</strong>
+        <strong>心理活动暂时不可用</strong>
         <p>{{ error }}</p>
         <button class="app-button app-button--secondary" type="button" @click="load">重新加载</button>
       </section>
@@ -148,11 +155,11 @@ onMounted(load)
             <i />
           </RouterLink>
           <div class="campus-card-body">
-            <span class="campus-card-type">{{ item.activityType || '校园活动' }}</span>
+            <span class="campus-card-type">{{ item.activityType || '心理活动' }}</span>
             <RouterLink :to="`/p/${item.slug}`"
               ><h2>{{ item.title }}</h2></RouterLink
             >
-            <p>{{ item.description || '点击查看活动详情与报名方式。' }}</p>
+            <p>{{ item.description || '点击查看活动详情与安心参与方式。' }}</p>
             <footer>
               <span><Icon name="clock" :size="12" />{{ updatedLabel(item.updatedAt) }}</span>
               <button type="button" @click="copyLink(item.slug)"><Icon name="copy" :size="13" />分享</button>
@@ -161,7 +168,7 @@ onMounted(load)
         </article>
       </section>
     </main>
-  </WorkspaceShell>
+  </WellbeingPublicShell>
 </template>
 
 <style scoped>
@@ -319,19 +326,19 @@ onMounted(load)
   color: #fff;
 }
 .campus-card-cover.cover--photo {
-  background: linear-gradient(145deg, #f09b75, #26334d);
+  background: linear-gradient(145deg, #88ad94, #365746);
 }
 .campus-card-cover.cover--music,
 .campus-card-cover.cover--vote {
-  background: linear-gradient(145deg, #4b287d, #d85c9c);
+  background: linear-gradient(145deg, #617d84, #b8cbc8);
 }
 .campus-card-cover.cover--read,
 .campus-card-cover.cover--checkin {
-  background: linear-gradient(145deg, #087d68, #9ac460);
+  background: linear-gradient(145deg, #3f6b50, #b7c99e);
 }
 .campus-card-cover.cover--volunteer,
 .campus-card-cover.cover--event {
-  background: linear-gradient(145deg, #2457d6, #70a6ff);
+  background: linear-gradient(145deg, #547a73, #d2b5a3);
 }
 .campus-card-cover > span {
   font-size: 8px;

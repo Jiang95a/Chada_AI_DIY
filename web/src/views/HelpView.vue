@@ -149,7 +149,7 @@ async function copyDiagnostics(): Promise<void> {
             <details open>
               <summary><span>如何创建第一个活动页面？</span><Icon name="chevron" :size="15" /></summary>
               <p>
-                打开「模板灵感」，选择适合的活动类型并点击“用这个模板创建”。进入编辑器后修改文案、图片和表单字段，最后点击“发布”。
+                打开「心晴模板」，选择适合的心理活动类型并点击“用这个模板创建”。进入页面工坊修改内容后发布。
               </p>
             </details>
             <details>
@@ -171,7 +171,7 @@ async function copyDiagnostics(): Promise<void> {
             </details>
             <details>
               <summary><span>如何切换工作空间？</span><Icon name="chevron" :size="15" /></summary>
-              <p>点击左侧空间卡片，在“学生活动中心”“个人空间”和“校园活动”之间切换。偏好设置里也可以切换当前空间。</p>
+              <p>点击左侧空间卡片，在“心屿心理协会”“个人空间”和“心晴志愿队”之间切换。偏好设置里也可以切换当前空间。</p>
             </details>
           </div>
 
@@ -228,17 +228,17 @@ async function copyDiagnostics(): Promise<void> {
             <h2>快速入口</h2>
             <RouterLink to="/projects"
               ><Icon name="home" :size="15" /><span
-                ><strong>项目工作台</strong><small>管理全部活动</small></span
+                ><strong>运营概览</strong><small>管理全部心晴活动</small></span
               ></RouterLink
             >
             <RouterLink to="/templates"
               ><Icon name="grid" :size="15" /><span
-                ><strong>模板灵感</strong><small>从成熟结构开始</small></span
+                ><strong>心晴模板</strong><small>从心理活动结构开始</small></span
               ></RouterLink
             >
             <RouterLink to="/campus"
               ><Icon name="pin" :size="15" /><span
-                ><strong>校园活动</strong><small>查看已发布活动</small></span
+                ><strong>心理活动</strong><small>查看已发布的心晴活动</small></span
               ></RouterLink
             >
           </section>

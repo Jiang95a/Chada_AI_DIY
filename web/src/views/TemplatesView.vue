@@ -2,10 +2,11 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import WorkspaceShell from '@/components/studio/WorkspaceShell.vue'
+import BaseModal from '@/components/ui/BaseModal.vue'
 import Icon from '@/components/ui/Icon.vue'
 import { useToast } from '@/composables/useToast'
 import { useProjectStore } from '@/stores/projects'
-import { loadTemplateCatalog, type TemplateCatalogItem } from '@/services/templates'
+import { loadTemplateCatalog, removeCustomTemplate, type TemplateCatalogItem } from '@/services/templates'
 
 /**
  * 模板灵感页。
@@ -23,12 +24,13 @@ const toast = useToast()
 const projectStore = useProjectStore()
 
 const creatingId = ref('')
+const deletingTemplate = ref<TemplateCard | null>(null)
 const catalog = ref<TemplateCatalogItem[]>([])
 const aiPrompt = ref('')
 const aiExamples = [
-  '摄影社秋季招新，四页，包含部门介绍和报名表',
-  '校园歌手大赛人气投票，每人一票',
-  '21 天阅读打卡，每天提交阅读记录',
+  '心理协会秋季招新，包含社团介绍、活动方向和报名表',
+  '考试周心晴游园会，包含活动介绍、时间地点和报名',
+  '21 天自我关怀打卡，每天完成一个轻量练习',
 ]
 
 interface TemplateCard {
@@ -38,6 +40,7 @@ interface TemplateCard {
   tagline: string
   icon: string
   gradient: [string, string]
+  source: TemplateCatalogItem['source']
   title: string
   pageCount: number
   blockCount: number
@@ -54,6 +57,7 @@ const cards = computed<TemplateCard[]>(() =>
       tagline: template.tagline,
       icon: template.icon,
       gradient: template.gradient,
+      source: template.source,
       title: build.title,
       pageCount: build.pages.length,
       blockCount: build.pages.reduce((total, page) => total + page.blocks.length, 0),
@@ -62,9 +66,13 @@ const cards = computed<TemplateCard[]>(() =>
   })
 )
 
-onMounted(async () => {
+const customCount = computed(() => cards.value.filter((card) => card.source === 'custom').length)
+
+async function loadTemplates(): Promise<void> {
   catalog.value = await loadTemplateCatalog()
-})
+}
+
+onMounted(loadTemplates)
 
 async function useTemplate(card: TemplateCard): Promise<void> {
   if (creatingId.value) return
@@ -91,6 +99,14 @@ function askAi(prompt = aiPrompt.value): void {
     query: value ? { prompt: value } : undefined,
   })
 }
+
+async function confirmDeleteTemplate(): Promise<void> {
+  if (!deletingTemplate.value) return
+  removeCustomTemplate(deletingTemplate.value.id)
+  deletingTemplate.value = null
+  await loadTemplates()
+  toast.pushToast('心晴模板已删除', 'success')
+}
 </script>
 
 <template>
@@ -98,25 +114,25 @@ function askAi(prompt = aiPrompt.value): void {
     <main class="templates-page">
       <header class="templates-head">
         <div>
-          <p class="eyebrow">Templates</p>
-          <h1>模板灵感</h1>
-          <p class="templates-sub">选一个贴近你活动的结构，进去调整内容；也可以让 AI 根据需求直接生成。</p>
+          <p class="eyebrow">Wellbeing templates</p>
+          <h1>心晴模板</h1>
+          <p class="templates-sub">从心理社团常用场景开始，进入页面工坊调整内容，也可以让 AI 先生成初稿。</p>
         </div>
         <button class="app-button app-button--primary" type="button" @click="askAi()">
-          <Icon name="wand" :size="16" />让 AI 帮我生成
+          <Icon name="wand" :size="16" />让 AI 帮我做页面
         </button>
       </header>
 
       <section class="templates-ai-builder">
         <div class="templates-ai-builder__copy">
-          <span class="templates-ai-badge"><Icon name="spark" :size="15" />AI TEMPLATE BUILDER</span>
-          <h2>描述活动需求，生成整套模板</h2>
-          <p>说清活动类型、页面内容和报名要求，AI 会直接排好页面结构并创建项目。</p>
+          <span class="templates-ai-badge"><Icon name="spark" :size="15" />AI WELLBEING BUILDER</span>
+          <h2>描述一场心晴活动，生成完整页面</h2>
+          <p>说清活动对象、参与方式和需要收集的信息，AI 会排好页面结构并创建活动草稿。</p>
           <textarea
             v-model="aiPrompt"
             rows="4"
             maxlength="300"
-            placeholder="例如：做一个校园音乐节报名页，需要活动介绍、演出阵容、报名表和交通信息"
+            placeholder="例如：做一个考试周解压游园会页面，需要活动介绍、摊位信息、匿名报名和保密说明"
             @keydown.ctrl.enter.prevent="askAi()"
             @keydown.meta.enter.prevent="askAi()"
           />
@@ -127,37 +143,39 @@ function askAi(prompt = aiPrompt.value): void {
           </div>
           <button class="templates-ai-submit" type="button" @click="askAi()">
             <Icon name="wand" :size="18" />
-            <span><strong>生成我的活动模板</strong><small>Ctrl / ⌘ + Enter</small></span>
+            <span><strong>生成我的心晴活动页</strong><small>Ctrl / ⌘ + Enter</small></span>
             <Icon name="arrow-right" :size="19" />
           </button>
         </div>
         <div class="templates-ai-builder__preview">
-          <span>AI 会为你准备</span>
+          <span>AI 会为心理活动准备</span>
           <div class="ai-preview-page">
             <i />
-            <strong>活动标题与主视觉</strong>
-            <p>活动介绍 · 时间地点 · 报名入口</p>
+            <strong>温柔的活动主张</strong>
+            <p>活动介绍 · 参与方式 · 安心说明</p>
             <div><span /><span /><span /></div>
           </div>
           <div class="ai-preview-page ai-preview-page--small">
             <i />
-            <strong>报名表单与成功页</strong>
-            <p>字段校验 · 提交确认 · 分享二维码</p>
+            <strong>参与表单与确认页</strong>
+            <p>最小信息 · 匿名选项 · 保密提示</p>
           </div>
           <ul>
-            <li><Icon name="check" :size="12" />自动匹配主题和组件</li>
-            <li><Icon name="check" :size="12" />生成后仍可自由 DIY</li>
-            <li><Icon name="check" :size="12" />模型不可用时自动本地降级</li>
+            <li><Icon name="check" :size="12" />匹配心理活动组件</li>
+            <li><Icon name="check" :size="12" />生成后仍可自由调整</li>
+            <li><Icon name="check" :size="12" />隐私提示与表单一起生成</li>
           </ul>
         </div>
       </section>
 
       <div class="templates-list-heading">
         <div>
-          <h2>从成熟模板开始</h2>
-          <p>想自己选结构时，用下面的模板快速创建。</p>
+          <h2>从心晴场景开始</h2>
+          <p>心理社团、团辅活动、知识问答和自我关怀都有成熟结构。</p>
         </div>
-        <span>{{ cards.length }} 个模板</span>
+        <span
+          >{{ cards.length }} 个模板<template v-if="customCount"> · 我的心晴 {{ customCount }}</template></span
+        >
       </div>
 
       <section class="templates-grid">
@@ -167,6 +185,7 @@ function askAi(prompt = aiPrompt.value): void {
             :style="{ background: `linear-gradient(135deg, ${card.gradient[0]}, ${card.gradient[1]})` }"
           >
             <span class="template-card__scene">{{ card.scene }}</span>
+            <span v-if="card.source === 'custom'" class="template-card__custom">我的心晴模板</span>
             <Icon :name="card.icon || 'grid'" :size="22" />
             <strong>{{ card.name }}</strong>
           </div>
@@ -181,19 +200,50 @@ function askAi(prompt = aiPrompt.value): void {
           </div>
           <div class="template-card__foot">
             <span class="template-card__title">示例标题：{{ card.title }}</span>
-            <button
-              class="app-button app-button--secondary"
-              type="button"
-              :disabled="creatingId === card.id"
-              @click="useTemplate(card)"
-            >
-              <Icon name="check" :size="15" />
-              {{ creatingId === card.id ? '创建中…' : '用这个模板创建' }}
-            </button>
+            <div class="template-card__actions">
+              <button
+                v-if="card.source === 'custom'"
+                class="template-card__delete"
+                type="button"
+                aria-label="删除自定义模板"
+                @click="deletingTemplate = card"
+              >
+                <Icon name="trash" :size="14" />
+              </button>
+              <button
+                class="app-button app-button--secondary"
+                type="button"
+                :disabled="creatingId === card.id"
+                @click="useTemplate(card)"
+              >
+                <Icon name="check" :size="15" />
+                {{ creatingId === card.id ? '创建中…' : '用这个模板创建' }}
+              </button>
+            </div>
           </div>
         </article>
       </section>
     </main>
+
+    <BaseModal
+      :open="Boolean(deletingTemplate)"
+      title="删除心晴模板"
+      subtitle="只删除模板副本，不会影响已经创建的活动项目。"
+      :width="430"
+      @close="deletingTemplate = null"
+    >
+      <div class="delete-template-confirm">
+        <span><Icon name="trash" :size="19" /></span>
+        <div>
+          <strong>确定删除「{{ deletingTemplate?.name }}」？</strong>
+          <p>删除后无法继续在新建活动或编辑器模板面板中使用这个模板。</p>
+        </div>
+      </div>
+      <template #footer>
+        <button class="app-button app-button--secondary" type="button" @click="deletingTemplate = null">取消</button>
+        <button class="template-delete-confirm" type="button" @click="confirmDeleteTemplate">确认删除</button>
+      </template>
+    </BaseModal>
   </WorkspaceShell>
 </template>
 
@@ -270,6 +320,20 @@ function askAi(prompt = aiPrompt.value): void {
   opacity: 0.78;
 }
 
+.template-card__custom {
+  position: absolute;
+  top: 11px;
+  left: 12px;
+  padding: 3px 7px;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 999px;
+  color: #fff;
+  background: rgb(0 0 0 / 16%);
+  font-size: 8px;
+  font-weight: 700;
+  backdrop-filter: blur(7px);
+}
+
 .template-card__art strong {
   font-size: 15px;
 }
@@ -314,6 +378,35 @@ function askAi(prompt = aiPrompt.value): void {
   flex-direction: column;
   gap: 8px;
   padding: 10px 14px 14px;
+}
+
+.template-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.template-card__actions .app-button {
+  flex: 1;
+}
+
+.template-card__delete {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--ink-400);
+  background: #fff;
+  cursor: pointer;
+  place-items: center;
+}
+
+.template-card__delete:hover {
+  border-color: #fecaca;
+  color: #d92d20;
+  background: #fef2f2;
 }
 
 .template-card__title {
@@ -579,6 +672,47 @@ function askAi(prompt = aiPrompt.value): void {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-400, #98a2b3);
+}
+
+.delete-template-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+.delete-template-confirm > span {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  color: #d92d20;
+  background: #fef2f2;
+  place-items: center;
+}
+
+.delete-template-confirm strong {
+  color: var(--ink-900);
+  font-size: 12px;
+}
+
+.delete-template-confirm p {
+  margin-top: 5px;
+  color: var(--ink-500);
+  font-size: 10px;
+  line-height: 1.65;
+}
+
+.template-delete-confirm {
+  min-height: 34px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 9px;
+  color: #fff;
+  background: #d92d20;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 @media (max-width: 980px) {

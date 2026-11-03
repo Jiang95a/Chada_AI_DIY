@@ -74,7 +74,7 @@ onMounted(async () => {
         <div>
           <p class="eyebrow">Account</p>
           <h1>个人资料</h1>
-          <p>管理公开昵称和账号信息，了解你的活动创作数据。</p>
+          <p>管理公开昵称和账号信息，了解你的心晴活动组织与参与数据。</p>
         </div>
         <div class="account-heading-actions">
           <RouterLink class="app-button app-button--secondary" to="/settings">
@@ -140,13 +140,13 @@ onMounted(async () => {
               <span><Icon name="chart" :size="17" /></span>
               <div>
                 <h2>创作概览</h2>
-                <p>当前账号的活动数据。</p>
+                <p>当前账号的心晴活动数据。</p>
               </div>
             </div>
             <div class="profile-metrics">
               <div>
                 <strong>{{ projectStore.projectCount }}</strong
-                ><span>全部项目</span>
+                ><span>全部心晴活动</span>
               </div>
               <div>
                 <strong>{{ publishedCount }}</strong
@@ -162,7 +162,7 @@ onMounted(async () => {
             <Icon name="info" :size="18" />
             <div>
               <strong>账号安全提示</strong>
-              <p>不要在活动页面公开密码或个人敏感信息。分享活动时只需复制公开链接。</p>
+              <p>心理活动页面应只收集必要信息，不要在公开页面暴露密码或其他同学的敏感资料。</p>
             </div>
           </section>
         </aside>

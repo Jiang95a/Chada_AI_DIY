@@ -1,7 +1,7 @@
 .workspace-layout {
   display: grid;
   min-height: 100vh;
-  grid-template-columns: 248px minmax(0, 1fr);
+  grid-template-columns: 238px minmax(0, 1fr);
 }
 
 .workspace-sidebar {
@@ -12,7 +12,7 @@
   flex-direction: column;
   padding: 22px 16px 16px;
   border-right: 1px solid var(--line);
-  background: rgb(255 255 255 / 94%);
+  background: rgb(251 253 249 / 96%);
   backdrop-filter: blur(18px);
 }
 
@@ -30,8 +30,8 @@
   height: 38px;
   overflow: hidden;
   border-radius: 13px;
-  background: linear-gradient(145deg, #2fddb3 0%, #1e75ff 72%);
-  box-shadow: 0 8px 18px rgb(37 111 237 / 22%);
+  background: linear-gradient(145deg, #8dc5a3 0%, #2f634b 76%);
+  box-shadow: 0 8px 18px rgb(47 99 75 / 18%);
   place-items: center;
 }
 
@@ -111,7 +111,7 @@
   flex: 0 0 auto;
   border-radius: 10px;
   color: #fff;
-  background: #172033;
+  background: #2d5f49;
   font-size: 12px;
   font-weight: 800;
   place-items: center;
@@ -143,6 +143,12 @@
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+.workspace-nav-label--tools {
+  margin-top: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
 }
 
 .workspace-nav-item {
@@ -197,7 +203,7 @@
   display: grid;
   border-radius: 50%;
   color: #fff;
-  background: linear-gradient(145deg, #f28b65, #e95867);
+  background: linear-gradient(145deg, #8ebda0, #3f745b);
   font-weight: 800;
   place-items: center;
 }
@@ -237,8 +243,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
-  border-bottom: 1px solid rgb(229 233 241 / 84%);
-  background: rgb(244 246 250 / 85%);
+  border-bottom: 1px solid rgb(220 230 222 / 88%);
+  background: rgb(244 248 241 / 88%);
   backdrop-filter: blur(20px);
 }
 
@@ -421,14 +427,14 @@
   flex: 0 0 auto;
   border-radius: 9px;
   color: #fff;
-  background: #172033;
+  background: #2d5f49;
   font-size: 9px;
   font-weight: 800;
   place-items: center;
 }
 
 .workspace-menu-avatar.is-personal {
-  background: linear-gradient(145deg, #f28b65, #e95867);
+  background: linear-gradient(145deg, #d6a18b, #9a6a58);
 }
 
 .workspace-popover .workspace-menu-footer {

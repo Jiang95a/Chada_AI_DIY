@@ -658,42 +658,357 @@ function buildClubRecruit(): TemplateBuild {
   }
 }
 
+/* ------------------------------------------------------------------------- */
+/* 心晴场景模板                                                                */
+/* ------------------------------------------------------------------------- */
+
+function buildWellbeingRecruit(): TemplateBuild {
+  const talk = dateOffset(4, 19, 0)
+  const deadline = dateOffset(3, 22, 0)
+
+  const home = makePage('首页', 'home', [
+    block('nav', { title: '心屿心理协会', right: '2026 秋招', showBack: false }),
+    block('banner', {
+      title: '和愿意倾听的人，一起做点温暖的事',
+      subtitle: '心屿心理协会 · 2026 秋季招新',
+      image: placeholder('forest'),
+      height: 252,
+    }),
+    block('infoCard', {
+      title: '招新安排',
+      items: [
+        { id: uid('it'), icon: 'time', label: '交流时间', value: talk.label },
+        { id: uid('it'), icon: 'place', label: '地点', value: '心理健康中心团体室' },
+        { id: uid('it'), icon: 'people', label: '人数', value: '40 人以内' },
+      ],
+    }),
+    block('text', {
+      text: '我们组织心理游园会、自我关怀打卡和朋辈分享。\n不需要心理学专业背景，只要愿意认真倾听、尊重边界。',
+    }),
+    block('button', {
+      text: '报名认识我们',
+      variant: 'primary',
+      full: true,
+      action: { type: 'page', pageId: '', url: '', targetRole: 'form' },
+    }),
+  ])
+
+  const about = makePage('关于心屿', 'content', [
+    block('nav', { title: '关于心屿', right: '', showBack: true }),
+    block('heading', {
+      text: '让心理关怀发生在日常里',
+      sub: '学生心理社团 · 关注参与、表达与连接',
+      size: 'lg',
+    }),
+    block('text', {
+      text: '我们不做心理诊断，也不要求分享不想说的故事。\n心屿希望用活动、内容和轻量陪伴，让同学更容易找到适合自己的参与方式。',
+    }),
+    block('divider', { label: '你可以参与' }),
+    block('text', {
+      text: '活动策划 · 视觉与内容 · 朋辈陪伴 · 日常运营\n每个方向都有学长学姐带着一起做。',
+    }),
+  ])
+
+  const form = makePage('报名表单', 'form', [
+    block('nav', { title: '报名认识我们', right: '', showBack: true }),
+    block('text', {
+      text: '只收集活动联系需要的信息。报名信息仅由本次招新负责人查看。',
+    }),
+    block('radio', {
+      question: '你比较想参与哪个方向？',
+      options: ['活动策划', '内容创作', '朋辈陪伴', '视觉设计', '还想再了解'],
+      required: true,
+      hint: '没有经验也完全可以',
+    }),
+    block('form', {
+      title: '基础信息',
+      buttonText: '提交报名',
+      successHint: '我们会在活动前联系你',
+      fields: [
+        { id: uid('f'), label: '昵称', type: 'text', required: true, placeholder: '怎么称呼你', options: [] },
+        { id: uid('f'), label: '学院/班级', type: 'text', required: false, placeholder: '选填', options: [] },
+        { id: uid('f'), label: '联系方式', type: 'text', required: true, placeholder: '手机或微信号', options: [] },
+      ],
+    }),
+    block('checkbox', {
+      question: '你更关注哪些活动？',
+      options: ['心晴游园会', '自我关怀打卡', '心理知识分享', '匿名表达'],
+      required: false,
+      max: 2,
+    }),
+  ])
+
+  const success = makePage('报名成功', 'success', [
+    block('nav', { title: '报名收到', right: '', showBack: false }),
+    block('heading', { text: '谢谢你愿意靠近一点', sub: '报名信息已经收到', size: 'xl' }),
+    block('text', {
+      text: `交流时间：${talk.label}\n地点：心理健康中心团体室\n\n如果当天无法参加，也可以回复消息告诉我们。`,
+    }),
+    block('button', {
+      text: '返回首页',
+      variant: 'outline',
+      full: true,
+      action: { type: 'page', pageId: '', url: '', targetRole: 'home' },
+    }),
+  ])
+
+  const pages = [home, about, form, success]
+  linkPages(pages)
+  return {
+    title: '心屿心理协会 · 2026 秋季招新',
+    theme: themeOf('forest', { primary: '#356b50', accent: '#c79078', bg: '#f6f8f3', radius: 18 }),
+    meta: meta({
+      org: '心屿心理协会',
+      startAt: talk.withYear,
+      place: '心理健康中心团体室',
+      deadline: deadline.iso,
+      capacity: 40,
+      contact: '心屿招新群',
+    }),
+    pages,
+  }
+}
+
+function buildWellbeingEvent(): TemplateBuild {
+  const event = dateOffset(6, 18, 30)
+  const deadline = dateOffset(5, 20, 0)
+  const home = makePage('首页', 'home', [
+    block('nav', { title: '考试周心晴游园会', right: '', showBack: false }),
+    block('banner', {
+      title: '给忙碌的心，留一小块空地',
+      subtitle: '考试周心晴游园会 · 五个轻量互动摊位',
+      image: placeholder('dawn'),
+      height: 248,
+    }),
+    block('infoCard', {
+      title: '活动信息',
+      items: [
+        { id: uid('it'), icon: 'time', label: '时间', value: event.labelWithWeek },
+        { id: uid('it'), icon: 'place', label: '地点', value: '心理健康中心前广场' },
+        { id: uid('it'), icon: 'people', label: '参与', value: '可匿名报名' },
+      ],
+    }),
+    block('text', {
+      text: '不需要分享不想说的故事。可以一个人来，也可以和朋友一起。\n完成任意三个摊位，就可以领取一张心晴纪念卡。',
+    }),
+    block('button', {
+      text: '匿名报名',
+      variant: 'primary',
+      full: true,
+      action: { type: 'page', pageId: '', url: '', targetRole: 'form' },
+    }),
+  ])
+  const detail = makePage('活动说明', 'content', [
+    block('nav', { title: '游园会怎么玩', right: '', showBack: true }),
+    block('heading', { text: '五个不赶时间的小摊位', size: 'lg' }),
+    block('text', {
+      text: '呼吸练习 · 情绪颜色 · 温柔便利贴 · 压力球 DIY · 给自己写一句话\n每个摊位都可以只体验，不留下任何文字。',
+    }),
+    block('divider', { label: '安心说明' }),
+    block('text', {
+      text: '活动不是心理治疗，也不会进行任何心理测评。\n如果当天状态不适合参与，可以随时离开或联系现场工作人员。',
+    }),
+  ])
+  const form = makePage('匿名报名', 'form', [
+    block('nav', { title: '匿名报名', right: '', showBack: true }),
+    block('form', {
+      title: '参与人数',
+      buttonText: '提交报名',
+      successHint: '凭提交成功页面入场即可',
+      fields: [
+        { id: uid('f'), label: '昵称', type: 'text', required: false, placeholder: '可以只写一个称呼', options: [] },
+        {
+          id: uid('f'),
+          label: '预计到场时间',
+          type: 'select',
+          required: true,
+          placeholder: '请选择',
+          options: ['18:30 - 19:00', '19:00 - 19:30', '19:30 - 20:00'],
+        },
+      ],
+    }),
+    block('checkbox', {
+      question: '你希望提前知道什么？',
+      options: ['是否有安静休息区', '是否必须参与互动', '是否可以提前离场'],
+      required: false,
+      max: 3,
+    }),
+  ])
+  const success = makePage('报名成功', 'success', [
+    block('nav', { title: '报名成功', right: '', showBack: false }),
+    block('heading', { text: '周五，慢一点来', sub: '不需要准备什么，也不需要表现得很积极', size: 'xl' }),
+    block('text', { text: `${event.labelWithWeek}\n心理健康中心前广场\n\n现场设有安静休息区，可以随时离场。` }),
+  ])
+  const pages = [home, detail, form, success]
+  linkPages(pages)
+  return {
+    title: '考试周心晴游园会',
+    theme: themeOf('forest', { primary: '#3f7257', accent: '#d29a84', bg: '#f7f8f2', radius: 20 }),
+    meta: meta({
+      org: '心屿心理协会',
+      startAt: event.withYear,
+      place: '心理健康中心前广场',
+      deadline: deadline.iso,
+      capacity: 120,
+      contact: '现场工作人员',
+    }),
+    pages,
+  }
+}
+
+function buildWellbeingQuiz(): TemplateBuild {
+  const home = makePage('首页', 'home', [
+    block('nav', { title: '心理健康知识问答', right: '', showBack: false }),
+    block('banner', {
+      title: '认识情绪，不是给情绪打分',
+      subtitle: '五分钟心理知识小问答',
+      image: placeholder('ocean'),
+      height: 230,
+    }),
+    block('text', {
+      text: '用几道轻松的问题了解常见心理知识。\n这不是心理测评，也不会生成诊断或风险结论。',
+    }),
+    block('button', {
+      text: '开始答题',
+      variant: 'primary',
+      full: true,
+      action: { type: 'page', pageId: '', url: '', targetRole: 'form' },
+    }),
+  ])
+  const quiz = makePage('知识问答', 'form', [
+    block('nav', { title: '知识小问答', right: '', showBack: true }),
+    block('radio', {
+      question: '感到压力时，下面哪种做法更合适？',
+      options: ['先离开高压环境，做几次缓慢呼吸', '强迫自己立刻恢复', '把所有感受都藏起来'],
+      required: true,
+      hint: '选择你认为最合适的一项',
+    }),
+    block('radio', {
+      question: '朋友向你倾诉时，最重要的是？',
+      options: ['认真听，并确认对方需要建议还是陪伴', '马上替他做决定', '告诉他不要想太多'],
+      required: true,
+    }),
+    block('form', {
+      title: '完成问答',
+      buttonText: '查看结果',
+      successHint: '结果仅用于知识科普',
+      fields: [{ id: uid('f'), label: '昵称', type: 'text', required: false, placeholder: '选填', options: [] }],
+    }),
+  ])
+  const success = makePage('完成问答', 'success', [
+    block('nav', { title: '问答完成', right: '', showBack: false }),
+    block('heading', { text: '谢谢你的认真参与', sub: '心理知识帮助我们更好地理解和陪伴', size: 'xl' }),
+    block('text', {
+      text: '这只是知识问答，不是心理测量。\n如果你最近持续感到困扰，可以联系学校心理健康中心或信任的老师。',
+    }),
+  ])
+  const pages = [home, quiz, success]
+  linkPages(pages)
+  return {
+    title: '心理健康知识小问答',
+    theme: themeOf('ocean', { primary: '#527d7a', accent: '#c89b75', bg: '#f4f8f7', radius: 18 }),
+    meta: meta({ org: '心晴志愿队', place: '线上参与', contact: '心理健康中心' }),
+    pages,
+  }
+}
+
+function buildWellbeingCheckin(): TemplateBuild {
+  const start = dateOffset(2, 8, 0)
+  const home = makePage('首页', 'home', [
+    block('nav', { title: '21 天自我关怀', right: '', showBack: false }),
+    block('banner', {
+      title: '每天照顾自己一点点',
+      subtitle: '21 天自我关怀练习',
+      image: placeholder('dawn'),
+      height: 236,
+    }),
+    block('text', {
+      text: '每天收到一个很小的练习：喝水、散步、放空五分钟、给自己一句肯定。\n中断也没有关系，不需要补签。',
+    }),
+    block('button', {
+      text: '开始参与',
+      variant: 'primary',
+      full: true,
+      action: { type: 'page', pageId: '', url: '', targetRole: 'form' },
+    }),
+  ])
+  const checkin = makePage('今日练习', 'form', [
+    block('nav', { title: '今日练习', right: '第 1 天', showBack: true }),
+    block('heading', { text: '今天，给自己五分钟', size: 'md' }),
+    block('radio', {
+      question: '今天完成了哪种照顾？',
+      options: ['慢慢喝一杯水', '短暂离开屏幕', '散步几分钟', '今天先休息'],
+      required: true,
+      hint: '没有哪一种更正确',
+    }),
+    block('form', {
+      title: '留一句话给自己',
+      buttonText: '完成今日练习',
+      successHint: '内容仅自己可见',
+      fields: [
+        { id: uid('f'), label: '昵称', type: 'text', required: false, placeholder: '可不填写', options: [] },
+        {
+          id: uid('f'),
+          label: '今天的一句话',
+          type: 'textarea',
+          required: false,
+          placeholder: '不想写也可以留空',
+          options: [],
+        },
+      ],
+    }),
+  ])
+  const success = makePage('练习完成', 'success', [
+    block('nav', { title: '今天到这里', right: '', showBack: false }),
+    block('heading', { text: '已经做得足够好了', sub: '自我关怀不是打卡任务，也不需要连续完美', size: 'xl' }),
+    block('text', { text: '下次想起来的时候再回来。\n断签不会清零，也不会影响任何评价。' }),
+  ])
+  const pages = [home, checkin, success]
+  linkPages(pages)
+  return {
+    title: '21 天自我关怀练习',
+    theme: themeOf('forest', { primary: '#55775b', accent: '#c59677', bg: '#f7f8f2', radius: 20 }),
+    meta: meta({ org: '心晴志愿队', startAt: start.withYear, place: '线上参与', contact: '心晴志愿队' }),
+    pages,
+  }
+}
+
 export const TEMPLATES: TemplateDef[] = [
   {
     id: 'recruit',
-    name: '社团招新',
-    scene: '招新 / 纳新',
-    tagline: '介绍 + 部门 + 报名表单',
+    name: '心理社团招新',
+    scene: '心理社团 / 成员招募',
+    tagline: '社团介绍 + 参与方向 + 报名表',
     icon: 'users',
-    gradient: ['#6366f1', '#a855f7'],
-    build: buildClubRecruit,
+    gradient: ['#5d8c72', '#9fbfaa'],
+    build: buildWellbeingRecruit,
   },
   {
     id: 'signup',
-    name: '活动报名',
-    scene: '讲座 / 比赛 / 夜跑',
-    tagline: '信息卡 + 倒计时 + 报名',
-    icon: 'zap',
-    gradient: ['#f97316', '#f43f5e'],
-    build: buildSignup,
+    name: '心晴活动',
+    scene: '游园会 / 团辅 / 分享会',
+    tagline: '活动说明 + 安心提示 + 匿名报名',
+    icon: 'calendar',
+    gradient: ['#b87c66', '#e0b69f'],
+    build: buildWellbeingEvent,
   },
   {
     id: 'vote',
-    name: '投票评选',
-    scene: '比赛 / 评选',
-    tagline: '作品展示 + 单选投票',
+    name: '心理知识问答',
+    scene: '科普 / 知识互动',
+    tagline: '知识问答 + 科普反馈',
     icon: 'check-circle',
-    gradient: ['#db2777', '#f472b6'],
-    build: buildVote,
+    gradient: ['#648b94', '#a7c1c6'],
+    build: buildWellbeingQuiz,
   },
   {
     id: 'checkin',
-    name: '每日打卡',
-    scene: '打卡 / 挑战',
-    tagline: '倒计时 + 每日提交',
+    name: '自我关怀打卡',
+    scene: '日常练习 / 轻量陪伴',
+    tagline: '每日练习 + 无压力记录',
     icon: 'clock',
-    gradient: ['#059669', '#84cc16'],
-    build: buildCheckin,
+    gradient: ['#6f8f72', '#b9c79c'],
+    build: buildWellbeingCheckin,
   },
 ]
 
@@ -720,7 +1035,7 @@ export function newDocFromBuild(build: TemplateBuild, existing?: Doc): Doc {
 
 /** 首次打开时的演示文档：直接能看到成品的四页活动站 */
 export function createDemoDoc(): Doc {
-  return newDocFromBuild(buildPhotographyRecruit())
+  return newDocFromBuild(buildWellbeingRecruit())
 }
 
 export function createBlankDoc(): Doc {

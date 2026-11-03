@@ -263,25 +263,26 @@
 
 .project-cover--photo {
   background:
-    linear-gradient(135deg, rgb(14 31 56 / 15%), rgb(14 31 56 / 55%)), linear-gradient(145deg, #ef9c78, #36415e 72%);
+    radial-gradient(circle at 82% 18%, rgb(255 255 255 / 18%), transparent 24%),
+    linear-gradient(145deg, #789d84, #365746 74%);
 }
 
 .project-cover--music {
   background:
-    radial-gradient(circle at 78% 28%, #fc8c78 0 9%, transparent 10%),
-    linear-gradient(145deg, #3a2b7c, #9d6dec 58%, #f4c668);
+    radial-gradient(circle at 78% 28%, rgb(255 255 255 / 20%) 0 9%, transparent 10%),
+    linear-gradient(145deg, #617d84, #9cb7b6 65%, #d8c3ac);
 }
 
 .project-cover--read {
   background:
-    radial-gradient(circle at 88% 22%, rgb(255 255 255 / 27%) 0 13%, transparent 14%),
-    linear-gradient(145deg, #0d7d68, #56b690 60%, #c6d67d);
+    radial-gradient(circle at 88% 22%, rgb(255 255 255 / 26%) 0 13%, transparent 14%),
+    linear-gradient(145deg, #3f6b50, #8eb69a 62%, #d5d5aa);
 }
 
 .project-cover--volunteer {
   background:
     linear-gradient(115deg, transparent 52%, rgb(255 255 255 / 12%) 53% 65%, transparent 66%),
-    linear-gradient(145deg, #3261d7, #5f93f5 58%, #a9c7ff);
+    linear-gradient(145deg, #547a73, #8ea9aa 58%, #d9c2b3);
 }
 
 .project-cover-pattern {

@@ -104,8 +104,8 @@ async function downloadPoster(): Promise<void> {
 <template>
   <BaseModal
     :open="props.open"
-    title="发布活动页面"
-    subtitle="生成链接与二维码，内容更新后链接不变"
+    title="发布心晴活动页面"
+    subtitle="生成参与链接与二维码，内容更新后链接不变"
     :width="680"
     @close="emit('close')"
   >
@@ -113,7 +113,7 @@ async function downloadPoster(): Promise<void> {
       <div v-if="!published" class="pub__empty">
         <span class="pub__empty-icon"><Icon name="rocket" :size="22" /></span>
         <p class="pub__empty-title">还没发布</p>
-        <p class="pub__empty-text">发布后会得到一个固定链接和二维码。之后再改文案、换配色，链接都不用换。</p>
+        <p class="pub__empty-text">发布后会得到一个固定参与链接和二维码。之后再调整文案或样式，链接都不用换。</p>
         <button type="button" class="btn btn--primary btn--lg" @click="publish">
           <Icon name="rocket" :size="15" /> 发布并生成二维码
         </button>

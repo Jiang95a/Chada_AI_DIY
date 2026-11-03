@@ -96,8 +96,8 @@ function onTitleInput(event: Event): void {
     <div class="hd__left">
       <span class="hd__logo"><Icon name="spark" :size="17" /></span>
       <div class="hd__brand">
-        <p class="hd__brand-name">AI DIY 工坊</p>
-        <p class="hd__brand-sub">校园轻活动页面制作</p>
+        <p class="hd__brand-name">心晴页面工坊</p>
+        <p class="hd__brand-sub">心屿同行 · 活动创作工具</p>
       </div>
       <span class="hd__sep" />
       <div class="hd__project">
