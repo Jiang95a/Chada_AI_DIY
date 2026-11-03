@@ -1184,6 +1184,340 @@ paths:
         default:
           $ref: "#/components/responses/Error"
 
+  /projects/{projectId}/privacy:
+    parameters:
+      - $ref: "#/components/parameters/ProjectId"
+    get:
+      tags: [Privacy]
+      summary: 读取活动的隐私设置
+      description: |
+        组织者视角。默认 privacyMode=optional、consentRequired=true、retentionDays=30。
+        未发布的草稿同样可以读取，用于编辑器里的「隐私设置」面板。
+      operationId: getProjectPrivacy
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Privacy settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/PrivacySettings"
+        "403":
+          $ref: "#/components/responses/Error"
+        default:
+          $ref: "#/components/responses/Error"
+    put:
+      tags: [Privacy]
+      summary: 修改活动的隐私设置
+      operationId: updateProjectPrivacy
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrivacySettings"
+      responses:
+        "200":
+          description: Privacy settings saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/PrivacySettings"
+        "403":
+          $ref: "#/components/responses/Error"
+        "422":
+          $ref: "#/components/responses/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /public/activities/{slug}/privacy:
+    get:
+      tags: [Privacy]
+      summary: 公开读取活动的参与说明与隐私档位
+      description: |
+        匿名可访问。参与者提交前先调这个接口拿到 consentText，
+        原文展示给参与者；勾选后再调 POST consents 换取 consentId。
+      operationId: getPublicPrivacy
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/Slug"
+      responses:
+        "200":
+          description: Public privacy settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/PrivacySettings"
+        "404":
+          $ref: "#/components/responses/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /public/activities/{slug}/consents:
+    post:
+      tags: [Privacy]
+      summary: 记录一次知情同意
+      description: |
+        参与者勾选参与说明后调用，返回 consentId；
+        提交表单时把它放进 `privacy.consentId`。
+        以服务端保存的说明文本为准，客户端传的文本不一致时返回 422（说明已更新，请刷新重读）。
+      operationId: recordConsent
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/Slug"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                consentText:
+                  type: string
+                  description: 可选，客户端展示过的说明原文，用于确认没读到旧版本
+      responses:
+        "200":
+          description: Consent recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ConsentResult"
+        "404":
+          $ref: "#/components/responses/Error"
+        "422":
+          $ref: "#/components/responses/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /public/activities/{slug}/feedback:
+    post:
+      tags: [Feedback]
+      summary: 提交活动心情反馈
+      description: |
+        活动结束后参与者的一句话反馈，匿名可提交。
+        与平台问题反馈 `POST /feedback` 是两条不同的链路。
+      operationId: submitActivityFeedback
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/Slug"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActivityFeedbackRequest"
+      responses:
+        "200":
+          description: Feedback recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          description: 活动关闭了留言（allowLeave=false）
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /projects/{projectId}/submissions/summary:
+    get:
+      tags: [Privacy]
+      summary: 报名数据的聚合概览
+      description: |
+        组织者视角。只返回计数与同意率，不含任何参与者信息，
+        用于「隐私设置」面板展示——组织者看到的是概览，不是名单。
+      operationId: getSubmissionsSummary
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: Submissions summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/SubmissionSummary"
+        "403":
+          $ref: "#/components/responses/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /projects/{projectId}/submissions/purge:
+    post:
+      tags: [Privacy]
+      summary: 立即清理到期数据
+      description: |
+        按 retentionDays 清理已过保留期的报名记录，手工触发。
+        正常情况下服务端会定时清理，这里给组织者一个「立刻执行」的入口。
+      operationId: purgeExpiredSubmissions
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: Purged
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      removed:
+                        type: integer
+        "403":
+          $ref: "#/components/responses/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /projects/{projectId}/feedback/summary:
+    get:
+      tags: [Feedback]
+      summary: 活动反馈聚合
+      description: 只看聚合结果（总数、平均分、各选项计数），不返回单条留言内容。
+      operationId: getFeedbackSummary
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ProjectId"
+      responses:
+        "200":
+          description: Feedback summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/FeedbackSummary"
+        "403":
+          $ref: "#/components/responses/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: 我的站内通知
+      description: |
+        组织者收到「有新报名」的通知。
+        **通知正文刻意不含参与者姓名/学号**，匿名活动的通知里连昵称都没有。
+      operationId: listNotifications
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    required: [items, unread]
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Notification"
+                      unread:
+                        type: integer
+        default:
+          $ref: "#/components/responses/Error"
+
+  /notifications/{notificationId}/read:
+    post:
+      tags: [Notifications]
+      summary: 把单条通知标记为已读
+      operationId: markNotificationRead
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Marked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      ok:
+                        type: boolean
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        default:
+          $ref: "#/components/responses/Error"
+
+  /notifications/read-all:
+    post:
+      tags: [Notifications]
+      summary: 全部标记为已读
+      operationId: markAllNotificationsRead
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Marked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      updated:
+                        type: integer
+        default:
+          $ref: "#/components/responses/Error"
+
   /ai/chat:
     post:
       tags: [AI]
@@ -1952,6 +2286,147 @@ components:
           type: string
           enum: [valid, invalid]
         submittedAt:
+          type: string
+          format: date-time
+        privacyMode:
+          type: string
+          enum: [real_name, optional, anonymous]
+          description: 提交当时的隐私档位快照（之后改设置不影响历史记录）
+        anonymous:
+          type: boolean
+        anonymousToken:
+          type: [string, "null"]
+          description: 匿名提交时生成的随机编号，用于组织者回复而不暴露身份
+        consentId:
+          type: [string, "null"]
+          format: uuid
+          description: 签署的知情同意记录 id，未签为 null
+        consentAt:
+          type: [string, "null"]
+          format: date-time
+
+    PrivacySettings:
+      type: object
+      description: |
+        活动的隐私与知情同意设置。GET/PUT `/projects/{projectId}/privacy` 用它，
+        公开接口 `/public/activities/{slug}/privacy` 返回的是同一结构（不含组织者信息）。
+      required: [privacyMode, consentRequired, consentText, retentionDays]
+      properties:
+        privacyMode:
+          type: string
+          enum: [real_name, optional, anonymous]
+          description: |
+            real_name 必须实名；optional 参与者自选（默认）；anonymous 一律匿名。
+            匿名档位由**服务端强制**，即使客户端传 anonymous=false 也按匿名存储。
+        consentRequired:
+          type: boolean
+          description: 为 true 时，提交必须带 privacy.consentId，否则 422
+        consentText:
+          type: string
+          maxLength: 2000
+          description: 展示给参与者的参与说明原文
+        retentionDays:
+          type: integer
+          minimum: 1
+          maximum: 3650
+          description: 报名数据的保留天数，到期后由服务端清理
+        allowExport:
+          type: boolean
+          description: 关闭后 `POST /projects/{projectId}/exports` 返回 403
+        allowLeave:
+          type: boolean
+          description: 关闭后活动反馈接口返回 403
+        quietSpace:
+          type: boolean
+          description: 是否在活动页展示「安静区」提示（心理类活动适用）
+
+    ConsentResult:
+      type: object
+      required: [consentId, consentAt]
+      properties:
+        consentId:
+          type: string
+          format: uuid
+        consentAt:
+          type: string
+          format: date-time
+
+    SubmissionPrivacy:
+      type: object
+      description: 提交报名时携带的隐私信息
+      properties:
+        consentId:
+          type: string
+          format: uuid
+          description: 由 POST /public/activities/{slug}/consents 返回
+        anonymous:
+          type: boolean
+          description: 参与者是否选择匿名；活动为 anonymous 档时忽略此值
+
+    ActivityFeedbackRequest:
+      type: object
+      required: [choice]
+      properties:
+        choice:
+          type: string
+          enum: [helpful, neutral, unhelpful]
+        score:
+          type: integer
+          minimum: 0
+          maximum: 5
+        comment:
+          type: string
+          maxLength: 500
+        anonymous:
+          type: boolean
+
+    SubmissionSummary:
+      type: object
+      description: 报名聚合概览，不含任何参与者信息
+      required: [total, anonymous, consented]
+      properties:
+        total:
+          type: integer
+        anonymous:
+          type: integer
+          description: 其中匿名提交的数量
+        consented:
+          type: integer
+          description: 其中签署了知情同意的数量
+
+    FeedbackSummary:
+      type: object
+      required: [total]
+      properties:
+        total:
+          type: integer
+        averageScore:
+          type: [number, "null"]
+        helpful:
+          type: integer
+        neutral:
+          type: integer
+        unhelpful:
+          type: integer
+
+    Notification:
+      type: object
+      required: [id, type, title, body, read, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          description: 例如 submission_received
+        title:
+          type: string
+        body:
+          type: string
+          description: 正文不含参与者姓名/学号/匿名编号
+        read:
+          type: boolean
+        createdAt:
           type: string
           format: date-time
 

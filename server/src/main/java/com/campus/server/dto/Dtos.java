@@ -171,7 +171,9 @@ public final class Dtos {
     public record PublicActivityDto(String slug, String title, String status, JsonNode document,
                                     JsonNode publishSettings,
                                     String activityType, String coverTone, String coverCode,
-                                    String coverTitle) {
+                                    String coverTitle,
+                                    /** 当前生效的隐私设置，前端直接拿来渲染提示条，不用再猜。 */
+                                    PrivacySettings privacy) {
     }
 
     /** 公开活动列表里的一条，只暴露白名单字段（绝不带 draftDocument / ownerId）。 */
@@ -185,7 +187,12 @@ public final class Dtos {
             String pageId,
             String formComponentId,
             JsonNode answers,
-            String idempotencyKey
+            String idempotencyKey,
+            /**
+             * 知情同意 + 匿名意愿。旧前端不传这个字段时为 null，
+             * 服务端按活动自身的隐私设置判定（要求同意就拒绝、不要求就放行）。
+             */
+            SubmissionPrivacy privacy
     ) {
     }
 
@@ -265,5 +272,92 @@ public final class Dtos {
     public static class Option {
         private String value;
         private String label;
+    }
+
+    // ================================================================ 隐私 / 知情同意
+
+    public static final String DEFAULT_CONSENT_TEXT =
+            "我知道本次活动只收集参与所需的信息，信息仅由活动组织者查看，"
+            + "不用于心理诊断或未经同意的公开传播。";
+
+    /**
+     * 活动隐私设置。前端 {@code web/src/composables/useActivityPrivacy.ts} 的接口。
+     *
+     * <p>以前只存 localStorage，换台电脑就丢。现在落进 {@code projects.publish_settings.privacy}，
+     * 公开页拿到的就是组织者真正设置的那一份。
+     *
+     * <p>用包装类而不是 record：Jackson 反序列化 record 时缺字段会传 null，
+     * 这里需要对 null 做缺省值兜底，用 setter 更自然。
+     */
+    @Data
+    public static class PrivacySettings {
+        /** real_name | optional | anonymous；缺省 optional */
+        private String privacyMode = "optional";
+        private Boolean consentRequired = Boolean.TRUE;
+        private String consentText = DEFAULT_CONSENT_TEXT;
+        /** 信息保留天数，缺省 30；null 表示不自动清理 */
+        private Integer retentionDays = 30;
+        /** 是否允许组织者导出报名数据 */
+        private Boolean allowExport = Boolean.TRUE;
+        /** 是否允许参与者中途离开（只做提示，不强制） */
+        private Boolean allowLeave = Boolean.TRUE;
+        private Boolean quietSpace = Boolean.TRUE;
+
+        public static PrivacySettings defaults() {
+            return new PrivacySettings();
+        }
+    }
+
+    /** GET/PUT /projects/{id}/privacy 的返回体。 */
+    public record PrivacyDto(String projectId, PrivacySettings privacy, String updatedAt) {
+    }
+
+    /** POST /public/activities/{slug}/consents 的结果。 */
+    public record ConsentResult(String consentId, String privacyMode, Integer retentionDays,
+                                String consentText, String recordExpiresAt) {
+    }
+
+    /** 公开提交时额外可带的隐私字段（老前端不传也能工作）。 */
+    public record SubmissionPrivacy(String consentId, String consentText,
+                                    Boolean anonymous, Boolean consentAccepted) {
+    }
+
+    /** 组织者看到的报名记录，多带隐私 / 匿名信息。 */
+    public record SubmissionDetailDto(String id, String pageId, String formComponentId,
+                                      JsonNode answers, String status, String submittedAt,
+                                      String privacyMode, boolean anonymous,
+                                      String anonymousToken, String consentId, String consentAt) {
+    }
+
+    /** 报名数据聚合（不返回任何个人信息）。 */
+    public record SubmissionSummaryDto(long total, long valid, long anonymous, long consented,
+                                       String privacyMode,
+                                       List<Map<String, Object>> byDay,
+                                       Map<String, Long> byStatus) {
+    }
+
+    /** 活动反馈统计。 */
+    public record FeedbackSummaryDto(long total, double averageScore,
+                                     Map<String, Long> distribution,
+                                     List<String> recentComments) {
+    }
+
+    /** POST /public/activities/{slug}/feedback 的请求体。 */
+    public record ActivityFeedbackRequest(
+            @jakarta.validation.constraints.NotBlank(message = "请选择一个反馈选项")
+            String choice,
+            @jakarta.validation.constraints.Min(value = 0, message = "评分不能小于 0")
+            @jakarta.validation.constraints.Max(value = 5, message = "评分不能大于 5")
+            Integer score,
+            @jakarta.validation.constraints.Size(max = 500, message = "留言最多 500 字")
+            String comment,
+            Boolean anonymous
+    ) {
+    }
+
+    // ================================================================ 通知
+
+    public record NotificationDto(String id, String type, String title, String detail,
+                                  String targetPath, boolean read, String createdAt) {
     }
 }

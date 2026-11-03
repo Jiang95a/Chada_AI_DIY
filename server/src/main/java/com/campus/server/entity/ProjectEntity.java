@@ -18,6 +18,11 @@ public class ProjectEntity {
     private String description;
     /** 活动类型，如 社团招新 / 投票评选；前端 ProjectRecord.type */
     private String activityType;
+    /**
+     * 隐私档位冗余列：real_name | optional | anonymous。
+     * 真正的完整设置在 publish_settings.privacy，这一列只是为了公开列表 / 统计能直接过滤。
+     */
+    private String privacyMode;
     /** 卡片配色主题，前端 ProjectRecord.coverTone */
     private String coverTone;
     /** 卡片角标文字，前端 ProjectRecord.coverCode */

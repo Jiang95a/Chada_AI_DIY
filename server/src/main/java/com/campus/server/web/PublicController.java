@@ -2,8 +2,11 @@ package com.campus.server.web;
 
 import com.campus.server.common.ApiResponse;
 import com.campus.server.dto.Dtos;
+import com.campus.server.service.ConsentService;
+import com.campus.server.service.FeedbackService;
 import com.campus.server.service.ProjectService;
 import com.campus.server.service.SubmissionService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,10 +29,15 @@ public class PublicController {
 
     private final ProjectService projectService;
     private final SubmissionService submissionService;
+    private final ConsentService consentService;
+    private final FeedbackService feedbackService;
 
-    public PublicController(ProjectService projectService, SubmissionService submissionService) {
+    public PublicController(ProjectService projectService, SubmissionService submissionService,
+                            ConsentService consentService, FeedbackService feedbackService) {
         this.projectService = projectService;
         this.submissionService = submissionService;
+        this.consentService = consentService;
+        this.feedbackService = feedbackService;
     }
 
     /** 打开活动页：返回发布时的文档快照（不是草稿），并记一次浏览埋点。 */
@@ -69,6 +77,45 @@ public class PublicController {
             @PathVariable String slug,
             @RequestBody Dtos.PublicEventRequest request) {
         projectService.recordPublicEvent(slug, request);
+        return ApiResponse.ok(Map.of("recorded", true));
+    }
+
+    // ============================================================ 隐私 / 知情同意
+
+    /**
+     * 看一眼这个活动当前生效的参与说明（不需要先同意）。
+     * 前端在填表前先调它，把 privacyMode / 保留天数渲染到提示条上。
+     */
+    @GetMapping("/activities/{slug}/privacy")
+    public ApiResponse.Envelope<Dtos.ConsentResult> describePrivacy(@PathVariable String slug) {
+        return ApiResponse.ok(consentService.describe(slug));
+    }
+
+    /**
+     * 勾选「我已阅读」之后调一次，拿到 consentId，再带着它去提交。
+     *
+     * <p>只存同意文本的 hash，不存明文身份；匿名档连 submitter_hash 都不落。
+     */
+    @PostMapping("/activities/{slug}/consents")
+    public ApiResponse.Envelope<Dtos.ConsentResult> recordConsent(
+            @PathVariable String slug,
+            @RequestBody(required = false) Map<String, Object> body) {
+        String text = body == null || body.get("consentText") == null
+                ? null : String.valueOf(body.get("consentText"));
+        return ApiResponse.ok(consentService.record(slug, text));
+    }
+
+    // ============================================================ 活动反馈
+
+    /**
+     * 活动结束后留一句感受。不收身份，匿名档不留任何可回指信息。
+     * 接口幂等性由前端保证（重复提交只影响统计，不产生通知）。
+     */
+    @PostMapping("/activities/{slug}/feedback")
+    public ApiResponse.Envelope<Map<String, Object>> submitFeedback(
+            @PathVariable String slug,
+            @Valid @RequestBody Dtos.ActivityFeedbackRequest request) {
+        feedbackService.submitActivity(slug, request);
         return ApiResponse.ok(Map.of("recorded", true));
     }
 }

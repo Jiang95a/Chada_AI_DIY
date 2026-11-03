@@ -42,6 +42,8 @@ public class ExportService {
 
     @Transactional
     public Dtos.ExportJobDto create(String projectId) {
+        // 隐私设置里可能关了导出；先拦，免得"导出一份不该存在的表"
+        submissionService.assertExportAllowed(projectId);
         List<FormSubmissionEntity> rows = submissionService.allForExport(projectId);
 
         ExportJobEntity job = new ExportJobEntity();
@@ -102,13 +104,17 @@ public class ExportService {
     private String toCsv(List<FormSubmissionEntity> rows) {
         StringBuilder sb = new StringBuilder();
         sb.append('\uFEFF'); // 让 Excel 正确识别 UTF-8
-        sb.append("提交ID,时间,页面,表单组件,状态,答案\n");
+        sb.append("提交ID,时间,页面,表单组件,状态,隐私档位,匿名编号,是否同意,答案\n");
         for (FormSubmissionEntity row : rows) {
             sb.append(csv(row.getId())).append(',')
               .append(csv(Ids.iso(row.getSubmittedAt()))).append(',')
               .append(csv(row.getPageId())).append(',')
               .append(csv(row.getFormComponentId())).append(',')
               .append(csv(row.getStatus())).append(',')
+              .append(csv(row.getPrivacyModeSnapshot())).append(',')
+              // 匿名记录导出时给匿名编号，方便现场核对，但回指不到人
+              .append(csv(row.isAnonymous() ? row.getAnonymousToken() : "")).append(',')
+              .append(csv(row.getConsentId() != null ? "已同意" : "")).append(',')
               .append(csv(row.getAnswers() == null ? "" : row.getAnswers().toString()))
               .append('\n');
         }

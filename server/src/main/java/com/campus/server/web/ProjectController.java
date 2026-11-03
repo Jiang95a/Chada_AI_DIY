@@ -2,7 +2,10 @@ package com.campus.server.web;
 
 import com.campus.server.common.ApiResponse;
 import com.campus.server.dto.Dtos;
+import com.campus.server.service.FeedbackService;
+import com.campus.server.service.PrivacyService;
 import com.campus.server.service.ProjectService;
+import com.campus.server.service.SubmissionService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,9 +30,16 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final PrivacyService privacyService;
+    private final SubmissionService submissionService;
+    private final FeedbackService feedbackService;
 
-    public ProjectController(ProjectService projectService) {
+    public ProjectController(ProjectService projectService, PrivacyService privacyService,
+                             SubmissionService submissionService, FeedbackService feedbackService) {
         this.projectService = projectService;
+        this.privacyService = privacyService;
+        this.submissionService = submissionService;
+        this.feedbackService = feedbackService;
     }
 
     // ================================================================ 项目 CRUD
@@ -132,5 +142,45 @@ public class ProjectController {
     public ApiResponse.Envelope<java.util.Map<String, Object>> unpublish(@PathVariable String projectId) {
         projectService.unpublish(projectId);
         return ApiResponse.ok(java.util.Map.of("status", "unpublished"));
+    }
+
+    // ================================================================ 隐私设置
+
+    /**
+     * 组织者读写这个活动的隐私设置。
+     *
+     * <p>以前前端把这份设置整个塞在 localStorage（键 {@code diy-campus:activity-privacy:v1}），
+     * 换台电脑就回到默认值、"保留 30 天"也只是个字符串没人执行。
+     * 现在落进 {@code projects.publish_settings.privacy}，公开页拿到的就是这里 sett 的这一份。
+     */
+    @GetMapping("/{projectId}/privacy")
+    public ApiResponse.Envelope<Dtos.PrivacyDto> getPrivacy(@PathVariable String projectId) {
+        return ApiResponse.ok(privacyService.get(projectId, projectService));
+    }
+
+    @PutMapping("/{projectId}/privacy")
+    public ApiResponse.Envelope<Dtos.PrivacyDto> savePrivacy(@PathVariable String projectId,
+                                                             @RequestBody Dtos.PrivacySettings request) {
+        return ApiResponse.ok(privacyService.save(projectId, request, projectService));
+    }
+
+    // ================================================================ 参与数据
+
+    /** 报名聚合：总数 / 匿名数 / 同意数 / 按天 / 按状态。不含任何个人信息。 */
+    @GetMapping("/{projectId}/submissions/summary")
+    public ApiResponse.Envelope<Dtos.SubmissionSummaryDto> submissionSummary(@PathVariable String projectId) {
+        return ApiResponse.ok(submissionService.summary(projectId));
+    }
+
+    /** 活动反馈聚合：分布 + 平均分 + 最近留言。 */
+    @GetMapping("/{projectId}/feedback/summary")
+    public ApiResponse.Envelope<Dtos.FeedbackSummaryDto> feedbackSummary(@PathVariable String projectId) {
+        return ApiResponse.ok(feedbackService.summary(projectId, projectService));
+    }
+
+    /** 手动触发一次到期清理（正常由定时任务做，这里给运维兜底）。 */
+    @PostMapping("/{projectId}/submissions/purge")
+    public ApiResponse.Envelope<java.util.Map<String, Object>> purgeSubmissions(@PathVariable String projectId) {
+        return ApiResponse.ok(java.util.Map.of("purged", submissionService.purgeExpired(projectId)));
     }
 }

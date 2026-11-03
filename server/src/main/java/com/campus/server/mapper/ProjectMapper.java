@@ -22,7 +22,7 @@ public interface ProjectMapper {
     // 所以这里统一用字符串拼接，不用文本块。
     String COLUMNS =
             "id, owner_id, template_id, title, description, "
-          + "activity_type, cover_tone, cover_code, cover_title, status, "
+          + "activity_type, privacy_mode, cover_tone, cover_code, cover_title, status, "
           + "draft_document, draft_revision, public_slug, published_version_id, "
           + "publish_settings, created_at, updated_at, deleted_at ";
 
@@ -77,10 +77,10 @@ public interface ProjectMapper {
 
     @Insert("""
             INSERT INTO projects (id, owner_id, template_id, title, description,
-                                  activity_type, cover_tone, cover_code, cover_title, status,
+                                  activity_type, privacy_mode, cover_tone, cover_code, cover_title, status,
                                   draft_document, draft_revision, publish_settings)
             VALUES (#{id}, #{ownerId}, #{templateId}, #{title}, #{description},
-                    #{activityType}, #{coverTone}, #{coverCode}, #{coverTitle}, #{status},
+                    #{activityType}, #{privacyMode}, #{coverTone}, #{coverCode}, #{coverTitle}, #{status},
                     #{draftDocument}, #{draftRevision}, #{publishSettings})
             """)
     int insert(ProjectEntity project);
@@ -181,7 +181,7 @@ public interface ProjectMapper {
           + "</if>";
 
     String PUBLIC_COLUMNS =
-            "id, title, description, activity_type, cover_tone, cover_code, cover_title, "
+            "id, title, description, activity_type, privacy_mode, cover_tone, cover_code, cover_title, "
           + "status, draft_revision, public_slug, published_version_id, publish_settings, updated_at ";
 
     @Select("<script>SELECT " + PUBLIC_COLUMNS + " FROM projects" + PUBLIC_WHERE
@@ -198,4 +198,23 @@ public interface ProjectMapper {
     /** 公开活动列表用：按 slug 取到项目后还要判是否仍在开放窗口内。 */
     @Select("SELECT " + COLUMNS + " FROM projects WHERE public_slug = #{slug} AND deleted_at IS NULL LIMIT 1")
     ProjectEntity findPublicBySlug(@Param("slug") String slug);
+
+    // ------------------------------------------------------------------------
+    // 隐私设置：完整对象放 publish_settings.privacy（不动其他发布参数），
+    // 档位冗余到 privacy_mode 一列，方便列表/统计直接筛。
+    // ------------------------------------------------------------------------
+    @Update("""
+            UPDATE projects
+               SET publish_settings = JSON_SET(
+                     COALESCE(publish_settings, JSON_OBJECT()),
+                     '$.privacy', CAST(#{privacy} AS JSON)),
+                   privacy_mode = #{privacyMode}
+             WHERE id = #{id} AND deleted_at IS NULL
+            """)
+    int updatePrivacy(@Param("id") String id,
+                      @Param("privacy") String privacyJson,
+                      @Param("privacyMode") String privacyMode);
+
+    @Select("SELECT privacy_mode FROM projects WHERE id = #{id} AND deleted_at IS NULL LIMIT 1")
+    String findPrivacyMode(@Param("id") String id);
 }

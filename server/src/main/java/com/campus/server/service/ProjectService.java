@@ -44,11 +44,13 @@ public class ProjectService {
     private final PageDocumentValidator documentValidator;
     private final DocumentNormalizer normalizer;
     private final com.campus.server.config.AppProperties props;
+    private final PrivacyService privacyService;
 
     public ProjectService(ProjectMapper projectMapper, PageVersionMapper versionMapper,
                           TemplateMapper templateMapper, SubmissionMapper submissionMapper,
                           PageDocumentValidator documentValidator, DocumentNormalizer normalizer,
-                          com.campus.server.config.AppProperties props) {
+                          com.campus.server.config.AppProperties props,
+                          PrivacyService privacyService) {
         this.projectMapper = projectMapper;
         this.versionMapper = versionMapper;
         this.templateMapper = templateMapper;
@@ -56,6 +58,7 @@ public class ProjectService {
         this.documentValidator = documentValidator;
         this.normalizer = normalizer;
         this.props = props;
+        this.privacyService = privacyService;
     }
 
     // ================================================================ 查询
@@ -132,6 +135,9 @@ public class ProjectService {
         project.setDraftDocument(document);
         project.setDraftRevision(0L);
         project.setPublishSettings(JsonUtil.mapper().createObjectNode());
+        // privacy_mode 这一列是 NOT NULL：新项目一律先给默认档位（optional），
+        // 组织者之后再在隐私面板里改。
+        project.setPrivacyMode(Dtos.PrivacySettings.defaults().getPrivacyMode());
         projectMapper.insert(project);
         return toDto(projectMapper.findById(project.getId()));
     }
@@ -154,6 +160,7 @@ public class ProjectService {
         copy.setDraftDocument(source.getDraftDocument());
         copy.setDraftRevision(0L);
         copy.setPublishSettings(JsonUtil.mapper().createObjectNode());
+        copy.setPrivacyMode(source.getPrivacyMode());
 
         // 副本要换 slug，否则公开页会打架
         ObjectNode doc = source.getDraftDocument() == null
@@ -428,6 +435,8 @@ public class ProjectService {
                 ? request.publishSettings()
                 : (project.getPublishSettings() == null
                    ? JsonUtil.mapper().createObjectNode() : project.getPublishSettings());
+        // 发布时明确带上当前隐私设置：前端换一台电脑发布，公开页也读到同一份规则
+        publishSettings = privacyService.mergeIntoPublishSettings(publishSettings, privacyService.read(project));
 
         projectMapper.updatePublish(projectId, "published", slug, version.getId(), publishSettings);
 
@@ -469,7 +478,8 @@ public class ProjectService {
         return new Dtos.PublicActivityDto(slug, project.getTitle(), publicStatus,
                 document, project.getPublishSettings(),
                 project.getActivityType(), project.getCoverTone(),
-                project.getCoverCode(), project.getCoverTitle());
+                project.getCoverCode(), project.getCoverTitle(),
+                privacyService.read(project));
     }
 
     /** 公开页匿名事件：只接受表单首次交互，并校验页面确实属于已发布活动。 */

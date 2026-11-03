@@ -208,12 +208,15 @@ if ($slug) {
     $r = Hit 'POST' "/public/activities/$slug/events" @{ eventType = 'form_started'; pageId = 'p1'; metadata = @{ source = 'e2e' } } $null
     Check 'POST 表单开始事件' $r.code 200
 
-    $r = Hit 'POST' "/public/activities/$slug/submissions" @{ pageId = 'p1'; formComponentId = 'b2'; answers = $ans; idempotencyKey = $idem } $null
+    # 隐私改造后：先勾选参与说明拿到 consentId，再带着它提交（服务端强制校验）
+    $cr = Hit 'POST' "/public/activities/$slug/consents" @{ } $null
+    $consentId = ($cr.body | ConvertFrom-Json).data.consentId
+    $r = Hit 'POST' "/public/activities/$slug/submissions" @{ pageId = 'p1'; formComponentId = 'b2'; answers = $ans; idempotencyKey = $idem; privacy = @{ consentId = $consentId } } $null
     Check 'POST 提交（首次）' $r.code 200
     $firstId = ($r.body | ConvertFrom-Json).data.submissionId
     Write-Host "  submissionId=$firstId"
 
-    $r = Hit 'POST' "/public/activities/$slug/submissions" @{ pageId = 'p1'; formComponentId = 'b2'; answers = $ans; idempotencyKey = $idem } $null
+    $r = Hit 'POST' "/public/activities/$slug/submissions" @{ pageId = 'p1'; formComponentId = 'b2'; answers = $ans; idempotencyKey = $idem; privacy = @{ consentId = $consentId } } $null
     Check 'POST 提交（同 key 幂等）' $r.code 200
     $secondId = ($r.body | ConvertFrom-Json).data.submissionId
     if ($firstId -and $firstId -eq $secondId) {
@@ -224,7 +227,7 @@ if ($slug) {
         $fail++
     }
 
-    $r = Hit 'POST' "/public/activities/$slug/submissions" @{ pageId = 'p1'; formComponentId = 'b2'; answers = @{ 'b2:f1' = '李四' }; idempotencyKey = ('idem-' + [guid]::NewGuid().ToString()) } $null
+    $r = Hit 'POST' "/public/activities/$slug/submissions" @{ pageId = 'p1'; formComponentId = 'b2'; answers = @{ 'b2:f1' = '李四' }; idempotencyKey = ('idem-' + [guid]::NewGuid().ToString()); privacy = @{ consentId = $consentId } } $null
     Check '缺少必填项应 422' $r.code 422
     Write-Host "  $($r.body)"
 }
