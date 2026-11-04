@@ -86,9 +86,7 @@ const trend = computed(() =>
     count: num(item.count),
   }))
 )
-const trendMax = computed(() =>
-  Math.max(1, ...trend.value.flatMap((item) => [item.views, item.submissions]))
-)
+const trendMax = computed(() => Math.max(1, ...trend.value.flatMap((item) => [item.views, item.submissions])))
 const eventDistribution = computed(() =>
   Object.entries(summary.value?.byEventType ?? {})
     .map(([type, count]) => ({ type, count: num(count), label: eventLabel(type) }))
@@ -597,9 +595,12 @@ watch(activeTab, async () => {
                     <tr v-for="submission in submissions" :key="submission.id">
                       <td>
                         <strong>{{ formatDateTime(submission.submittedAt) }}</strong>
+                        <span v-if="submission.anonymous" class="anonymous-record">
+                          匿名{{ submission.anonymousToken ? ` #${submission.anonymousToken}` : '' }}
+                        </span>
                       </td>
                       <td>
-                        <div class="answer-list">
+                        <div v-if="!submission.anonymous" class="answer-list">
                           <span
                             v-for="answer in answerEntries(submission.answers).slice(0, 3)"
                             :key="`${submission.id}-${answer.label}`"
@@ -611,6 +612,7 @@ watch(activeTab, async () => {
                             +{{ Object.keys(submission.answers).length - 3 }} 项
                           </small>
                         </div>
+                        <span v-else class="anonymous-answer">匿名记录不展示表单身份字段</span>
                       </td>
                       <td>{{ pageName(submission.pageId) }}</td>
                       <td>

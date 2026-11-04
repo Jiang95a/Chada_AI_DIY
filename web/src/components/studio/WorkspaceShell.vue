@@ -6,6 +6,12 @@ import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/projects'
 import { useWorkspace } from '@/composables/useWorkspace'
+import {
+  listNotifications,
+  markAllNotificationsRead as markAllNotificationsReadApi,
+  markNotificationRead,
+  type NotificationRecord,
+} from '@/services/notifications'
 
 const route = useRoute()
 const router = useRouter()
@@ -24,37 +30,8 @@ const workspaceName = computed(() => currentWorkspace.value.name)
 const workspaceType = computed(() => currentWorkspace.value.type)
 const workspaceAvatar = computed(() => currentWorkspace.value.avatar)
 
-const NOTIFICATION_READ_KEY = 'diy-campus:notifications-read:v1'
-
-function restoreReadNotifications(): Set<string> {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(NOTIFICATION_READ_KEY) ?? '[]') as unknown
-    return new Set(Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === 'string') : [])
-  } catch {
-    return new Set()
-  }
-}
-
-const readNotificationIds = restoreReadNotifications()
-const notifications = ref([
-  {
-    id: 'recruit-submissions',
-    title: '心晴游园会收到新的报名',
-    detail: '前往参与数据查看最新报名与活动状态',
-    time: '刚刚',
-    target: '/published',
-    read: readNotificationIds.has('recruit-submissions'),
-  },
-  {
-    id: 'vote-published',
-    title: '心理知识问答页面已发布',
-    detail: '可以打开心理活动广场查看公开活动',
-    time: '2 小时前',
-    target: '/campus',
-    read: readNotificationIds.has('vote-published'),
-  },
-])
-const unreadNotificationCount = computed(() => notifications.value.filter((item) => !item.read).length)
+const notifications = ref<NotificationRecord[]>([])
+const unreadNotificationCount = ref(0)
 
 const serviceNavItems = [
   { href: '/projects', label: '运营概览', icon: 'home' },
@@ -106,6 +83,26 @@ async function signOut(): Promise<void> {
   await router.replace('/login')
 }
 
+async function loadNotifications(): Promise<void> {
+  try {
+    const data = await listNotifications()
+    notifications.value = data.items
+    unreadNotificationCount.value = data.unread
+  } catch {
+    // 未登录或网络异常时通知静默为空。
+  }
+}
+
+function notificationTime(value: string): string {
+  const time = new Date(value).getTime()
+  if (Number.isNaN(time)) return ''
+  const diff = Date.now() - time
+  if (diff < 60_000) return '刚刚'
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)} 分钟前`
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)} 小时前`
+  return new Date(value).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
+}
+
 function queryText(): string {
   const value = route.query.q
   return Array.isArray(value) ? (value[0] ?? '') : (value ?? '')
@@ -150,31 +147,28 @@ function chooseWorkspace(id: string): void {
   toast.pushToast(`已切换到「${name}」`, 'success')
 }
 
-function openNotification(id: string): void {
+async function openNotification(id: string): Promise<void> {
   const item = notifications.value.find((notification) => notification.id === id)
   if (!item) return
-  item.read = true
-  persistNotificationReads()
   showNotifications.value = false
-  void router.push(item.target)
+  if (!item.read) {
+    try {
+      await markNotificationRead(item.id)
+    } catch {
+      // 跳转不依赖标记已读成功。
+    }
+  }
+  await loadNotifications()
+  await router.push(item.targetPath || '/published')
 }
 
-function markAllNotificationsRead(): void {
-  notifications.value.forEach((item) => {
-    item.read = true
-  })
-  persistNotificationReads()
-  toast.pushToast('通知已全部标为已读', 'success')
-}
-
-function persistNotificationReads(): void {
+async function markAllNotificationsRead(): Promise<void> {
   try {
-    localStorage.setItem(
-      NOTIFICATION_READ_KEY,
-      JSON.stringify(notifications.value.filter((item) => item.read).map((item) => item.id))
-    )
-  } catch {
-    // 浏览器禁用本地存储时不阻断通知交互。
+    await markAllNotificationsReadApi()
+    await loadNotifications()
+    toast.pushToast('通知已全部标为已读', 'success')
+  } catch (error) {
+    toast.pushToast(error instanceof Error ? error.message : '通知操作失败', 'error')
   }
 }
 
@@ -197,6 +191,7 @@ function onKeydown(event: KeyboardEvent): void {
 onMounted(() => {
   document.addEventListener('mousedown', onDocumentClick)
   window.addEventListener('keydown', onKeydown)
+  void loadNotifications()
 })
 
 onBeforeUnmount(() => {
@@ -376,8 +371,8 @@ onBeforeUnmount(() => {
                 <span class="workspace-notification-icon"><Icon name="bell" :size="14" /></span>
                 <span
                   ><strong>{{ item.title }}</strong
-                  ><small>{{ item.detail }}</small
-                  ><em>{{ item.time }}</em></span
+                  ><small>{{ item.body }}</small
+                  ><em>{{ notificationTime(item.createdAt) }}</em></span
                 >
               </button>
               <button

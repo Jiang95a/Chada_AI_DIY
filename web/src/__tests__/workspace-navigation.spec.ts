@@ -38,6 +38,51 @@ describe('工作台外框入口', () => {
   })
 
   it('通知支持全部标为已读', async () => {
+    let readAll = false
+    const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.includes('/notifications/read-all')) {
+        readAll = true
+        return Promise.resolve(
+          new Response(JSON.stringify({ data: { updated: 2 } }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        )
+      }
+      if (url.includes('/notifications')) {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              data: {
+                items: [
+                  {
+                    id: 'n1',
+                    type: 'submission_received',
+                    title: '收到新的参与记录',
+                    body: '前往参与数据查看',
+                    read: readAll,
+                    createdAt: new Date().toISOString(),
+                  },
+                  {
+                    id: 'n2',
+                    type: 'activity_published',
+                    title: '活动已经发布',
+                    body: '可以分享活动页了',
+                    read: readAll,
+                    createdAt: new Date().toISOString(),
+                  },
+                ],
+                unread: readAll ? 0 : 2,
+              },
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          )
+        )
+      }
+      return Promise.reject(new TypeError('offline'))
+    })
+    vi.stubGlobal('fetch', fetchMock)
     const wrapper = await mountAt('/projects')
     expect(wrapper.find('.workspace-notification-dot').exists()).toBe(true)
 

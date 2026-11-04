@@ -10,6 +10,17 @@ export interface SubmissionRecord {
   answers: Record<string, unknown>
   status: SubmissionStatus
   submittedAt: string
+  privacyMode?: 'real_name' | 'optional' | 'anonymous'
+  anonymous?: boolean
+  anonymousToken?: string | null
+  consentId?: string | null
+  consentAt?: string | null
+}
+
+export interface SubmissionSummary {
+  total: number
+  anonymous: number
+  consented: number
 }
 
 export interface SubmissionPage {
@@ -36,5 +47,16 @@ export async function listSubmissions(
       pageSize: params.pageSize ?? 20,
       total: 0,
     },
+  }
+}
+
+export async function getSubmissionSummary(projectId: string): Promise<SubmissionSummary> {
+  const payload = await apiRequest<{ data?: Partial<SubmissionSummary> }>(
+    `/projects/${encodeURIComponent(projectId)}/submissions/summary`
+  )
+  return {
+    total: Number(payload.data?.total) || 0,
+    anonymous: Number(payload.data?.anonymous) || 0,
+    consented: Number(payload.data?.consented) || 0,
   }
 }

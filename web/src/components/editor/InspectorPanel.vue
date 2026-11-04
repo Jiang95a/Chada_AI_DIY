@@ -495,7 +495,7 @@ function onPageRole(event: Event): void {
         <p class="hint">会出现在浏览器标题、分享海报和二维码落地页。</p>
       </div>
 
-      <PrivacySettingsPanel :project-id="doc.id" :slug="doc.slug" :organizer="doc.meta.org" />
+      <PrivacySettingsPanel :project-id="doc.id" />
 
       <div class="insp__section">
         <p class="insp__sec-title">快捷入口</p>

@@ -4,7 +4,12 @@ import { RouterLink } from 'vue-router'
 import WorkspaceShell from '@/components/studio/WorkspaceShell.vue'
 import Icon from '@/components/ui/Icon.vue'
 import { useToast } from '@/composables/useToast'
-import { listSubmissions, type SubmissionRecord } from '@/services/submissions'
+import {
+  getSubmissionSummary,
+  listSubmissions,
+  type SubmissionRecord,
+  type SubmissionSummary,
+} from '@/services/submissions'
 import { useProjectStore, type ProjectRecord } from '@/stores/projects'
 
 const REMOTE_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -16,6 +21,7 @@ const loading = ref(true)
 const search = ref('')
 const selectedId = ref('')
 const submissions = ref<SubmissionRecord[]>([])
+const submissionSummary = ref<SubmissionSummary | null>(null)
 const submissionLoading = ref(false)
 const submissionError = ref('')
 
@@ -62,12 +68,20 @@ const fieldLabels = computed(() => {
 })
 
 const participantRows = computed(() =>
-  submissions.value.map((submission) => ({
-    ...submission,
-    name: findAnswer(submission.answers, ['姓名', '名字', '昵称', 'name']) || '未填写姓名',
-    contact: findAnswer(submission.answers, ['手机', '电话', '微信', '邮箱', '联系']),
-    details: answerEntries(submission.answers).filter((item) => !['姓名', '名字', '昵称'].includes(item.label)),
-  }))
+  submissions.value.map((submission) => {
+    const anonymous = Boolean(submission.anonymous || submission.privacyMode === 'anonymous')
+    return {
+      ...submission,
+      anonymous,
+      name: anonymous
+        ? `匿名参与者${submission.anonymousToken ? ` #${submission.anonymousToken}` : ''}`
+        : findAnswer(submission.answers, ['姓名', '名字', '昵称', 'name']) || '未填写姓名',
+      contact: anonymous ? '已隐藏' : findAnswer(submission.answers, ['手机', '电话', '微信', '邮箱', '联系']),
+      details: anonymous
+        ? []
+        : answerEntries(submission.answers).filter((item) => !['姓名', '名字', '昵称'].includes(item.label)),
+    }
+  })
 )
 
 function projectSlug(project: ProjectRecord): string {
@@ -116,6 +130,7 @@ function selectProject(project: ProjectRecord): void {
 
 async function loadParticipants(project: ProjectRecord | undefined): Promise<void> {
   submissions.value = []
+  submissionSummary.value = null
   submissionError.value = ''
   if (!project) return
   if (!REMOTE_ID_PATTERN.test(project.id)) {
@@ -126,6 +141,11 @@ async function loadParticipants(project: ProjectRecord | undefined): Promise<voi
   try {
     const result = await listSubmissions(project.id, { page: 1, pageSize: 8 })
     submissions.value = result.items
+    try {
+      submissionSummary.value = await getSubmissionSummary(project.id)
+    } catch {
+      submissionSummary.value = null
+    }
   } catch (error) {
     submissionError.value = error instanceof Error ? error.message : '参与信息加载失败'
   } finally {
@@ -308,6 +328,11 @@ onMounted(async () => {
               </div>
               <span class="participant-total">共 {{ selectedProject.submissionCount }} 人</span>
             </header>
+            <div v-if="submissionSummary" class="participant-privacy-summary">
+              <span>收到 {{ submissionSummary.total }} 份记录</span>
+              <span>{{ submissionSummary.anonymous }} 份匿名参与</span>
+              <span>{{ submissionSummary.consented }} 份已同意</span>
+            </div>
 
             <div v-if="submissionLoading" class="participant-state">
               <Icon name="refresh" :size="22" />
@@ -334,7 +359,10 @@ onMounted(async () => {
                   <tr v-for="row in participantRows" :key="row.id">
                     <td>
                       <span class="participant-avatar">{{ row.name.slice(0, 1) }}</span>
-                      <strong>{{ row.name }}</strong>
+                      <span class="participant-name">
+                        <strong>{{ row.name }}</strong>
+                        <em v-if="row.anonymous">匿名</em>
+                      </span>
                     </td>
                     <td>{{ row.contact || '未填写' }}</td>
                     <td>
@@ -342,6 +370,7 @@ onMounted(async () => {
                         <b>{{ detail.label }}</b
                         >{{ detail.value }}
                       </span>
+                      <em v-if="!row.details.length">{{ row.anonymous ? '匿名记录已隐藏' : '无其他信息' }}</em>
                     </td>
                     <td>{{ formatSubmittedAt(row.submittedAt) }}</td>
                     <td>
@@ -879,6 +908,23 @@ onMounted(async () => {
   letter-spacing: 0 !important;
 }
 
+.participant-privacy-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--line, #e9ecf3);
+  background: #fbfcf9;
+}
+
+.participant-privacy-summary span {
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: var(--ink-500, #667085);
+  background: #fff;
+  font-size: 7px;
+}
+
 .participant-table-wrap {
   overflow-x: auto;
 }
@@ -913,6 +959,21 @@ onMounted(async () => {
   color: var(--ink-800, #1e293b);
 }
 
+.participant-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.participant-name em {
+  padding: 2px 5px;
+  border-radius: 99px;
+  color: var(--brand-600, #4f46e5);
+  background: var(--brand-50, #eef2ff);
+  font-size: 6px;
+  font-style: normal;
+}
+
 .participant-avatar {
   display: grid;
   width: 27px;
@@ -940,6 +1001,12 @@ onMounted(async () => {
 .participant-table td:nth-child(3) b {
   color: var(--ink-400, #98a2b3);
   font-weight: 500;
+}
+
+.participant-table td:nth-child(3) > em {
+  color: var(--ink-400, #98a2b3);
+  font-size: 7px;
+  font-style: normal;
 }
 
 .record-status {

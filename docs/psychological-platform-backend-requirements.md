@@ -21,13 +21,13 @@
 
 | 前端能力 | 当前实现 | 后端必须补什么 |
 |---|---|---|
-| 隐私模式 | 编辑器本地保存匿名/可选匿名/实名 | 项目隐私配置表或项目字段 |
+| 隐私模式 | 已对接 `GET/PUT /projects/{id}/privacy` | 服务端保存并参与公开活动读取 |
 | 知情同意 | 公开页勾选后才允许提交 | 同意版本、时间、提交记录 |
 | 信息保留时间 | 编辑器和公开页展示 | 到期清理任务与删除时间 |
 | 是否允许导出 | 编辑器配置 | 导出接口强制权限校验 |
 | 组织者信息 | 本地配置与公开页展示 | 组织者资料表与公开字段 |
 | 加入日历 | 前端生成 `.ics` | 无需后端接口 |
-| 活动后反馈 | 本机保存 | 匿名反馈表和聚合统计接口 |
+| 活动后反馈 | 已对接公开反馈接口 | 匿名反馈表和聚合统计接口 |
 | 匿名/实名展示 | 前端文案和标识 | 服务端字段过滤与权限校验 |
 
 ## 3. 数据库修改建议
@@ -41,7 +41,7 @@ ALTER TABLE projects
   ADD COLUMN consent_version VARCHAR(20) NOT NULL DEFAULT 'v1',
   ADD COLUMN consent_text TEXT NULL,
   ADD COLUMN data_retention_days INT NOT NULL DEFAULT 30,
-  ADD COLUMN export_allowed TINYINT(1) NOT NULL DEFAULT 0,
+  ADD COLUMN allow_export TINYINT(1) NOT NULL DEFAULT 0,
   ADD COLUMN organizer_profile_id CHAR(36) NULL,
   ADD COLUMN allow_waitlist TINYINT(1) NOT NULL DEFAULT 1,
   ADD COLUMN allow_leave_anytime TINYINT(1) NOT NULL DEFAULT 1,
@@ -56,7 +56,7 @@ ALTER TABLE projects
 real_name | optional | anonymous
 ```
 
-`data_retention_days = 0` 表示长期保留，但必须要求组织者填写明确用途，并在管理端显示风险提醒。
+`data_retention_days` 范围为 1～3650，不接受 0。长期保留使用 3650 天，并应有明确用途。
 
 ### 3.2 新增 `organizer_profiles`
 
@@ -197,7 +197,7 @@ Authorization: Bearer <accessToken>
     "consentVersion": "v1",
     "consentText": "参与前请了解……",
     "retentionDays": 30,
-    "exportAllowed": false,
+    "allowExport": false,
     "organizerProfileId": "uuid",
     "allowWaitlist": true,
     "allowLeaveAnytime": true,
@@ -223,7 +223,7 @@ Content-Type: application/json
   "consentRequired": true,
   "consentText": "参与前请了解……",
   "retentionDays": 30,
-  "exportAllowed": false,
+  "allowExport": false,
   "allowWaitlist": true,
   "allowLeaveAnytime": true,
   "hasQuietSpace": true,
@@ -369,7 +369,7 @@ POST /api/v1/projects/{projectId}/exports
 
 服务端必须检查：
 
-1. `exportAllowed=true`。
+1. `allowExport=true`。
 2. 当前用户是项目所有者或有导出权限的管理员。
 3. 匿名活动不导出姓名、手机号、学号等身份字段。
 4. 导出内容遵守 `retentionDays` 与字段白名单。

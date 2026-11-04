@@ -1,35 +1,48 @@
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import Icon from '@/components/ui/Icon.vue'
 import { useToast } from '@/composables/useToast'
-import {
-  getActivityPrivacy,
-  saveActivityPrivacy,
-  type ActivityPrivacySettings,
-  type PrivacyMode,
-} from '@/composables/useActivityPrivacy'
+import { defaultActivityPrivacy, type ActivityPrivacySettings } from '@/composables/useActivityPrivacy'
+import { getProjectPrivacy, updateProjectPrivacy } from '@/services/privacy'
 
-const props = defineProps<{
-  projectId: string
-  slug: string
-  organizer?: string
-}>()
+const props = defineProps<{ projectId: string }>()
 
 const toast = useToast()
-const current = getActivityPrivacy(props.projectId, props.slug)
-const form = reactive<ActivityPrivacySettings>({
-  ...current,
-  organizerName: current.organizerName || props.organizer || '',
-})
+const REMOTE_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const loading = ref(false)
+const saving = ref(false)
+const form = reactive<ActivityPrivacySettings>({ ...defaultActivityPrivacy() })
 
-function save(): void {
+async function load(): Promise<void> {
+  if (!REMOTE_ID_PATTERN.test(props.projectId)) return
+  loading.value = true
   try {
-    saveActivityPrivacy(props.projectId, props.slug, form)
-    toast.pushToast('活动隐私与同意设置已保存', 'success')
+    Object.assign(form, await getProjectPrivacy(props.projectId))
   } catch {
-    toast.pushToast('隐私设置保存失败，请检查浏览器存储权限', 'error')
+    toast.pushToast('隐私设置读取失败，当前显示默认值', 'warn')
+  } finally {
+    loading.value = false
   }
 }
+
+async function save(): Promise<void> {
+  if (saving.value) return
+  if (!REMOTE_ID_PATTERN.test(props.projectId)) {
+    toast.pushToast('本地演示活动无法保存服务端隐私设置，请先连接后端', 'warn')
+    return
+  }
+  saving.value = true
+  try {
+    Object.assign(form, await updateProjectPrivacy(props.projectId, form))
+    toast.pushToast('活动隐私与同意设置已保存', 'success')
+  } catch (error) {
+    toast.pushToast(error instanceof Error ? error.message : '隐私设置保存失败', 'error')
+  } finally {
+    saving.value = false
+  }
+}
+
+onMounted(load)
 </script>
 
 <template>
@@ -37,40 +50,30 @@ function save(): void {
     <header>
       <span><Icon name="lock" :size="14" />隐私与参与边界</span>
       <em>{{
-        form.privacyMode === 'anonymous' ? '匿名参与' : form.privacyMode === 'optional' ? '可选匿名' : '实名参与'
+        loading
+          ? '读取中'
+          : form.privacyMode === 'anonymous'
+            ? '匿名参与'
+            : form.privacyMode === 'optional'
+              ? '可选匿名'
+              : '实名参与'
       }}</em>
     </header>
 
     <label class="field">
       <span class="field__label">参与方式</span>
-      <select v-model="form.privacyMode" class="select">
+      <select v-model="form.privacyMode" class="select" :disabled="loading">
         <option value="optional">可选匿名</option>
         <option value="anonymous">匿名参与</option>
         <option value="real_name">实名参与</option>
       </select>
     </label>
 
-    <label class="field">
-      <span class="field__label">组织者名称</span>
-      <input v-model="form.organizerName" class="input" placeholder="如：心屿心理协会" />
-    </label>
-
-    <label class="field">
-      <span class="field__label">组织者说明</span>
-      <textarea
-        v-model="form.organizerIntro"
-        class="textarea"
-        rows="3"
-        maxlength="180"
-        placeholder="简单介绍活动由谁组织、希望营造怎样的参与氛围。"
-      />
-    </label>
-
     <div class="privacy-switches">
       <label><span>提交前需要知情同意</span><input v-model="form.consentRequired" type="checkbox" /></label>
       <label><span>允许参与者随时离开</span><input v-model="form.allowLeave" type="checkbox" /></label>
       <label><span>现场设有安静休息区</span><input v-model="form.quietSpace" type="checkbox" /></label>
-      <label><span>允许导出参与信息</span><input v-model="form.exportAllowed" type="checkbox" /></label>
+      <label><span>允许导出参与信息</span><input v-model="form.allowExport" type="checkbox" /></label>
     </div>
 
     <label class="field">
@@ -84,11 +87,14 @@ function save(): void {
         <option :value="7">活动结束后 7 天</option>
         <option :value="30">活动结束后 30 天</option>
         <option :value="90">活动结束后 90 天</option>
-        <option :value="0">长期保留（需有明确用途）</option>
+        <option :value="365">活动结束后 1 年</option>
+        <option :value="3650">长期保留（最多 10 年）</option>
       </select>
     </label>
 
-    <button class="privacy-save" type="button" @click="save"><Icon name="check" :size="13" />保存隐私设置</button>
+    <button class="privacy-save" type="button" :disabled="loading || saving" @click="save">
+      <Icon name="check" :size="13" />{{ saving ? '保存中…' : '保存隐私设置' }}
+    </button>
   </div>
 </template>
 
@@ -161,5 +167,10 @@ function save(): void {
   font-size: 9px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.privacy-save:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 </style>

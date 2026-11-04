@@ -71,6 +71,7 @@ export async function submitForm(
     pageId: string
     formComponentId: string
     answers: Record<string, string | string[]>
+    privacy?: { consentId?: string; anonymous?: boolean }
   }
 ): Promise<{ submissionId: string; status: string }> {
   const idempotencyKey = crypto.randomUUID()
@@ -83,6 +84,45 @@ export async function submitForm(
       },
       { auth: false }
     )
+  )
+}
+
+export async function getPublicPrivacy(slug: string) {
+  return readData<{
+    privacyMode: 'real_name' | 'optional' | 'anonymous'
+    consentRequired: boolean
+    consentText: string
+    retentionDays: number
+    allowExport: boolean
+    allowLeave: boolean
+    quietSpace: boolean
+  }>(await apiRequest(`/public/activities/${encodeURIComponent(slug)}/privacy`, {}, { auth: false }))
+}
+
+export async function recordConsent(slug: string, consentText?: string) {
+  return readData<{ consentId: string; consentAt: string }>(
+    await apiRequest(
+      `/public/activities/${encodeURIComponent(slug)}/consents`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ consentText }),
+      },
+      { auth: false }
+    )
+  )
+}
+
+export async function submitActivityFeedback(
+  slug: string,
+  input: { choice: 'helpful' | 'neutral' | 'unhelpful'; comment?: string; anonymous?: boolean }
+): Promise<void> {
+  await apiRequest(
+    `/public/activities/${encodeURIComponent(slug)}/feedback`,
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    },
+    { auth: false }
   )
 }
 

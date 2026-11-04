@@ -547,6 +547,18 @@
   white-space: nowrap;
 }
 
+.anonymous-record {
+  display: block;
+  margin-top: 4px;
+  color: var(--brand-600);
+  font-size: 8px;
+}
+
+.anonymous-answer {
+  color: var(--ink-400);
+  font-size: 8px;
+}
+
 .submission-table code {
   color: var(--muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;

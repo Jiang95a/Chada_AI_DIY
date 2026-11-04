@@ -9,8 +9,15 @@ import { useEditorStore } from '@/stores/editor'
 import { useProjectStore } from '@/stores/projects'
 import { themeCssVars } from '@/utils/theme'
 import { parseDate } from '@/utils/misc'
-import { getActivityPrivacy } from '@/composables/useActivityPrivacy'
-import { getPublicActivity, recordPublicEvent, submitForm } from '@/services/public'
+import { defaultActivityPrivacy, type ActivityPrivacySettings } from '@/composables/useActivityPrivacy'
+import {
+  getPublicActivity,
+  getPublicPrivacy,
+  recordConsent,
+  recordPublicEvent,
+  submitActivityFeedback,
+  submitForm,
+} from '@/services/public'
 import { ApiError } from '@/services/http'
 import type { Doc } from '@/types/editor'
 
@@ -25,6 +32,7 @@ const publicState = ref<'loading' | 'ready' | 'offline' | 'not-found' | 'error'>
 const submitting = ref(false)
 const formStartedPages = new Set<string>()
 const consentAccepted = ref(false)
+const consentId = ref('')
 const hasSubmitted = ref(false)
 const feedbackChoice = ref('')
 const feedbackNote = ref('')
@@ -36,10 +44,8 @@ const fallbackDocument = computed(() => project.value?.document ?? editorStore.d
 const document = computed(
   () => remoteDocument.value ?? (publicState.value === 'offline' ? fallbackDocument.value : null)
 )
-const privacy = computed(() => getActivityPrivacy(document.value?.id || project.value?.id || '', slug.value))
-const organizer = computed(
-  () => privacy.value.organizerName || document.value?.meta.org || project.value?.document.meta.org || '校园心理社团'
-)
+const privacy = ref<ActivityPrivacySettings>(defaultActivityPrivacy())
+const organizer = computed(() => document.value?.meta.org || project.value?.document.meta.org || '校园心理社团')
 const activityPhase = computed(() => {
   const start = parseDate(document.value?.meta.startAt ?? '')
   if (!start) return '开放参与'
@@ -131,6 +137,11 @@ onMounted(async () => {
     remoteDocument.value = result.document
     remoteActivity.value = result.activity
     publicState.value = 'ready'
+    try {
+      privacy.value = await getPublicPrivacy(slug.value)
+    } catch {
+      // 隐私接口暂时不可用时仍展示活动，提交阶段由服务端再次校验。
+    }
   } catch (error) {
     if (error instanceof ApiError && error.status === 0) {
       // 只有真正断网时才使用本地文档，避免把 404/未发布误显示成本地演示内容。
@@ -202,16 +213,24 @@ async function handleAction(action: any): Promise<void> {
     }
     submitting.value = true
     try {
+      if (privacy.value.consentRequired && !consentId.value) {
+        const consent = await recordConsent(slug.value, privacy.value.consentText)
+        consentId.value = consent.consentId
+      }
       await submitForm(slug.value, {
         pageId: currentPage.value.id,
         formComponentId: formBlock.id,
         answers,
+        privacy: privacy.value.consentRequired ? { consentId: consentId.value } : undefined,
       })
       const successPage = pages.value.find((page) => page.role === 'success')
       if (successPage) currentPageId.value = successPage.id
       hasSubmitted.value = true
       toast.pushToast('报名提交成功', 'success')
     } catch (error) {
+      if (error instanceof ApiError && error.status === 422) {
+        consentId.value = ''
+      }
       toast.pushToast(error instanceof Error ? error.message : '后端提交失败', 'warn')
     } finally {
       submitting.value = false
@@ -219,20 +238,21 @@ async function handleAction(action: any): Promise<void> {
   }
 }
 
-function saveFeedback(): void {
+async function saveFeedback(): Promise<void> {
   if (!feedbackChoice.value) {
     toast.pushToast('先选择一个最接近的感受吧', 'warn')
     return
   }
   try {
-    localStorage.setItem(
-      `diy-campus:activity-feedback:${slug.value}`,
-      JSON.stringify({ choice: feedbackChoice.value, note: feedbackNote.value.trim(), at: Date.now() })
-    )
+    await submitActivityFeedback(slug.value, {
+      choice:
+        feedbackChoice.value === 'okay' ? 'neutral' : feedbackChoice.value === 'not-fit' ? 'unhelpful' : 'helpful',
+      comment: feedbackNote.value.trim() || undefined,
+    })
     feedbackSaved.value = true
     toast.pushToast('谢谢你的反馈', 'success')
-  } catch {
-    toast.pushToast('反馈保存失败', 'warn')
+  } catch (error) {
+    toast.pushToast(error instanceof Error ? error.message : '反馈保存失败', 'warn')
   }
 }
 
