@@ -84,6 +84,16 @@ class Settings(BaseSettings):
     # 等于模型从来没收到过受控组件清单。上限对齐 schemas/chat_schema.py 的 max_length=1000。
     system_extra_max_chars: int = 1000
 
+    # ---- 危机关怀 ----
+    # 识别到自伤 / 自杀表达时，**停止生成**、直接给求助资源（见 core/guard.py 的 crisis_reply）。
+    # 号码做成配置项：每个学校、每个地区的资源都不一样，上线前必须换成真实的。
+    # 换的时候别只换号码——crisis_center_hint 里的地点、时间也要跟着改成你校的。
+    crisis_guard_enabled: bool = True
+    crisis_hotline_name: str = "全国心理援助热线"
+    crisis_hotline: str = "12356"
+    crisis_emergency: str = "110 / 120"
+    crisis_center_hint: str = "学校心理健康教育中心（工作日可预约）"
+
     # ---- 数据库 ----
     # sqlite：零依赖，开发与测试用；mysql：联调与部署用（需 pip install pymysql）
     db_backend: Literal["sqlite", "mysql"] = "sqlite"

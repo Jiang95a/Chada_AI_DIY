@@ -11,10 +11,11 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Final
 
 from langchain_core.tools import tool
 
+from app.core.config import get_settings
 from app.services import block_catalog as catalog
 
 # ---------------------------------------------------------------------------
@@ -44,9 +45,52 @@ SCENE_PAGES: dict[str, list[tuple[str, str, tuple[str, ...]]]] = {
         ("今日打卡", "form", ("nav", "heading", "form")),
         ("打卡成功", "success", ("nav", "heading", "text", "qrcode")),
     ],
+    # ---- 心理社团（心屿）----
+    # 和普通活动的区别只有一条，但每条都硬：第一屏不放表单、说明页写清边界、
+    # 成功页必须带求助入口（下面 build_plan 会自动补）。
+    "wellbeing": [
+        ("首页", "home", ("nav", "banner", "infoCard", "text", "button")),
+        ("这场怎么进行", "content", ("heading", "text", "divider", "heading", "text", "button")),
+        ("报名", "form", ("nav", "heading", "text", "form")),
+        ("报名成功", "success", ("nav", "heading", "text", "qrcode")),
+    ],
+    "group": [
+        ("首页", "home", ("nav", "banner", "infoCard", "text", "button")),
+        ("这场怎么进行", "content", ("heading", "text", "heading", "text", "button")),
+        ("报名", "form", ("nav", "heading", "text", "form")),
+        ("报名成功", "success", ("nav", "heading", "text", "qrcode")),
+    ],
+    "treehole": [
+        ("首页", "home", ("nav", "banner", "text", "button")),
+        ("写一句", "form", ("nav", "heading", "text", "form")),
+        ("已经放进去了", "success", ("nav", "heading", "text")),
+    ],
 }
 
+# 这几个场景要额外挂求助入口；别的一律不加（普通招新页挂热线很奇怪）
+WELLBEING_SCENES: Final[frozenset[str]] = frozenset({"wellbeing", "group", "treehole"})
+
+# 顺序有意义：normalize_scene 会按这个顺序做子串匹配，
+# 所以「心理」必须排在「打卡」「报名」前面，否则「心理打卡」会被判成 checkin。
 SCENE_ALIAS = {
+    # 心理社团优先
+    "心理": "wellbeing",
+    "心晴": "wellbeing",
+    "情绪": "wellbeing",
+    "自我关怀": "wellbeing",
+    "正念": "wellbeing",
+    "减压": "wellbeing",
+    "舒压": "wellbeing",
+    "wellbeing": "wellbeing",
+    "团辅": "group",
+    "团体": "group",
+    "工作坊": "group",
+    "group": "group",
+    "树洞": "treehole",
+    "倾诉": "treehole",
+    "留言墙": "treehole",
+    "treehole": "treehole",
+    # 通用活动场景
     "招新": "recruit",
     "纳新": "recruit",
     "recruit": "recruit",
@@ -81,6 +125,42 @@ def normalize_scene(scene: str) -> str:
     return "signup"
 
 
+def care_card_props() -> dict[str, Any]:
+    """求助入口。用现成的 infoCard 表达，**不新增组件类型**。
+
+    为什么不加一个 helpCard：加一个 block 类型要改三端 7 个文件
+    （schema 的 enum、DocumentRepair、前端 BlockView / Inspector / blockCatalog、
+    agent 的 block_catalog），为一张信息卡不值得。infoCard 的 contact 图标
+    本来就够用，而且这样三端一行都不用改。
+
+    号码来自配置（CRISIS_*），各校上线前自己换——写死学活 305 那种是编的。
+    """
+    settings = get_settings()
+    return {
+        "title": "如果现在不太好受",
+        "items": [
+            {
+                "id": catalog.new_id("it"),
+                "icon": "contact",
+                "label": "心理中心",
+                "value": settings.crisis_center_hint,
+            },
+            {
+                "id": catalog.new_id("it"),
+                "icon": "contact",
+                "label": settings.crisis_hotline_name,
+                "value": settings.crisis_hotline,
+            },
+            {
+                "id": catalog.new_id("it"),
+                "icon": "contact",
+                "label": "紧急情况",
+                "value": settings.crisis_emergency,
+            },
+        ],
+    }
+
+
 def build_plan(scene: str, meta: dict[str, Any]) -> dict[str, Any]:
     """按场景拼一份 DocPlan。前端 normalizePlan 能直接吃。"""
     scene_key = normalize_scene(scene)
@@ -102,11 +182,15 @@ def build_plan(scene: str, meta: dict[str, Any]) -> dict[str, Any]:
                     props["text"] = "回到首页"
                     props["variant"] = "soft"
             blocks.append({"type": block_type, "props": props})
+        # 心理类活动的成功页自动挂求助入口：这是内容要求，不是设计建议
+        if role == "success" and scene_key in WELLBEING_SCENES:
+            blocks.append({"type": "infoCard", "props": care_card_props()})
         pages.append({"name": page_name, "role": role, "blocks": blocks})
 
+    route = " → ".join(name for name, _, _ in SCENE_PAGES[scene_key])
     return {
         "intent": f"draft_page_plan:{scene_key}",
-        "reason": f"按「{scene_key}」场景的标准结构生成：首页 → 详情 → 报名 → 成功页",
+        "reason": f"按「{scene_key}」场景的标准结构生成：{route}",
         "title": title,
         "meta": {
             "org": base_meta.get("org") or "",
@@ -308,7 +392,11 @@ def draft_page_plan(
 ) -> str:
     """按场景生成一份标准的页面结构方案（多页面 + 受控组件），返回可直接渲染的 JSON。
 
-    scene 取 recruit(招新) / signup(报名) / vote(投票) / checkin(打卡)。
+    scene 取：
+      wellbeing（心理活动/心晴分享会）/ group（团体辅导）/ treehole（匿名树洞）
+      recruit（招新）/ signup（报名）/ vote（投票）/ checkin（打卡）
+
+    心理类的三个场景会自动在成功页挂一张「求助入口」信息卡，这是内容要求，别删。
     用户没提供的字段就留空，不要自己编。生成后建议再用 validate_page_plan 校验一遍。
     """
     meta = {

@@ -125,6 +125,87 @@ def mask_pii(text: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# 2.5 危机关怀：优先级**高于**其余所有规则
+# ---------------------------------------------------------------------------
+# 先说清楚这里不做什么：不判断"他是不是抑郁"，不评估严重程度，不追问细节。
+# 那是专业人员的活，我们没有资格，也不该有资格。
+#
+# 这里只做一件很窄的事：**这句话里有没有风险的形状**。
+# 有，就立刻停下生成，把人交给真人。
+#
+# 命中率设计上刻意偏向"宁可多报"：多给一次资源，代价只是多说一句用不上的话；
+# 漏掉的代价，不是这个项目能承担的。
+_CRISIS_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
+    # 明确的自我伤害意图
+    (
+        "crisis_self_harm",
+        re.compile(
+            r"(不想活|活不下去|活够了|活着[^\n]{0,8}(没|没有)[^\n]{0,6}(意思|意义)|"
+            r"想死|想去死|不如死了|死了算了|结束(自己的)?生命|了结自己)"
+        ),
+    ),
+    # 具体方式：出现即按高风险处理，不去分辨「只是随口说说」
+    (
+        "crisis_method",
+        re.compile(r"(割腕|割(自己|胳膊|手)|划(自己|胳膊)|跳楼|跳下去|上吊|吞药|烧炭|自残|自伤)"),
+    ),
+    # 绝望 / 消失愿望
+    (
+        "crisis_hopeless",
+        re.compile(r"(撑不下去|熬不下去|挺不下去|没人(会)?在乎|想消失|消失就好了|没有出口)"),
+    ),
+]
+
+# 这些说法里命中的词是别的意思，先剔掉再匹配——少一次误报就少一次吓人
+_CRISIS_EXCLUSIONS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"想死你"),
+    re.compile(r"跳楼机"),
+    re.compile(r"(笑|累|热|饿|困|气|烦|忙|爽|美|甜|香)死(我)?了"),
+)
+
+
+def screen_crisis(text: str) -> list[str]:
+    """返回命中的风险类别；空列表 = 没看出风险。
+
+    只做识别，不看开关——开关在 ``is_crisis``，测试要能单独验证规则本身。
+    """
+    if not text or not text.strip():
+        return []
+    probe = text
+    for pattern in _CRISIS_EXCLUSIONS:
+        probe = pattern.sub("", probe)
+    return [name for name, pattern in _CRISIS_PATTERNS if pattern.search(probe)]
+
+
+def is_crisis(text: str) -> bool:
+    """业务侧开关：``CRISIS_GUARD_ENABLED=false`` 时可以整体关掉（不建议）。"""
+    if not get_settings().crisis_guard_enabled:
+        return False
+    return bool(screen_crisis(text))
+
+
+def crisis_reply() -> str:
+    """危机时的**固定文案**，不交给模型写。
+
+    为什么不让模型写：这句话每次都必须一样、必须都对。
+    模型大概率会补一句「会好起来的」——而我们保证不了，那正是最不该说的话。
+
+    文案里的号码来自配置，各校上线前自己换（见 .env.example 的 CRISIS_*）。
+    """
+    settings = get_settings()
+    return (
+        "先停一下。\n\n"
+        "你刚才说的这些，比做一个活动页面重要得多。这个页面我先不往下做了。\n\n"
+        "如果你现在很难受，可以先做一件具体的事：\n"
+        f"· 联系{settings.crisis_center_hint}\n"
+        f"· 或者拨打{settings.crisis_hotline_name} {settings.crisis_hotline}\n"
+        f"· 如果已经危及到人身安全，请立刻拨 {settings.crisis_emergency}\n\n"
+        "也可以把刚才这段话，再说给你信任的一个人听——老师、家人、朋友，谁都行。\n\n"
+        "页面可以以后再建。你先照顾好自己。"
+    )
+
+
+# ---------------------------------------------------------------------------
 # 3. 模型输出
 # ---------------------------------------------------------------------------
 def screen_output(text: str, max_chars: int = 8000) -> GuardResult:

@@ -42,6 +42,27 @@ BM25_SATURATION = 10.0   # BM25 饱和常数：把无上界的原始分压到 0~
 SCENE_BOOST = 0.10
 COMMON_BOOST = 0.02
 
+# 检索侧停用词：在这个语料里满地跑、或者压根不带主题信息的词。
+#
+# 为什么必须有一层：语料从 34 块涨到 76 块之后，「完全无关的内容」这种句子也能
+# 撞上「内容」「完全」「无关」三个词，凑出 0.26 分挤进结果，把噪音喂给模型。
+# 语料越大这个坑越深——任何一句中文都能和几块资料有词面重叠。
+#
+# 这不是通用的中文停用词表，是**针对本语料**挑的：加词之前先看一眼
+# tests/test_rag.py 里那几条召回断言会不会被误伤。
+_QUERY_STOPWORDS: frozenset[str] = frozenset(
+    {
+        # 虚词 / 疑问 / 客套
+        "什么", "怎么", "如何", "多少", "哪些", "哪个", "一下", "一个",
+        "我们", "你们", "可以", "需要", "应该", "能不", "帮我", "请问",
+        "这个", "那个", "还有", "以及",
+        # 泛义词：任何活动页都会出现，不指向任何主题
+        "内容", "东西", "问题", "情况", "时候", "时间", "部分", "方面",
+        # 「完全无关」这类元描述
+        "完全", "无关", "有关", "相关",
+    }
+)
+
 
 @dataclass
 class SearchHit:
@@ -233,6 +254,15 @@ def _bm25(index: _Index, q_tokens: list[str], i: int) -> float:
 # ---------------------------------------------------------------------------
 # 检索
 # ---------------------------------------------------------------------------
+def _strip_query_stopwords(text: str) -> str:
+    """在字符串层面把停用词替换成空格。长的先剥，避免「相关内容」只去掉一半。"""
+    cleaned = text
+    for word in sorted(_QUERY_STOPWORDS, key=len, reverse=True):
+        if word in cleaned:
+            cleaned = cleaned.replace(word, " ")
+    return cleaned
+
+
 def search(
     query: str,
     *,
@@ -256,11 +286,24 @@ def search(
     if not index.size:
         return []
 
-    q_tokens = tokenize(query)
+    # 先**在原文层面**剥掉停用词，再分词。
+    # 为什么不在 token 层面过滤：tokenize 会同时产出双字和三字窗口，
+    # 「无关」被过滤了，它的变体「无关的」「全无关」「关的」还会漏出来。
+    # 在字符串上剥一次，所有变体一起消失——这是唯一不漏的做法。
+    query_for_match = _strip_query_stopwords(query)
+    q_tokens = [token for token in tokenize(query_for_match) if token not in _QUERY_STOPWORDS]
+    if not q_tokens:
+        # 整句话全是虚词和泛义词：没有任何能对上语料的东西。
+        # 这时候硬凑资料比不检索更糟——模型会拿一段无关规范当依据去写。
+        return []
     try:
-        q_vec = hash_embed(query, len(index.vectors[0]))
         if settings.embedding_backend == "api":
+            # 走真 embedding 时喂原句（模型需要自然语言），停用词对它无害
             q_vec = embed_texts([query])[0]
+        else:
+            # 本地哈希向量本质就是词面统计，喂剥过的文本，
+            # 别让停用词把余弦相似度也一起抬起来
+            q_vec = hash_embed(query_for_match)
     except Exception:  # noqa: BLE001 - 向量算不出来时只走 BM25
         q_vec = []
 

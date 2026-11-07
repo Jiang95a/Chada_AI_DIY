@@ -31,7 +31,7 @@ from langchain_core.messages import (
 from langgraph.graph import END, START, StateGraph
 
 from app.core.config import get_settings
-from app.core.guard import sanitize_system_extra, screen_input, screen_output
+from app.core.guard import crisis_reply, is_crisis, sanitize_system_extra, screen_input, screen_output
 from app.core.prompts import build_system_prompt
 from app.schemas.chat_schema import ChatResponse, ToolCallTrace
 from app.services import audit
@@ -219,6 +219,33 @@ def chat(
     history = get_history()
     settings = get_settings()
 
+    # ---- 危机关怀：优先于 RAG、优先于模型、优先于一切生成动作 ----
+    # 一个人说「不想活了」的时候，任何「帮你想个活动方案」都是冒犯。
+    # 这里直接短路返回固定文案：不花 token，也不给模型自由发挥的空间。
+    if is_crisis(message):
+        reply = crisis_reply()
+        history.append(tid, "user", message)
+        history.append(tid, "assistant", reply)
+        latency = int((time.perf_counter() - started) * 1000)
+        audit.log_call(
+            kind="crisis",
+            thread_id=tid,
+            model="-",
+            latency_ms=latency,
+            ok=True,
+            flags=["crisis_intercepted"],
+        )
+        logger.warning("命中危机关怀规则，已跳过模型调用（thread=%s）", tid)
+        return ChatResponse(
+            thread_id=tid,
+            reply=reply,
+            tool_calls=[],
+            latency_ms=latency,
+            flags=["crisis_intercepted"],
+            rag_hits=0,
+            document=None,
+        )
+
     llm = build_llm(temperature=temperature) if temperature is not None else None
     graph = _make_graph(llm, streaming=False)
 
@@ -299,8 +326,27 @@ def stream_chat(
     历史在生成结束后一次性补写。
     """
     tid = thread_id or new_thread_id()
-    graph = _make_graph(None, streaming=True)
     settings = get_settings()
+
+    # 流式同样先过危机规则：这种情况下逐字"打字"毫无意义，
+    # 一次性把整段话给出去，用户立刻就能看到那句话。
+    if is_crisis(message):
+        reply = crisis_reply()
+        get_history().append(tid, "user", message)
+        get_history().append(tid, "assistant", reply)
+        audit.log_call(
+            kind="crisis",
+            thread_id=tid,
+            model="-",
+            latency_ms=0,
+            ok=True,
+            flags=["crisis_intercepted"],
+        )
+        logger.warning("流式请求命中危机关怀规则，已跳过模型（thread=%s）", tid)
+        yield reply
+        return
+
+    graph = _make_graph(None, streaming=True)
 
     messages, flags, _rag_hits = _prepare_messages(message, system_extra, tid)
 

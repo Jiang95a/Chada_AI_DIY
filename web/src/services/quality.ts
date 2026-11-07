@@ -20,6 +20,72 @@ function str(value: unknown): string {
   return typeof value === 'string' ? value : ''
 }
 
+/* ------------------------------------------------------------------------- */
+/* 心理活动的合规检查（心屿）                                                   */
+/* ------------------------------------------------------------------------- */
+
+/** 从标题和文案里判断这是不是心理类活动——决定后面几条规则要不要更严。 */
+const WELLBEING_HINT = /心理|心晴|情绪|正念|减压|自我关怀|团辅|团体辅导|树洞|匿名|倾诉|关怀/
+
+/** 这些字段出现在报名表上就不是"多收了一点"，是性质问题。 */
+const SENSITIVE_FIELD =
+  /身份证|身份号|学号|家庭住址|住址|父母|家长电话|病史|既往|服药|用药|诊断|自伤|自杀|抑郁史/
+
+/** 页面里只要有其中一处，就认为"能找到人"。 */
+const CARE_HINT = /心理中心|心理健康教育中心|热线|求助|危机干预|110|120|12356/
+
+function formFieldsOf(doc: Doc): Array<{ label: string; placeholder: string; required: boolean; formId: string }> {
+  const out: Array<{ label: string; placeholder: string; required: boolean; formId: string }> = []
+  for (const page of doc.pages) {
+    for (const block of page.blocks) {
+      if (block.type !== 'form') continue
+      const fields = Array.isArray(block.props.fields) ? block.props.fields : []
+      for (const field of fields) {
+        const item = field as Record<string, unknown>
+        out.push({
+          label: str(item.label).trim(),
+          placeholder: str(item.placeholder).trim(),
+          required: Boolean(item.required),
+          formId: block.id,
+        })
+      }
+    }
+  }
+  return out
+}
+
+/** 全文文本，用来判断"这是不是心理活动""有没有求助入口"。 */
+function documentText(doc: Doc): string {
+  const parts: string[] = [doc.title, doc.meta.org, doc.meta.place]
+  for (const page of doc.pages) {
+    parts.push(page.name)
+    for (const block of page.blocks) {
+      const props = block.props as Record<string, unknown>
+      for (const key of ['text', 'title', 'subtitle', 'question', 'label', 'value', 'caption', 'buttonText']) {
+        const value = props[key]
+        if (typeof value === 'string') parts.push(value)
+      }
+      // 求助入口通常就在信息卡片里（icon=contact 的几行），不翻数组等于没查
+      const items = props.items
+      if (Array.isArray(items)) {
+        for (const item of items) {
+          if (!item || typeof item !== 'object') continue
+          const row = item as Record<string, unknown>
+          parts.push(str(row.label), str(row.value))
+        }
+      }
+    }
+  }
+  return parts.join(' ')
+}
+
+function sensitiveFields(doc: Doc): string[] {
+  const found = formFieldsOf(doc)
+    .filter((field) => SENSITIVE_FIELD.test(field.label) || SENSITIVE_FIELD.test(field.placeholder))
+    .map((field) => field.label || field.placeholder)
+  return [...new Set(found)]
+}
+
 export function auditDoc(doc: Doc): Issue[] {
   const issues: Issue[] = []
   const pages = doc.pages
@@ -36,6 +102,9 @@ export function auditDoc(doc: Doc): Issue[] {
   }
 
   const home = pages[0] as Page
+
+  // 心理类活动有几条额外的规矩，先判断一次，后面多处要用
+  const isWellbeing = WELLBEING_HINT.test(documentText(doc))
 
   /* ---------- 全局：活动信息完整性 ---------- */
   const missing: string[] = []
@@ -144,10 +213,20 @@ export function auditDoc(doc: Doc): Issue[] {
         )
       }
       if (!fields.some((field: any) => field.required)) {
-        issues.push(issue('warn', '没有任何必填字段', '关键字段（姓名、手机号）建议设为必填。', page, block.id))
+        issues.push(
+          issue(
+            'warn',
+            '没有任何必填字段',
+            isWellbeing
+              ? '心理类活动至少把联系方式设为必填就够了，其余尽量选填——别靠「全都必填」来拿信息。'
+              : '关键字段（姓名、手机号）建议设为必填。',
+            page,
+            block.id
+          )
+        )
       }
       const hasContact = fields.some((field: any) => field.type === 'tel' || field.type === 'email')
-      if (!hasContact) {
+      if (!hasContact && !isWellbeing) {
         issues.push(issue('info', '缺少联系方式字段', '加一个手机号或邮箱，报名后你才联系得上人。', page, block.id))
       }
       if (fields.length > 8) {
@@ -264,6 +343,48 @@ export function auditDoc(doc: Doc): Issue[] {
       if (block.type === 'qrcode' && !str(block.props.url).trim()) {
         issues.push(issue('info', '二维码还没设内容', '发布后会自动使用活动链接。', page, block.id))
       }
+    }
+  }
+
+  /* ---------- 心理活动的隐私与合规（心屿） ---------- */
+  // 放在页面循环外面：判断「有没有求助入口」「有没有敏感字段」得看全文档。
+  const sensitive = sensitiveFields(doc)
+  if (sensitive.length) {
+    issues.push(
+      issue(
+        'error',
+        `表单在收集敏感信息：${sensitive.join('、')}`,
+        '心理类活动不该收身份证号、学号、家庭情况、既往病史这类信息。报名表不是筛查工具——收得越少，别人才越敢来。',
+        pages[0] as Page
+      )
+    )
+  }
+
+  if (isWellbeing) {
+    if (!CARE_HINT.test(documentText(doc))) {
+      issues.push(
+        issue(
+          'warn',
+          '没有任何求助入口',
+          '心理类活动的页面上要有一处能找到心理中心或热线。有人点进来的时候状态可能已经很差，页面得能接住。',
+          pages[0] as Page
+        )
+      )
+    }
+
+    const realName = formFieldsOf(doc).find(
+      (field) => field.required && /姓名|真名/.test(field.label) && !/昵称/.test(field.label)
+    )
+    if (realName) {
+      issues.push(
+        issue(
+          'warn',
+          `「${realName.label}」要求填真名`,
+          '建议改成「昵称」并设为选填。想参加又怕被认出来的人，会在这一屏退出。',
+          pages[0] as Page,
+          realName.formId
+        )
+      )
     }
   }
 

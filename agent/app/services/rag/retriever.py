@@ -17,8 +17,17 @@ from app.core.config import get_settings
 from app.services.rag import store
 from app.services.rag.store import SearchHit
 
-# 场景词表：和前端 planner.ts 的 SCENE_RULES 保持一致，别两边各写一套
+# 场景词表。**顺序有意义**：先命中的赢。
+# 心屿（心理社团）的场景必须排在通用活动场景前面——
+# 「心理打卡」应该命中 wellbeing，而不是 checkin。
+# 注意：前端 web/src/services/planner.ts 也有一张 SCENE_RULES，但那套是给
+# 「本地兜底生成 DocPlan」用的模板分类（心理社团招新/知识问答/打卡/心晴活动），
+# 和这里的「语料场景」不是同一个概念，不要硬对齐。
 SCENE_RULES: list[tuple[str, re.Pattern[str]]] = [
+    ("care", re.compile(r"危机|转介|自伤|自杀|轻生|求助入口|求助信息|热线|紧急")),
+    ("group", re.compile(r"团辅|团体辅导|团体活动|工作坊|破冰|围坐|带领者|入组|小组")),
+    ("treehole", re.compile(r"树洞|匿名留言|倾诉|心事|悄悄话|留言墙|匿名墙")),
+    ("wellbeing", re.compile(r"心理|心晴|情绪|正念|减压|舒压|自我关怀|关怀|内耗|焦虑|emo")),
     ("recruit", re.compile(r"招新|纳新|招募|新成员|加入我们|社团|部门面试")),
     ("vote", re.compile(r"投票|票选|评选|人气|作品|角逐")),
     ("checkin", re.compile(r"打卡|坚持|每日|习惯|早起|自律|连签")),
@@ -26,6 +35,10 @@ SCENE_RULES: list[tuple[str, re.Pattern[str]]] = [
 ]
 
 SCENE_LABEL = {
+    "care": "危机与转介",
+    "group": "团体辅导",
+    "treehole": "匿名树洞",
+    "wellbeing": "心理活动",
     "recruit": "社团招新",
     "signup": "活动报名",
     "vote": "投票评选",

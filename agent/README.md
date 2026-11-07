@@ -15,10 +15,10 @@ python -m pytest tests -q   # 136 passed
 |---|---|---|---|
 | 大模型集成 | OpenAI 兼容 + 5 家供应商预设；结构化输出失败自动修一次 | `POST /chat` | `app/services/llm_client.py` |
 | Agent 与工作流 | LangGraph 手写 ReAct 图，工具节点自己解析 tool_calls，4 轮上限 | `POST /chat` | `agent_service.py` |
-| **RAG** | 8 篇语料 / 34 块；哈希向量 + BM25 混合检索；场景加权；阈值过滤 | `POST /kb/search` | `services/rag/` |
+| **RAG** | 15 篇语料 / 76 块（含 7 篇心理社团领域语料）；哈希向量 + BM25 混合检索；场景加权；阈值过滤 + 检索侧停用词 | `POST /kb/search` | `services/rag/` |
 | **多模态** | 视觉模型读海报 → 结构化字段 + 每个字段的图上原文 | `POST /poster/extract` | `services/vision.py` |
 | **MCP** | 自实现 JSON-RPC（零依赖）；stdio + HTTP 双传输，同一 dispatcher | `GET /mcp/manifest` | `app/mcp/` |
-| AI 安全 | 注入拦截 / 输出消毒 / 单 IP 限流 / 全量审计 | `GET /audit/logs` | `core/guard.py` |
+| AI 安全 | 注入拦截 / 输出消毒 / 单 IP 限流 / 全量审计 / **危机关怀拦截** | `GET /audit/logs` | `core/guard.py` |
 | 产品工具 | 出页面方案、校验方案、查报名数据（不编数字） | 工具调用 | `services/tools/planner.py` |
 | **PageDocument** | 出口就把方案补成完整文档（id / slug / theme / meta / 样式 / 按钮跳转），落库即可 apply | `POST /plan` | `services/page_document.py` |
 
@@ -212,11 +212,40 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | .\.venv\Scripts\python.e
 > Windows 必读：stdout 默认是 GBK，而 MCP 要求 UTF-8。`stdio_server` 里已经 `reconfigure` 过了，
 > 别把那几行删掉，删了中文工具结果会变乱码甚至抛 UnicodeEncodeError。
 
+## 危机关怀怎么工作（心屿这一版最该被问到的）
+
+心理社团的活动页，最坏的情况不是做得不好看，是有人在上面说了一句「不想活了」，而系统回他一个「要什么配色？」。
+
+所以这一条**优先级高于其余所有规则**，实现上是「短路」：
+
+```
+用户这句话 → is_crisis() ──命中──► 直接返回固定文案，不调模型、不跑 RAG、不花 token
+                        └─未命中──► 正常走 RAG + 模型
+```
+
+三个刻意的设计：
+
+1. **不让模型写这段话。** 回复是 `crisis_reply()` 里写死的，号码来自 `.env` 的 `CRISIS_*`。
+   模型大概率会补一句「会好起来的」——而我们保证不了，那正是最不该说的。
+2. **不判断程度。** 这里只回答「这句话里有没有风险的形状」，严重程度是专业人员的事。
+   规则故意偏向误报：多给一次资源，代价只是多说一句用不上的话。
+3. **少误报。** 「累死了」「想死你了」「跳楼机」都有排除规则，否则会把正常用户吓一跳。
+
+配套的两件事：
+
+- 心理类场景（`wellbeing` / `group` / `treehole`）的**成功页会自动挂一张「求助入口」信息卡**
+  （用现成的 `infoCard` + `contact` 图标，不新增组件类型，三端零改动）；
+- 一次拦截会写进 `ai_call_logs`，`flags = crisis_intercepted`，可在 `GET /audit/logs` 里查。
+
+> 上线前必须改 `.env` 里的 `CRISIS_HOTLINE` / `CRISIS_CENTER_HINT`：
+> 每个学校的地点、预约方式、当地热线都不一样，写死一个假地址是答辩时最容易被问穿的。
+
 ## AI 安全（这一块最容易被追问）
 
 | 位置 | 做了什么 | 命中后 |
 |---|---|---|
 | `system_extra` | 8 条注入正则（改人设/套提示词/越狱/角色前缀/探 key） | **整段丢弃**，记 `system_extra_blocked`，不回显 |
+| **危机关怀** | 自伤/自杀/绝望表达 → 短路，不进模型 | 返回固定求助文案，记 `crisis_intercepted` |
 | 用户输入 | 只标记不改写（改写会让用户觉得"我打的字没了"） | 记 flags，进审计 |
 | 模型输出 | 剥 `<script>` / `javascript:` / `on*=`；截断；检测系统提示词泄漏 | 记 `output_*` flags |
 | 接口 | 单 IP 令牌桶（默认 40 次/分），只卡花钱的接口 | 429 + `Retry-After` |
