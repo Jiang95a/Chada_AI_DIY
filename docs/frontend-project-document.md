@@ -563,4 +563,6 @@ corepack pnpm build
 
 ### 22.4 注意事项
 
-方案 B 后端接口签名已固定，但当前代码分支尚未包含后端实现和 `009_career_and_referral.sql`。前端已按契约完成，联调前需确认后端代码和数据库迁移已进入同一分支。
+方案 B 后端接口已通过 `e2e-test.ps1`、`wb-test.ps1`、`schemeb-test.ps1` 验证，接口签名不再变化。
+
+前端已按契约完成，但联调前仍需要确认后端代码和 `009_career_and_referral.sql` 已进入当前代码分支，并在本地数据库执行迁移。
