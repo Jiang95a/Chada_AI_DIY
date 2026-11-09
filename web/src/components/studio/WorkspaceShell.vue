@@ -18,7 +18,7 @@ const router = useRouter()
 const auth = useAuthStore()
 const projectStore = useProjectStore()
 const toast = useToast()
-const { workspaces, selected: currentWorkspace, selectWorkspace } = useWorkspace()
+const { selected: currentWorkspace } = useWorkspace()
 const rootRef = ref<HTMLElement | null>(null)
 const searchRef = ref<HTMLInputElement | null>(null)
 const searchText = ref('')
@@ -37,6 +37,7 @@ const serviceNavItems = [
   { href: '/projects', label: '运营概览', icon: 'home' },
   { href: '/campus', label: '心理活动', icon: 'pin' },
   { href: '/published', label: '参与数据', icon: 'chart' },
+  { href: '/referrals', label: '转介待办', icon: 'phone' },
 ]
 
 const toolNavItems = [
@@ -56,6 +57,7 @@ const isActive = computed(() => (href: string) => {
 const pageTitle = computed(() => {
   if (route.path === '/projects') return '运营概览'
   if (route.path === '/published') return '参与数据'
+  if (route.path === '/referrals') return '转介待办'
   if (route.path === '/campus') return '心理活动'
   if (route.path === '/projects/new') return '页面工坊'
   if (route.path === '/templates') return '心晴模板'
@@ -140,13 +142,6 @@ function clearSearch(): void {
   syncSearch()
 }
 
-function chooseWorkspace(id: string): void {
-  selectWorkspace(id)
-  showOrgMenu.value = false
-  const name = currentWorkspace.value.name
-  toast.pushToast(`已切换到「${name}」`, 'success')
-}
-
 async function openNotification(id: string): Promise<void> {
   const item = notifications.value.find((notification) => notification.id === id)
   if (!item) return
@@ -226,22 +221,22 @@ onBeforeUnmount(() => {
           <Icon name="chevron" :size="15" :class="{ 'is-rotated': showOrgMenu }" />
         </button>
         <div v-if="showOrgMenu" class="workspace-popover workspace-org-menu">
-          <p>切换工作空间</p>
-          <button
-            v-for="workspace in workspaces"
-            :key="workspace.id"
-            type="button"
-            @click="chooseWorkspace(workspace.id)"
-          >
-            <span class="workspace-menu-avatar">{{ workspace.avatar }}</span>
-            <span
-              ><strong>{{ workspace.name }}</strong
-              ><small>{{ workspace.type }}</small></span
-            >
-            <Icon v-if="currentWorkspace.id === workspace.id" name="check" :size="14" />
-          </button>
+          <p>当前组织身份</p>
+          <div class="workspace-identity">
+            <span class="workspace-menu-avatar">{{ workspaceAvatar }}</span>
+            <span>
+              <strong>{{ workspaceName }}</strong>
+              <small>{{ workspaceType }}</small>
+            </span>
+          </div>
+          <div class="workspace-role-note">
+            <p>当前权限</p>
+            <span>发起心理活动</span>
+            <span>管理本人活动与参与数据</span>
+            <span>处理本人活动的转介待办</span>
+          </div>
           <RouterLink class="workspace-menu-footer" to="/settings#workspace" @click="showOrgMenu = false">
-            <Icon name="sliders" :size="14" />管理工作空间
+            <Icon name="sliders" :size="14" />查看身份说明
           </RouterLink>
         </div>
       </div>
@@ -471,5 +466,51 @@ onBeforeUnmount(() => {
 .workspace-notification-menu .workspace-menu-footer:disabled {
   opacity: 0.48;
   cursor: default;
+}
+
+.workspace-identity {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 4px 12px 10px;
+}
+
+.workspace-identity > span:last-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.workspace-identity strong {
+  font-size: 10px;
+}
+
+.workspace-identity small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.workspace-role-note {
+  display: grid;
+  gap: 5px;
+  margin: 0 12px 10px;
+  padding: 10px;
+  border-radius: 9px;
+  background: var(--surface-soft);
+}
+
+.workspace-role-note p {
+  padding: 0;
+  color: #8e98aa;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workspace-role-note span {
+  color: var(--ink-500);
+  font-size: 8px;
 }
 </style>

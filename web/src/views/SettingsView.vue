@@ -14,7 +14,7 @@ import { API_BASE } from '@/services/http'
 
 const toast = useToast()
 const { density, motion, landing, setDensity, setMotion, setLanding, reset } = usePreferences()
-const { workspaces, selected, selectWorkspace } = useWorkspace()
+const { selected } = useWorkspace()
 
 function chooseDensity(value: DensityPreference): void {
   setDensity(value)
@@ -29,11 +29,6 @@ function chooseMotion(value: MotionPreference): void {
 function chooseLanding(value: LandingPreference): void {
   setLanding(value)
   toast.pushToast('默认打开页面已更新', 'success')
-}
-
-function chooseWorkspace(id: string): void {
-  selectWorkspace(id)
-  toast.pushToast('当前空间已切换', 'success')
 }
 
 function resetAll(): void {
@@ -74,20 +69,15 @@ function resetAll(): void {
               </div>
             </div>
             <div class="setting-options">
-              <button
-                v-for="workspace in workspaces"
-                :key="workspace.id"
-                type="button"
-                :class="{ 'is-active': selected.id === workspace.id }"
-                @click="chooseWorkspace(workspace.id)"
-              >
-                <span class="setting-workspace-avatar">{{ workspace.avatar }}</span>
-                <span
-                  ><strong>{{ workspace.name }}</strong
-                  ><small>{{ workspace.type }}</small></span
-                >
-                <Icon v-if="selected.id === workspace.id" name="check-circle" :size="17" />
-              </button>
+              <div class="setting-workspace-current">
+                <span class="setting-workspace-avatar">{{ selected.avatar }}</span>
+                <span>
+                  <strong>{{ selected.name }}</strong>
+                  <small>{{ selected.type }}</small>
+                </span>
+                <Icon name="check-circle" :size="17" />
+              </div>
+              <p class="setting-workspace-hint">当前身份由后端成员关系决定，第一版暂不开放多空间切换。</p>
             </div>
           </section>
 
@@ -327,6 +317,30 @@ function resetAll(): void {
   margin-top: 3px;
   color: var(--muted);
   font-size: 8px;
+}
+.setting-workspace-current {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+.setting-workspace-current > span:not(.setting-workspace-avatar) {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+.setting-workspace-current > svg {
+  color: var(--mint);
+}
+.setting-workspace-hint {
+  margin: 7px 2px 0;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.6;
 }
 .setting-workspace-avatar {
   display: grid;

@@ -46,9 +46,6 @@ const demoActivities: PublicActivitySummary[] = [
 ]
 
 const visibleActivities = computed(() => activities.value.slice(0, 3))
-const totalParticipants = computed(() =>
-  projectStore.projects.reduce((total, project) => total + project.submissionCount, 0)
-)
 
 async function loadActivities(): Promise<void> {
   try {
@@ -93,27 +90,6 @@ onMounted(() => {
 
 <template>
   <main class="wellbeing-home">
-    <header class="home-nav">
-      <button class="home-brand" type="button" aria-label="心屿同行首页" @click="router.push('/')">
-        <span class="home-brand-mark"><i /><b /></span>
-        <span><strong>心屿同行</strong><small>校园心理社团服务平台</small></span>
-      </button>
-      <nav>
-        <button type="button" @click="router.push('/campus')">心理活动</button>
-        <button type="button" @click="router.push('/tools')">心晴工具</button>
-        <button type="button" @click="router.push('/resources')">心理资源</button>
-        <button type="button" @click="router.push('/about')">关于心屿</button>
-      </nav>
-      <div class="home-nav-actions">
-        <button class="home-login" type="button" @click="goProtected('/projects')">
-          {{ authenticated ? '进入运营台' : '登录' }}
-        </button>
-        <button class="home-join" type="button" @click="goProtected('/projects')">
-          开始使用 <Icon name="arrow-right" :size="14" />
-        </button>
-      </div>
-    </header>
-
     <section class="home-hero">
       <div class="hero-copy">
         <span class="hero-kicker"><i />CAMPUS MENTAL WELLBEING</span>
@@ -278,15 +254,6 @@ onMounted(() => {
         </li>
       </ul>
     </section>
-
-    <footer class="home-footer">
-      <div class="home-brand">
-        <span class="home-brand-mark"><i /><b /></span>
-        <span><strong>心屿同行</strong><small>校园心理社团服务平台</small></span>
-      </div>
-      <p>让每一场心理活动更容易被看见，也让每一次参与更安心。</p>
-      <span class="footer-stat">{{ totalParticipants }} 人次参与 · {{ projectStore.publishedCount }} 个心晴活动</span>
-    </footer>
   </main>
 </template>
 

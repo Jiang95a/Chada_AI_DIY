@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import WellbeingPublicShell from '@/components/public/WellbeingPublicShell.vue'
 import WellbeingToolkit from '@/components/public/WellbeingToolkit.vue'
 import Icon from '@/components/ui/Icon.vue'
 
@@ -93,122 +92,120 @@ onMounted(() => {
 </script>
 
 <template>
-  <WellbeingPublicShell>
-    <main class="tools-page">
-      <section class="tools-hero">
-        <span>GENTLE SELF-CARE TOOLS</span>
-        <h1>心晴工具箱</h1>
-        <p>这些工具用于短时间的自我照顾和活动参与，不做心理测评，也不会把你的内容发送到服务器。</p>
-        <div>
-          <span><Icon name="check" :size="13" />只保存在本机</span>
-          <span><Icon name="check" :size="13" />随时可以停止</span>
-          <span><Icon name="check" :size="13" />没有正确完成方式</span>
-        </div>
-      </section>
+  <main class="tools-page">
+    <section class="tools-hero">
+      <span>GENTLE SELF-CARE TOOLS</span>
+      <h1>心晴工具箱</h1>
+      <p>这些工具用于短时间的自我照顾和活动参与，不做心理测评，也不会把你的内容发送到服务器。</p>
+      <div>
+        <span><Icon name="check" :size="13" />只保存在本机</span>
+        <span><Icon name="check" :size="13" />随时可以停止</span>
+        <span><Icon name="check" :size="13" />没有正确完成方式</span>
+      </div>
+    </section>
 
-      <WellbeingToolkit />
+    <WellbeingToolkit />
 
-      <section class="tools-section">
-        <header>
-          <span>从眼前的感受开始</span>
-          <h2>选择最接近此刻的需要</h2>
-        </header>
-        <div class="need-layout">
-          <div class="need-options">
-            <button
-              v-for="need in needs"
-              :key="need.id"
-              type="button"
-              :class="{ 'is-active': selectedNeed === need.id }"
-              @click="selectedNeed = need.id"
-            >
-              {{ need.label }}<Icon name="arrow-right" :size="14" />
-            </button>
-          </div>
-          <article class="need-result">
-            <span><Icon name="spark" :size="18" />一个可以尝试的方向</span>
-            <strong>{{ selectedNeedInfo?.tool || '不需要马上给感受一个答案，可以先选最接近的一项。' }}</strong>
-            <p v-if="selectedNeedInfo">如果它不合适，可以随时换一个工具或离开页面。</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="grounding" class="tools-section">
-        <header>
-          <span>5-4-3-2-1 感官落地</span>
-          <h2>把注意力慢慢带回此刻</h2>
-        </header>
-        <div class="grounding-card">
-          <div class="grounding-progress">
-            <i v-for="(_, index) in groundingSteps" :key="index" :class="{ 'is-active': index <= groundingStep }" />
-          </div>
-          <span class="grounding-count">0{{ groundingStep + 1 }} / 05</span>
-          <div class="grounding-icon"><Icon :name="groundingSteps[groundingStep]?.icon || 'spark'" :size="24" /></div>
-          <h3>{{ groundingSteps[groundingStep]?.title }}</h3>
-          <p>{{ groundingSteps[groundingStep]?.text }}</p>
+    <section class="tools-section">
+      <header>
+        <span>从眼前的感受开始</span>
+        <h2>选择最接近此刻的需要</h2>
+      </header>
+      <div class="need-layout">
+        <div class="need-options">
           <button
+            v-for="need in needs"
+            :key="need.id"
             type="button"
-            @click="groundingStep = groundingStep >= groundingSteps.length - 1 ? 0 : groundingStep + 1"
+            :class="{ 'is-active': selectedNeed === need.id }"
+            @click="selectedNeed = need.id"
           >
-            {{ groundingStep >= groundingSteps.length - 1 ? '重新开始' : '完成这一步' }}
-            <Icon name="arrow-right" :size="14" />
+            {{ need.label }}<Icon name="arrow-right" :size="14" />
           </button>
         </div>
-      </section>
-
-      <section class="tools-two-column">
-        <article id="care" class="simple-tool-card">
-          <header>
-            <span>今天的小小照顾</span>
-            <h2>完成一件就够了</h2>
-          </header>
-          <div class="self-care-list">
-            <button
-              v-for="item in selfCareItems"
-              :key="item.id"
-              type="button"
-              :class="{ 'is-done': completedCare.includes(item.id) }"
-              @click="toggleCare(item.id)"
-            >
-              <i><Icon v-if="completedCare.includes(item.id)" name="check" :size="12" /></i>
-              {{ item.label }}
-            </button>
-          </div>
-          <p>提示：这不是任务清单，没有全部完成的要求。</p>
+        <article class="need-result">
+          <span><Icon name="spark" :size="18" />一个可以尝试的方向</span>
+          <strong>{{ selectedNeedInfo?.tool || '不需要马上给感受一个答案，可以先选最接近的一项。' }}</strong>
+          <p v-if="selectedNeedInfo">如果它不合适，可以随时换一个工具或离开页面。</p>
         </article>
+      </div>
+    </section>
 
-        <article id="note" class="simple-tool-card note-tool">
-          <header>
-            <span>只给自己看的便签</span>
-            <h2>把此刻想说的话放在这里</h2>
-          </header>
-          <textarea
-            v-model="privateNote"
-            rows="6"
-            maxlength="500"
-            placeholder="不想发出去的话，也可以只写给自己。内容只保存在当前浏览器。"
-          />
-          <div>
-            <button type="button" @click="clearNote">清空</button>
-            <button class="note-save" type="button" @click="saveNote">
-              <Icon name="check" :size="13" />{{ noteSaved ? '已保存在本机' : '只在本地保存' }}
-            </button>
-          </div>
-        </article>
-      </section>
-
-      <section class="tools-boundary">
-        <div>
-          <Icon name="help" :size="21" />
-          <div>
-            <strong>工具不能替代真实支持</strong>
-            <p>如果困扰持续影响生活，或你正在经历立即危险，请联系学校心理健康中心、信任的老师，或拨打 120 / 110。</p>
-          </div>
+    <section id="grounding" class="tools-section">
+      <header>
+        <span>5-4-3-2-1 感官落地</span>
+        <h2>把注意力慢慢带回此刻</h2>
+      </header>
+      <div class="grounding-card">
+        <div class="grounding-progress">
+          <i v-for="(_, index) in groundingSteps" :key="index" :class="{ 'is-active': index <= groundingStep }" />
         </div>
-        <RouterLink to="/resources">查看心理资源与求助方向 <Icon name="arrow-right" :size="14" /></RouterLink>
-      </section>
-    </main>
-  </WellbeingPublicShell>
+        <span class="grounding-count">0{{ groundingStep + 1 }} / 05</span>
+        <div class="grounding-icon"><Icon :name="groundingSteps[groundingStep]?.icon || 'spark'" :size="24" /></div>
+        <h3>{{ groundingSteps[groundingStep]?.title }}</h3>
+        <p>{{ groundingSteps[groundingStep]?.text }}</p>
+        <button
+          type="button"
+          @click="groundingStep = groundingStep >= groundingSteps.length - 1 ? 0 : groundingStep + 1"
+        >
+          {{ groundingStep >= groundingSteps.length - 1 ? '重新开始' : '完成这一步' }}
+          <Icon name="arrow-right" :size="14" />
+        </button>
+      </div>
+    </section>
+
+    <section class="tools-two-column">
+      <article id="care" class="simple-tool-card">
+        <header>
+          <span>今天的小小照顾</span>
+          <h2>完成一件就够了</h2>
+        </header>
+        <div class="self-care-list">
+          <button
+            v-for="item in selfCareItems"
+            :key="item.id"
+            type="button"
+            :class="{ 'is-done': completedCare.includes(item.id) }"
+            @click="toggleCare(item.id)"
+          >
+            <i><Icon v-if="completedCare.includes(item.id)" name="check" :size="12" /></i>
+            {{ item.label }}
+          </button>
+        </div>
+        <p>提示：这不是任务清单，没有全部完成的要求。</p>
+      </article>
+
+      <article id="note" class="simple-tool-card note-tool">
+        <header>
+          <span>只给自己看的便签</span>
+          <h2>把此刻想说的话放在这里</h2>
+        </header>
+        <textarea
+          v-model="privateNote"
+          rows="6"
+          maxlength="500"
+          placeholder="不想发出去的话，也可以只写给自己。内容只保存在当前浏览器。"
+        />
+        <div>
+          <button type="button" @click="clearNote">清空</button>
+          <button class="note-save" type="button" @click="saveNote">
+            <Icon name="check" :size="13" />{{ noteSaved ? '已保存在本机' : '只在本地保存' }}
+          </button>
+        </div>
+      </article>
+    </section>
+
+    <section class="tools-boundary">
+      <div>
+        <Icon name="help" :size="21" />
+        <div>
+          <strong>工具不能替代真实支持</strong>
+          <p>如果困扰持续影响生活，或你正在经历立即危险，请联系学校心理健康中心、信任的老师，或拨打 120 / 110。</p>
+        </div>
+      </div>
+      <RouterLink to="/resources">查看心理资源与求助方向 <Icon name="arrow-right" :size="14" /></RouterLink>
+    </section>
+  </main>
 </template>
 
 <style scoped>

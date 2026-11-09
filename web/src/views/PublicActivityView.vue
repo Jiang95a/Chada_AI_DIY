@@ -15,6 +15,7 @@ import {
   getPublicPrivacy,
   recordConsent,
   recordPublicEvent,
+  requestReferral,
   submitActivityFeedback,
   submitForm,
 } from '@/services/public'
@@ -37,6 +38,10 @@ const hasSubmitted = ref(false)
 const feedbackChoice = ref('')
 const feedbackNote = ref('')
 const feedbackSaved = ref(false)
+const wantsContact = ref(false)
+const referralContact = ref('')
+const referralTime = ref('')
+const referralBusy = ref(false)
 
 const slug = computed(() => String(route.params.slug ?? ''))
 const project = computed(() => projectStore.getBySlug(slug.value))
@@ -256,6 +261,26 @@ async function saveFeedback(): Promise<void> {
   }
 }
 
+async function submitReferral(): Promise<void> {
+  if (!wantsContact.value || referralBusy.value) return
+  referralBusy.value = true
+  try {
+    const result = await requestReferral(slug.value, {
+      wantsContact: true,
+      contact: referralContact.value.trim() || undefined,
+      preferredTime: referralTime.value.trim() || undefined,
+    })
+    toast.pushToast(result.message, 'success')
+    wantsContact.value = false
+    referralContact.value = ''
+    referralTime.value = ''
+  } catch (error) {
+    toast.pushToast(error instanceof Error ? error.message : '提交失败，请稍后再试', 'error')
+  } finally {
+    referralBusy.value = false
+  }
+}
+
 function downloadCalendar(): void {
   const start = parseDate(document.value?.meta.startAt ?? '')
   if (!start) {
@@ -409,6 +434,19 @@ function goBack(): void {
         <Icon name="check" :size="13" />{{ feedbackSaved ? '已记录' : '留下反馈' }}
       </button>
     </section>
+    <aside class="activity-referral">
+      <label class="referral-toggle">
+        <input v-model="wantsContact" type="checkbox" />
+        <span><strong>我希望有人联系我</strong><small>只提交你的联系意愿，不会包含活动回答内容。</small></span>
+      </label>
+      <div v-if="wantsContact" class="referral-fields">
+        <input v-model="referralContact" maxlength="40" placeholder="怎么联系你（选填）" />
+        <input v-model="referralTime" maxlength="60" placeholder="希望什么时间（选填）" />
+        <button type="button" :disabled="referralBusy" @click="submitReferral">
+          <Icon name="send" :size="14" />{{ referralBusy ? '提交中…' : '提交联系意愿' }}
+        </button>
+      </div>
+    </aside>
     <aside class="activity-safety-footer">
       <div>
         <Icon name="users" :size="15" />
@@ -425,7 +463,8 @@ function goBack(): void {
 
 <style scoped>
 .activity-consent-panel,
-.activity-feedback {
+.activity-feedback,
+.activity-referral {
   width: min(760px, calc(100% - 32px));
   margin: 14px auto 0;
   border: 1px solid #dce8df;
@@ -498,6 +537,74 @@ function goBack(): void {
 
 .activity-feedback {
   padding: 16px;
+}
+
+.activity-referral {
+  padding: 14px;
+}
+
+.referral-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.referral-toggle input {
+  margin-top: 2px;
+  accent-color: var(--brand-600);
+}
+
+.referral-toggle > span {
+  display: flex;
+  flex-direction: column;
+}
+
+.referral-toggle strong {
+  color: var(--ink-700);
+  font-size: 9px;
+}
+
+.referral-toggle small {
+  margin-top: 3px;
+  color: var(--ink-400);
+  font-size: 7px;
+  line-height: 1.6;
+}
+
+.referral-fields {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.referral-fields input {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  outline: 0;
+  font-size: 8px;
+}
+
+.referral-fields button {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--brand-600);
+  font-size: 8px;
+  cursor: pointer;
+}
+
+.referral-fields button:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 
 .activity-feedback > div:first-child > span {

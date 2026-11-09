@@ -43,7 +43,7 @@ describe('前端后端服务契约', () => {
     const catalog = await loadTemplateCatalog()
     const remote = catalog.find((item) => item.source === 'remote')
     expect(remote?.id).toBe('template-1')
-    expect(catalog.length).toBeGreaterThanOrEqual(4)
+    expect(catalog).toHaveLength(1)
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain('/api/v1/templates')
   })
 

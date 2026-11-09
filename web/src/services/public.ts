@@ -126,6 +126,22 @@ export async function submitActivityFeedback(
   )
 }
 
+export async function requestReferral(
+  slug: string,
+  input: { wantsContact: boolean; contact?: string; preferredTime?: string }
+) {
+  return readData<{ referralId: string; status: string; createdAt: string; message: string }>(
+    await apiRequest(
+      `/public/activities/${encodeURIComponent(slug)}/referrals`,
+      {
+        method: 'POST',
+        body: JSON.stringify(input),
+      },
+      { auth: false }
+    )
+  )
+}
+
 export async function recordPublicEvent(
   slug: string,
   input: {

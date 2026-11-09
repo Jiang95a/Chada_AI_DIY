@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import WellbeingPublicShell from '@/components/public/WellbeingPublicShell.vue'
 import Icon from '@/components/ui/Icon.vue'
 
 const principles = [
@@ -29,66 +28,64 @@ const activities = [
 </script>
 
 <template>
-  <WellbeingPublicShell>
-    <main class="about-page">
-      <section class="about-hero">
-        <div class="about-mark"><i /><b /><span>心</span></div>
-        <div>
-          <span>CAMPUS WELLBEING COLLECTIVE</span>
-          <h1>关于心屿</h1>
-          <p>心屿同行是面向校园心理社团的活动服务平台，希望让心理关怀发生在日常，而不是只在出现问题之后。</p>
-        </div>
-      </section>
+  <main class="about-page">
+    <section class="about-hero">
+      <div class="about-mark"><i /><b /><span>心</span></div>
+      <div>
+        <span>CAMPUS WELLBEING COLLECTIVE</span>
+        <h1>关于心屿</h1>
+        <p>心屿同行是面向校园心理社团的活动服务平台，希望让心理关怀发生在日常，而不是只在出现问题之后。</p>
+      </div>
+    </section>
 
-      <section class="about-manifesto">
-        <span>我们在做的事</span>
-        <h2>把“你要积极一点”，<br />换成“你可以按自己的节奏来”。</h2>
-        <p>
-          我们组织心理社团活动、朋辈分享、自我关怀练习和心理知识科普。平台帮助组织者更清楚地说明活动边界，也让参与者更容易判断一场活动是否适合自己。
-        </p>
-      </section>
+    <section class="about-manifesto">
+      <span>我们在做的事</span>
+      <h2>把“你要积极一点”，<br />换成“你可以按自己的节奏来”。</h2>
+      <p>
+        我们组织心理社团活动、朋辈分享、自我关怀练习和心理知识科普。平台帮助组织者更清楚地说明活动边界，也让参与者更容易判断一场活动是否适合自己。
+      </p>
+    </section>
 
-      <section class="about-principles">
-        <article v-for="(item, index) in principles" :key="item.title">
-          <span>0{{ index + 1 }}</span>
-          <i><Icon :name="item.icon" :size="21" /></i>
-          <h3>{{ item.title }}</h3>
-          <p>{{ item.text }}</p>
+    <section class="about-principles">
+      <article v-for="(item, index) in principles" :key="item.title">
+        <span>0{{ index + 1 }}</span>
+        <i><Icon :name="item.icon" :size="21" /></i>
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.text }}</p>
+      </article>
+    </section>
+
+    <section class="about-work">
+      <div>
+        <span>心屿的日常</span>
+        <h2>不是一场大型活动，<br />而是持续发生的连接。</h2>
+      </div>
+      <div class="about-work-list">
+        <article v-for="item in activities" :key="item.title">
+          <Icon :name="item.icon" :size="18" />
+          <div>
+            <strong>{{ item.title }}</strong>
+            <p>{{ item.text }}</p>
+          </div>
         </article>
-      </section>
+      </div>
+    </section>
 
-      <section class="about-work">
-        <div>
-          <span>心屿的日常</span>
-          <h2>不是一场大型活动，<br />而是持续发生的连接。</h2>
-        </div>
-        <div class="about-work-list">
-          <article v-for="item in activities" :key="item.title">
-            <Icon :name="item.icon" :size="18" />
-            <div>
-              <strong>{{ item.title }}</strong>
-              <p>{{ item.text }}</p>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="about-boundary">
-        <div>
-          <span>需要说清楚的事</span>
-          <h2>心屿不是心理咨询机构</h2>
-        </div>
-        <div>
-          <p>平台用于校园心理活动的组织与参与，不提供心理诊断、心理治疗或危机干预。</p>
-          <p>
-            如果困扰持续影响生活，请联系学校心理健康中心或专业机构。如果存在立即危险，请联系身边可信任的人，并拨打 120 /
-            110。
-          </p>
-          <RouterLink to="/resources">查看心理资源与求助方向 <Icon name="arrow-right" :size="14" /></RouterLink>
-        </div>
-      </section>
-    </main>
-  </WellbeingPublicShell>
+    <section class="about-boundary">
+      <div>
+        <span>需要说清楚的事</span>
+        <h2>心屿不是心理咨询机构</h2>
+      </div>
+      <div>
+        <p>平台用于校园心理活动的组织与参与，不提供心理诊断、心理治疗或危机干预。</p>
+        <p>
+          如果困扰持续影响生活，请联系学校心理健康中心或专业机构。如果存在立即危险，请联系身边可信任的人，并拨打 120 /
+          110。
+        </p>
+        <RouterLink to="/resources">查看心理资源与求助方向 <Icon name="arrow-right" :size="14" /></RouterLink>
+      </div>
+    </section>
+  </main>
 </template>
 
 <style scoped>

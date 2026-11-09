@@ -13,17 +13,45 @@ import HelpView from '@/views/HelpView.vue'
 import LandingView from '@/views/LandingView.vue'
 import AiGeneratorView from '@/views/AiGeneratorView.vue'
 import PublishedDataView from '@/views/PublishedDataView.vue'
+import ReferralsView from '@/views/ReferralsView.vue'
 import WellbeingResourcesView from '@/views/WellbeingResourcesView.vue'
 import WellbeingToolsView from '@/views/WellbeingToolsView.vue'
 import WellbeingAboutView from '@/views/WellbeingAboutView.vue'
+import PublicLayout from '@/layouts/PublicLayout.vue'
 import { getAccessToken } from '@/services/http'
 
 export const appRoutes: RouteRecordRaw[] = [
   {
     path: '/',
-    name: 'landing',
-    component: LandingView,
+    component: PublicLayout,
     meta: { public: true },
+    children: [
+      {
+        path: '',
+        name: 'landing',
+        component: LandingView,
+      },
+      {
+        path: 'campus',
+        name: 'campus-activities',
+        component: CampusActivitiesView,
+      },
+      {
+        path: 'resources',
+        name: 'wellbeing-resources',
+        component: WellbeingResourcesView,
+      },
+      {
+        path: 'tools',
+        name: 'wellbeing-tools',
+        component: WellbeingToolsView,
+      },
+      {
+        path: 'about',
+        name: 'wellbeing-about',
+        component: WellbeingAboutView,
+      },
+    ],
   },
   {
     path: '/login',
@@ -47,6 +75,11 @@ export const appRoutes: RouteRecordRaw[] = [
     component: PublishedDataView,
   },
   {
+    path: '/referrals',
+    name: 'referral-queue',
+    component: ReferralsView,
+  },
+  {
     path: '/templates',
     name: 'templates',
     component: TemplatesView,
@@ -55,30 +88,6 @@ export const appRoutes: RouteRecordRaw[] = [
     path: '/ai',
     name: 'ai-generator',
     component: AiGeneratorView,
-  },
-  {
-    path: '/campus',
-    name: 'campus-activities',
-    component: CampusActivitiesView,
-    meta: { public: true },
-  },
-  {
-    path: '/resources',
-    name: 'wellbeing-resources',
-    component: WellbeingResourcesView,
-    meta: { public: true },
-  },
-  {
-    path: '/tools',
-    name: 'wellbeing-tools',
-    component: WellbeingToolsView,
-    meta: { public: true },
-  },
-  {
-    path: '/about',
-    name: 'wellbeing-about',
-    component: WellbeingAboutView,
-    meta: { public: true },
   },
   {
     path: '/profile',

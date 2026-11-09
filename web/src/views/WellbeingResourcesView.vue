@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import WellbeingPublicShell from '@/components/public/WellbeingPublicShell.vue'
 import Icon from '@/components/ui/Icon.vue'
 
 const lifeTopics = [
@@ -18,80 +17,76 @@ const companionTips = [
 </script>
 
 <template>
-  <WellbeingPublicShell>
-    <main class="resources-page">
-      <section class="resources-hero">
+  <main class="resources-page">
+    <section class="resources-hero">
+      <div>
+        <span>CAMPUS WELLBEING RESOURCES</span>
+        <h1>不知道从哪里开始时，<br />可以先看看这里。</h1>
+        <p>这里提供参与校园心理活动的信息和求助方向，不做心理诊断，也不替代专业帮助。</p>
+      </div>
+      <aside>
+        <Icon name="alert" :size="22" />
         <div>
-          <span>CAMPUS WELLBEING RESOURCES</span>
-          <h1>不知道从哪里开始时，<br />可以先看看这里。</h1>
-          <p>这里提供参与校园心理活动的信息和求助方向，不做心理诊断，也不替代专业帮助。</p>
+          <strong>如果你正处在立即危险中</strong>
+          <p>请联系身边可信任的人，拨打 <b>120 / 110</b>，或直接前往校医院、医院急诊。</p>
         </div>
-        <aside>
-          <Icon name="alert" :size="22" />
-          <div>
-            <strong>如果你正处在立即危险中</strong>
-            <p>请联系身边可信任的人，拨打 <b>120 / 110</b>，或直接前往校医院、医院急诊。</p>
-          </div>
-        </aside>
-      </section>
+      </aside>
+    </section>
 
-      <section class="resource-section">
-        <header>
-          <span>从近期困扰开始</span>
-          <h2>先找到最接近自己的那一块</h2>
-        </header>
-        <div class="topic-grid">
-          <article v-for="topic in lifeTopics" :key="topic.title">
-            <span><Icon :name="topic.icon" :size="19" /></span>
-            <h3>{{ topic.title }}</h3>
-            <p>{{ topic.text }}</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="support-layout">
-        <article class="support-card">
-          <span>如何陪伴一个正在难受的朋友</span>
-          <h2>不是马上把他“修好”</h2>
-          <ul>
-            <li v-for="tip in companionTips" :key="tip"><Icon name="check" :size="13" />{{ tip }}</li>
-          </ul>
+    <section class="resource-section">
+      <header>
+        <span>从近期困扰开始</span>
+        <h2>先找到最接近自己的那一块</h2>
+      </header>
+      <div class="topic-grid">
+        <article v-for="topic in lifeTopics" :key="topic.title">
+          <span><Icon :name="topic.icon" :size="19" /></span>
+          <h3>{{ topic.title }}</h3>
+          <p>{{ topic.text }}</p>
         </article>
-        <article class="where-card">
-          <span>校内可以联系谁</span>
-          <h2>优先选择真实、可信任的支持</h2>
-          <div>
-            <p><Icon name="pin" :size="15" /><b>学校心理健康中心</b><small>可预约专业咨询或了解活动信息</small></p>
-            <p>
-              <Icon name="users" :size="15" /><b>辅导员或信任的老师</b><small>适合帮助联系资源和协调现实问题</small>
-            </p>
-            <p><Icon name="help" :size="15" /><b>心屿朋辈活动</b><small>参与活动与表达，不等于专业咨询</small></p>
-          </div>
-        </article>
-      </section>
+      </div>
+    </section>
 
-      <section class="resources-boundary">
+    <section class="support-layout">
+      <article class="support-card">
+        <span>如何陪伴一个正在难受的朋友</span>
+        <h2>不是马上把他“修好”</h2>
+        <ul>
+          <li v-for="tip in companionTips" :key="tip"><Icon name="check" :size="13" />{{ tip }}</li>
+        </ul>
+      </article>
+      <article class="where-card">
+        <span>校内可以联系谁</span>
+        <h2>优先选择真实、可信任的支持</h2>
         <div>
-          <span>PLATFORM BOUNDARY</span>
-          <h2>我们希望被怎样使用</h2>
+          <p><Icon name="pin" :size="15" /><b>学校心理健康中心</b><small>可预约专业咨询或了解活动信息</small></p>
+          <p><Icon name="users" :size="15" /><b>辅导员或信任的老师</b><small>适合帮助联系资源和协调现实问题</small></p>
+          <p><Icon name="help" :size="15" /><b>心屿朋辈活动</b><small>参与活动与表达，不等于专业咨询</small></p>
         </div>
-        <div class="boundary-list">
-          <article>
-            <b>01</b><strong>用于组织活动</strong>
-            <p>报名、打卡、知识问答和匿名表达都需要清晰的用途说明。</p>
-          </article>
-          <article>
-            <b>02</b><strong>不用于心理测量</strong>
-            <p>任何页面都不会输出抑郁、焦虑程度或风险等级。</p>
-          </article>
-          <article>
-            <b>03</b><strong>尊重不参与</strong>
-            <p>同学可以不填写、不分享，也可以随时离开活动页面。</p>
-          </article>
-        </div>
-      </section>
-    </main>
-  </WellbeingPublicShell>
+      </article>
+    </section>
+
+    <section class="resources-boundary">
+      <div>
+        <span>PLATFORM BOUNDARY</span>
+        <h2>我们希望被怎样使用</h2>
+      </div>
+      <div class="boundary-list">
+        <article>
+          <b>01</b><strong>用于组织活动</strong>
+          <p>报名、打卡、知识问答和匿名表达都需要清晰的用途说明。</p>
+        </article>
+        <article>
+          <b>02</b><strong>不用于心理测量</strong>
+          <p>任何页面都不会输出抑郁、焦虑程度或风险等级。</p>
+        </article>
+        <article>
+          <b>03</b><strong>尊重不参与</strong>
+          <p>同学可以不填写、不分享，也可以随时离开活动页面。</p>
+        </article>
+      </div>
+    </section>
+  </main>
 </template>
 
 <style scoped>

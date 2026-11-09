@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import BaseModal from '@/components/ui/BaseModal.vue'
 import Icon from '@/components/ui/Icon.vue'
 import { useToast } from '@/composables/useToast'
@@ -8,6 +8,7 @@ import {
   saveCustomTemplate,
   type SaveCustomTemplateInput,
   type TemplateCatalogItem,
+  type TemplateKind,
 } from '@/services/templates'
 import { useEditorStore } from '@/stores/editor'
 
@@ -15,6 +16,10 @@ const emit = defineEmits<{ use: [id: string]; openCreate: [] }>()
 const store = useEditorStore()
 const toast = useToast()
 const templates = ref<TemplateCatalogItem[]>([])
+const activeKind = ref<TemplateKind | 'all'>('all')
+const visibleTemplates = computed(() =>
+  activeKind.value === 'all' ? templates.value : templates.value.filter((item) => item.kind === activeKind.value)
+)
 const saveOpen = ref(false)
 const saving = ref(false)
 const templateName = ref('')
@@ -83,7 +88,17 @@ onMounted(load)
       心晴模板<span>{{ templates.length }}</span>
     </p>
 
-    <article v-for="template in templates" :key="template.id" class="tcard">
+    <div class="tpl__kinds">
+      <button type="button" :class="{ 'is-active': activeKind === 'all' }" @click="activeKind = 'all'">全部</button>
+      <button type="button" :class="{ 'is-active': activeKind === 'wellbeing' }" @click="activeKind = 'wellbeing'">
+        心理活动
+      </button>
+      <button type="button" :class="{ 'is-active': activeKind === 'career' }" @click="activeKind = 'career'">
+        生涯发展
+      </button>
+    </div>
+
+    <article v-for="template in visibleTemplates" :key="template.id" class="tcard">
       <div
         class="tcard__cover"
         :style="{
@@ -276,6 +291,33 @@ onMounted(load)
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--ink-400);
+}
+
+.tpl__kinds {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 10px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--ink-50);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tpl__kinds button {
+  min-height: 28px;
+  border: 0;
+  border-radius: 7px;
+  color: var(--ink-500);
+  background: transparent;
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.tpl__kinds button.is-active {
+  color: var(--brand-700);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
 }
 
 .tpl__title span {

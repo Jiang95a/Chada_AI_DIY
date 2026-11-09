@@ -27,13 +27,13 @@ describe('工作台外框入口', () => {
     vi.unstubAllGlobals()
   })
 
-  it('管理工作空间会进入空间设置', async () => {
+  it('查看身份说明会进入空间设置', async () => {
     const wrapper = await mountAt('/projects')
     await wrapper.find('.workspace-org-card').trigger('click')
     const manage = wrapper.find('.workspace-org-menu .workspace-menu-footer')
 
     expect(manage.attributes('href')).toBe('/settings#workspace')
-    expect(manage.text()).toContain('管理工作空间')
+    expect(manage.text()).toContain('查看身份说明')
     wrapper.unmount()
   })
 

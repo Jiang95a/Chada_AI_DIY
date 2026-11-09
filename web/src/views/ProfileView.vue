@@ -6,12 +6,16 @@ import Icon from '@/components/ui/Icon.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/projects'
 import { useToast } from '@/composables/useToast'
+import { getPortfolio, type Portfolio } from '@/services/portfolio'
 
 const auth = useAuthStore()
 const projectStore = useProjectStore()
 const toast = useToast()
 const displayName = ref('')
 const saving = ref(false)
+const portfolio = ref<Portfolio | null>(null)
+const portfolioLoading = ref(false)
+const portfolioError = ref('')
 
 const initials = computed(() => (auth.user?.displayName || 'U').slice(0, 1).toUpperCase())
 const publishedCount = computed(() => projectStore.projects.filter((project) => project.status === 'published').length)
@@ -64,7 +68,27 @@ async function copyId(): Promise<void> {
 onMounted(async () => {
   await auth.fetchMe()
   await projectStore.loadProjects()
+  portfolioLoading.value = true
+  try {
+    portfolio.value = await getPortfolio()
+  } catch (error) {
+    portfolioError.value = error instanceof Error ? error.message : '成长档案加载失败'
+  } finally {
+    portfolioLoading.value = false
+  }
 })
+
+function roleLabel(role: Portfolio['items'][number]['role']): string {
+  if (role === 'organizer') return '组织者'
+  if (role === 'anonymous') return '匿名参加'
+  return '参与者'
+}
+
+function monthLabel(value: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月`
+}
 </script>
 
 <template>
@@ -167,6 +191,52 @@ onMounted(async () => {
           </section>
         </aside>
       </div>
+
+      <section class="portfolio-card">
+        <div class="account-card-head">
+          <span><Icon name="layers" :size="17" /></span>
+          <div>
+            <h2>我的参与轨迹</h2>
+            <p>只展示你本人参与过或组织过的已发布活动，匿名参与不会显示活动回答。</p>
+          </div>
+        </div>
+        <div v-if="portfolioLoading" class="portfolio-state">
+          <Icon name="refresh" :size="20" />
+          <strong>正在加载参与轨迹</strong>
+        </div>
+        <div v-else-if="portfolioError" class="portfolio-state is-error">
+          <Icon name="alert" :size="20" />
+          <strong>参与轨迹暂时不可用</strong>
+          <p>{{ portfolioError }}</p>
+        </div>
+        <div v-else-if="portfolio" class="portfolio-body">
+          <div class="portfolio-metrics">
+            <div>
+              <strong>{{ portfolio.totalActivities }}</strong
+              ><span>总场次</span>
+            </div>
+            <div>
+              <strong>{{ portfolio.wellbeingCount }}</strong
+              ><span>心理活动</span>
+            </div>
+            <div>
+              <strong>{{ portfolio.careerCount }}</strong
+              ><span>生涯活动</span>
+            </div>
+          </div>
+          <div v-if="portfolio.items.length" class="portfolio-list">
+            <article v-for="item in portfolio.items" :key="item.projectId">
+              <span class="portfolio-role" :class="`is-${item.role}`">{{ roleLabel(item.role) }}</span>
+              <div>
+                <strong>{{ item.title }}</strong>
+                <small>{{ item.activityType }} · {{ monthLabel(item.firstJoinedAt) }}</small>
+              </div>
+              <RouterLink :to="`/p/${item.slug}`" target="_blank"><Icon name="arrow-right" :size="15" /></RouterLink>
+            </article>
+          </div>
+          <p v-else class="portfolio-empty">还没有参与轨迹，先去参加一场心晴活动吧。</p>
+        </div>
+      </section>
     </main>
   </WorkspaceShell>
 </template>
@@ -413,6 +483,118 @@ onMounted(async () => {
   font-size: 9px;
   line-height: 1.7;
 }
+
+.portfolio-card {
+  margin-top: 14px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.portfolio-metrics {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.portfolio-metrics div {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 4px;
+  padding: 15px 5px;
+  border-radius: 12px;
+  background: var(--surface-soft);
+}
+
+.portfolio-metrics strong {
+  font-size: 23px;
+}
+
+.portfolio-metrics span {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.portfolio-list {
+  display: grid;
+  gap: 7px;
+  margin-top: 18px;
+}
+
+.portfolio-list article {
+  display: grid;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.portfolio-role {
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: var(--primary);
+  background: var(--primary-soft);
+  font-size: 7px;
+  font-weight: 700;
+}
+
+.portfolio-role.is-anonymous {
+  color: var(--ink-500);
+  background: var(--ink-100);
+}
+
+.portfolio-list article > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.portfolio-list strong {
+  font-size: 11px;
+}
+
+.portfolio-list small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.portfolio-list a {
+  color: var(--ink-400);
+}
+
+.portfolio-state,
+.portfolio-empty {
+  display: flex;
+  min-height: 150px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.portfolio-state strong {
+  color: var(--ink-700);
+  font-size: 10px;
+}
+
+.portfolio-state p,
+.portfolio-empty {
+  font-size: 9px;
+}
+
+.portfolio-state.is-error {
+  color: #b5473d;
+}
+
 @media (max-width: 850px) {
   .account-heading {
     align-items: flex-start;
@@ -420,6 +602,9 @@ onMounted(async () => {
   }
   .account-grid {
     grid-template-columns: 1fr;
+  }
+  .portfolio-metrics {
+    grid-template-columns: 1fr 1fr 1fr;
   }
   .profile-hero {
     grid-template-columns: auto 1fr;

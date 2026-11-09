@@ -12,8 +12,11 @@ interface TemplateApiRecord {
   category: string
   description?: string
   coverUrl?: string
+  kind?: 'wellbeing' | 'career' | 'general'
   document: unknown
 }
+
+export type TemplateKind = 'wellbeing' | 'career' | 'general'
 
 export interface TemplateCatalogItem {
   id: string
@@ -25,6 +28,7 @@ export interface TemplateCatalogItem {
   icon: string
   gradient: [string, string]
   source: 'remote' | 'local' | 'custom'
+  kind: TemplateKind
   build: () => Doc
 }
 
@@ -32,6 +36,7 @@ interface CustomTemplateRecord {
   id: string
   name: string
   category: string
+  kind: TemplateKind
   description: string
   document: unknown
   createdAt: number
@@ -41,6 +46,7 @@ interface CustomTemplateRecord {
 export interface SaveCustomTemplateInput {
   name: string
   category: string
+  kind?: TemplateKind
   description?: string
   document: Doc
 }
@@ -55,6 +61,12 @@ const CATEGORY_META: Record<string, { scene: string; icon: string; gradient: [st
   other: { scene: '其他心理活动', icon: 'file', gradient: ['#6b7d70', '#c2b39e'] },
 }
 
+const KIND_META: Record<TemplateKind, { scene: string; icon: string; gradient: [string, string] }> = {
+  wellbeing: { scene: '心理活动', icon: 'spark', gradient: ['#5d8c72', '#9fbfaa'] },
+  career: { scene: '生涯发展', icon: 'rocket', gradient: ['#7c8c75', '#c6b8a0'] },
+  general: { scene: '通用模板', icon: 'grid', gradient: ['#708090', '#b9c2c9'] },
+}
+
 function toDoc(document: unknown): Doc | null {
   const normalized = normalizeDoc(document)
   if (normalized) return normalized
@@ -63,11 +75,13 @@ function toDoc(document: unknown): Doc | null {
 }
 
 function remoteItem(template: TemplateApiRecord): TemplateCatalogItem {
-  const meta = CATEGORY_META[template.category] ?? {
-    scene: template.category || '心理活动',
-    icon: 'grid',
-    gradient: ['#2563eb', '#7c3aed'] as [string, string],
-  }
+  const kind = template.kind ?? 'general'
+  const meta = CATEGORY_META[template.category] ??
+    KIND_META[kind] ?? {
+      scene: template.category || '心理活动',
+      icon: 'grid',
+      gradient: ['#2563eb', '#7c3aed'] as [string, string],
+    }
   return {
     id: template.id,
     code: template.code,
@@ -78,6 +92,7 @@ function remoteItem(template: TemplateApiRecord): TemplateCatalogItem {
     icon: meta.icon,
     gradient: meta.gradient,
     source: 'remote',
+    kind,
     build: () => toDoc(template.document) ?? createDocFromTemplate('recruit'),
   }
 }
@@ -99,11 +114,13 @@ function customBuild(record: CustomTemplateRecord): Doc {
 }
 
 function customItem(template: CustomTemplateRecord): TemplateCatalogItem {
-  const meta = CATEGORY_META[template.category] ?? {
-    scene: template.category || '我的模板',
-    icon: 'file',
-    gradient: ['#3158e8', '#16a085'] as [string, string],
-  }
+  const kind = template.kind ?? 'wellbeing'
+  const meta = CATEGORY_META[template.category] ??
+    KIND_META[kind] ?? {
+      scene: template.category || '我的模板',
+      icon: 'file',
+      gradient: ['#3158e8', '#16a085'] as [string, string],
+    }
   return {
     id: template.id,
     code: template.id,
@@ -114,6 +131,7 @@ function customItem(template: CustomTemplateRecord): TemplateCatalogItem {
     icon: meta.icon,
     gradient: meta.gradient,
     source: 'custom',
+    kind,
     build: () => customBuild(template),
   }
 }
@@ -160,6 +178,7 @@ export function saveCustomTemplate(input: SaveCustomTemplateInput): TemplateCata
     id: existing?.id ?? `custom-${now.toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
     name: name.slice(0, 30),
     category: input.category || 'other',
+    kind: 'wellbeing',
     description: input.description?.trim().slice(0, 120) || '',
     document: cloneDocument(document),
     createdAt: existing?.createdAt ?? now,
@@ -188,25 +207,26 @@ const localItems: TemplateCatalogItem[] = TEMPLATES.map((template) => ({
   icon: template.icon,
   gradient: template.gradient,
   source: 'local',
+  kind: 'wellbeing',
   build: () => createDocFromTemplate(template.id),
 }))
 
-export async function loadTemplateCatalog(): Promise<TemplateCatalogItem[]> {
+function filterKind(items: TemplateCatalogItem[], kind?: TemplateKind): TemplateCatalogItem[] {
+  return kind ? items.filter((item) => item.kind === kind) : items
+}
+
+export async function loadTemplateCatalog(kind?: TemplateKind): Promise<TemplateCatalogItem[]> {
   const customItems = listCustomTemplates()
   try {
     const data = readData<TemplateApiRecord[]>(await apiRequest('/templates'))
     if (Array.isArray(data) && data.length) {
-      const wellbeingRemote = data
-        .filter((template) =>
-          /心理|心晴|关怀|情绪|正念|匿名|团辅/.test(`${template.name} ${template.description ?? ''}`)
-        )
-        .map(remoteItem)
-      return [...customItems, ...localItems, ...wellbeingRemote]
+      const remote = data.filter((template) => !kind || (template.kind ?? 'general') === kind).map(remoteItem)
+      return [...filterKind(customItems, kind), ...remote]
     }
   } catch {
     // 后端不可用时继续使用本地模板，保证演示和编辑流程不中断。
   }
-  return [...customItems, ...localItems]
+  return [...filterKind(customItems, kind), ...filterKind(localItems, kind)]
 }
 
 export async function loadTemplateDocument(id: string): Promise<Doc> {

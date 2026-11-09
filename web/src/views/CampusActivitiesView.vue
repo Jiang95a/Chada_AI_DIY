@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import WellbeingPublicShell from '@/components/public/WellbeingPublicShell.vue'
 import Icon from '@/components/ui/Icon.vue'
 import { listPublicActivities, type PublicActivitySummary } from '@/services/public'
 import { useProjectStore } from '@/stores/projects'
@@ -85,90 +84,88 @@ onMounted(load)
 </script>
 
 <template>
-  <WellbeingPublicShell>
-    <main class="campus-page">
-      <section class="campus-hero">
-        <div class="campus-hero-copy">
-          <p class="eyebrow">Campus wellbeing</p>
-          <h1>心理活动广场</h1>
-          <p>发现心理社团活动、心晴游园会、自我关怀打卡与安心表达入口，找到适合自己的参与方式。</p>
-          <div class="campus-hero-actions">
-            <RouterLink class="app-button app-button--primary" to="/projects/new">
-              <Icon name="plus" :size="15" />发起心晴活动
-            </RouterLink>
-            <RouterLink class="app-button app-button--secondary" to="/templates">
-              <Icon name="grid" :size="15" />浏览心晴模板
-            </RouterLink>
-          </div>
-        </div>
-        <RouterLink v-if="featured" :to="`/p/${featured.slug}`" class="campus-featured">
-          <span>{{ featured.coverCode || 'FEATURED' }}</span>
-          <strong>{{ featured.coverTitle || featured.title }}</strong>
-          <small>本周心晴 · {{ featured.activityType || '心理活动' }}</small>
-          <Icon name="arrow-right" :size="18" />
-        </RouterLink>
-        <div v-else class="campus-featured campus-featured--empty">
-          <Icon name="pin" :size="26" />
-          <strong>心晴活动正在准备</strong>
-          <small>发布第一个心理活动后，它会出现在这里。</small>
-        </div>
-      </section>
-
-      <section class="campus-toolbar">
-        <div class="campus-search">
-          <Icon name="search" :size="16" />
-          <input v-model="search" placeholder="搜索心晴活动、心理社团或关键词" aria-label="搜索心理活动" />
-        </div>
-        <div class="campus-types">
-          <button
-            v-for="item in types"
-            :key="item"
-            type="button"
-            :class="{ 'is-active': type === item }"
-            @click="type = item"
-          >
-            {{ item }}
-          </button>
-        </div>
-      </section>
-
-      <section v-if="loading" class="campus-state">
-        <Icon name="refresh" :size="24" />
-        <strong>正在加载心理活动</strong>
-      </section>
-      <section v-else-if="error" class="campus-state">
-        <Icon name="alert" :size="24" />
-        <strong>心理活动暂时不可用</strong>
-        <p>{{ error }}</p>
-        <button class="app-button app-button--secondary" type="button" @click="load">重新加载</button>
-      </section>
-      <section v-else-if="!visibleActivities.length" class="campus-state">
-        <Icon name="search" :size="24" />
-        <strong>没有找到匹配活动</strong>
-        <p>换一个关键词或活动分类试试。</p>
-      </section>
-      <section v-else class="campus-grid">
-        <article v-for="item in visibleActivities" :key="item.slug" class="campus-card">
-          <RouterLink :to="`/p/${item.slug}`" class="campus-card-cover" :class="`cover--${coverTone(item)}`">
-            <span>{{ item.coverCode || 'CAMPUS' }}</span>
-            <strong>{{ item.coverTitle || item.title }}</strong>
-            <i />
+  <main class="campus-page">
+    <section class="campus-hero">
+      <div class="campus-hero-copy">
+        <p class="eyebrow">Campus wellbeing</p>
+        <h1>心理活动广场</h1>
+        <p>发现心理社团活动、心晴游园会、自我关怀打卡与安心表达入口，找到适合自己的参与方式。</p>
+        <div class="campus-hero-actions">
+          <RouterLink class="app-button app-button--primary" to="/projects/new">
+            <Icon name="plus" :size="15" />发起心晴活动
           </RouterLink>
-          <div class="campus-card-body">
-            <span class="campus-card-type">{{ item.activityType || '心理活动' }}</span>
-            <RouterLink :to="`/p/${item.slug}`"
-              ><h2>{{ item.title }}</h2></RouterLink
-            >
-            <p>{{ item.description || '点击查看活动详情与安心参与方式。' }}</p>
-            <footer>
-              <span><Icon name="clock" :size="12" />{{ updatedLabel(item.updatedAt) }}</span>
-              <button type="button" @click="copyLink(item.slug)"><Icon name="copy" :size="13" />分享</button>
-            </footer>
-          </div>
-        </article>
-      </section>
-    </main>
-  </WellbeingPublicShell>
+          <RouterLink class="app-button app-button--secondary" to="/templates">
+            <Icon name="grid" :size="15" />浏览心晴模板
+          </RouterLink>
+        </div>
+      </div>
+      <RouterLink v-if="featured" :to="`/p/${featured.slug}`" class="campus-featured">
+        <span>{{ featured.coverCode || 'FEATURED' }}</span>
+        <strong>{{ featured.coverTitle || featured.title }}</strong>
+        <small>本周心晴 · {{ featured.activityType || '心理活动' }}</small>
+        <Icon name="arrow-right" :size="18" />
+      </RouterLink>
+      <div v-else class="campus-featured campus-featured--empty">
+        <Icon name="pin" :size="26" />
+        <strong>心晴活动正在准备</strong>
+        <small>发布第一个心理活动后，它会出现在这里。</small>
+      </div>
+    </section>
+
+    <section class="campus-toolbar">
+      <div class="campus-search">
+        <Icon name="search" :size="16" />
+        <input v-model="search" placeholder="搜索心晴活动、心理社团或关键词" aria-label="搜索心理活动" />
+      </div>
+      <div class="campus-types">
+        <button
+          v-for="item in types"
+          :key="item"
+          type="button"
+          :class="{ 'is-active': type === item }"
+          @click="type = item"
+        >
+          {{ item }}
+        </button>
+      </div>
+    </section>
+
+    <section v-if="loading" class="campus-state">
+      <Icon name="refresh" :size="24" />
+      <strong>正在加载心理活动</strong>
+    </section>
+    <section v-else-if="error" class="campus-state">
+      <Icon name="alert" :size="24" />
+      <strong>心理活动暂时不可用</strong>
+      <p>{{ error }}</p>
+      <button class="app-button app-button--secondary" type="button" @click="load">重新加载</button>
+    </section>
+    <section v-else-if="!visibleActivities.length" class="campus-state">
+      <Icon name="search" :size="24" />
+      <strong>没有找到匹配活动</strong>
+      <p>换一个关键词或活动分类试试。</p>
+    </section>
+    <section v-else class="campus-grid">
+      <article v-for="item in visibleActivities" :key="item.slug" class="campus-card">
+        <RouterLink :to="`/p/${item.slug}`" class="campus-card-cover" :class="`cover--${coverTone(item)}`">
+          <span>{{ item.coverCode || 'CAMPUS' }}</span>
+          <strong>{{ item.coverTitle || item.title }}</strong>
+          <i />
+        </RouterLink>
+        <div class="campus-card-body">
+          <span class="campus-card-type">{{ item.activityType || '心理活动' }}</span>
+          <RouterLink :to="`/p/${item.slug}`"
+            ><h2>{{ item.title }}</h2></RouterLink
+          >
+          <p>{{ item.description || '点击查看活动详情与安心参与方式。' }}</p>
+          <footer>
+            <span><Icon name="clock" :size="12" />{{ updatedLabel(item.updatedAt) }}</span>
+            <button type="button" @click="copyLink(item.slug)"><Icon name="copy" :size="13" />分享</button>
+          </footer>
+        </div>
+      </article>
+    </section>
+  </main>
 </template>
 
 <style scoped>

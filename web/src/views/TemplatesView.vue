@@ -6,7 +6,12 @@ import BaseModal from '@/components/ui/BaseModal.vue'
 import Icon from '@/components/ui/Icon.vue'
 import { useToast } from '@/composables/useToast'
 import { useProjectStore } from '@/stores/projects'
-import { loadTemplateCatalog, removeCustomTemplate, type TemplateCatalogItem } from '@/services/templates'
+import {
+  loadTemplateCatalog,
+  removeCustomTemplate,
+  type TemplateCatalogItem,
+  type TemplateKind,
+} from '@/services/templates'
 
 /**
  * 模板灵感页。
@@ -26,6 +31,7 @@ const projectStore = useProjectStore()
 const creatingId = ref('')
 const deletingTemplate = ref<TemplateCard | null>(null)
 const catalog = ref<TemplateCatalogItem[]>([])
+const activeKind = ref<TemplateKind | 'all'>('all')
 const aiPrompt = ref('')
 const aiExamples = [
   '心理协会秋季招新，包含社团介绍、活动方向和报名表',
@@ -41,6 +47,7 @@ interface TemplateCard {
   icon: string
   gradient: [string, string]
   source: TemplateCatalogItem['source']
+  kind: TemplateKind
   title: string
   pageCount: number
   blockCount: number
@@ -58,6 +65,7 @@ const cards = computed<TemplateCard[]>(() =>
       icon: template.icon,
       gradient: template.gradient,
       source: template.source,
+      kind: template.kind,
       title: build.title,
       pageCount: build.pages.length,
       blockCount: build.pages.reduce((total, page) => total + page.blocks.length, 0),
@@ -67,6 +75,9 @@ const cards = computed<TemplateCard[]>(() =>
 )
 
 const customCount = computed(() => cards.value.filter((card) => card.source === 'custom').length)
+const visibleCards = computed(() =>
+  activeKind.value === 'all' ? cards.value : cards.value.filter((card) => card.kind === activeKind.value)
+)
 
 async function loadTemplates(): Promise<void> {
   catalog.value = await loadTemplateCatalog()
@@ -178,14 +189,25 @@ async function confirmDeleteTemplate(): Promise<void> {
         >
       </div>
 
+      <div class="templates-kinds">
+        <button type="button" :class="{ 'is-active': activeKind === 'all' }" @click="activeKind = 'all'">全部</button>
+        <button type="button" :class="{ 'is-active': activeKind === 'wellbeing' }" @click="activeKind = 'wellbeing'">
+          心理活动
+        </button>
+        <button type="button" :class="{ 'is-active': activeKind === 'career' }" @click="activeKind = 'career'">
+          生涯发展
+        </button>
+      </div>
+
       <section class="templates-grid">
-        <article v-for="card in cards" :key="card.id" class="template-card">
+        <article v-for="card in visibleCards" :key="card.id" class="template-card">
           <div
             class="template-card__art"
             :style="{ background: `linear-gradient(135deg, ${card.gradient[0]}, ${card.gradient[1]})` }"
           >
             <span class="template-card__scene">{{ card.scene }}</span>
             <span v-if="card.source === 'custom'" class="template-card__custom">我的心晴模板</span>
+            <span v-else-if="card.kind === 'career'" class="template-card__kind">生涯</span>
             <Icon :name="card.icon || 'grid'" :size="22" />
             <strong>{{ card.name }}</strong>
           </div>
@@ -282,6 +304,32 @@ async function confirmDeleteTemplate(): Promise<void> {
   gap: 14px;
 }
 
+.templates-kinds {
+  display: flex;
+  gap: 5px;
+  width: max-content;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: #fff;
+}
+
+.templates-kinds button {
+  min-height: 31px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--ink-500);
+  background: transparent;
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.templates-kinds button.is-active {
+  color: var(--brand-700);
+  background: var(--brand-50);
+}
+
 .template-card {
   display: flex;
   flex-direction: column;
@@ -321,6 +369,20 @@ async function confirmDeleteTemplate(): Promise<void> {
 }
 
 .template-card__custom {
+  position: absolute;
+  top: 11px;
+  left: 12px;
+  padding: 3px 7px;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 999px;
+  color: #fff;
+  background: rgb(0 0 0 / 16%);
+  font-size: 8px;
+  font-weight: 700;
+  backdrop-filter: blur(7px);
+}
+
+.template-card__kind {
   position: absolute;
   top: 11px;
   left: 12px;
