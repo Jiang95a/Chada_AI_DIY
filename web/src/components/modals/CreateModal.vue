@@ -10,7 +10,12 @@ import { AgentError, askAgent, extractJson, extractPoster, PLAN_SYSTEM_EXTRA, pr
 import { useEditorStore } from '@/stores/editor'
 import { useToast } from '@/composables/useToast'
 import { uploadAsset } from '@/services/assets'
-import { loadTemplateCatalog, loadTemplateDocument, type TemplateCatalogItem } from '@/services/templates'
+import {
+  loadTemplateCatalog,
+  loadTemplateDocument,
+  type TemplateCatalogItem,
+  type TemplateKind,
+} from '@/services/templates'
 
 type Tab = 'ai' | 'template' | 'poster'
 
@@ -29,6 +34,12 @@ const generating = ref(false)
 const step = ref('')
 const errorText = ref('')
 const templates = ref<TemplateCatalogItem[]>([])
+const activeTemplateKind = ref<TemplateKind | 'all'>('all')
+const visibleTemplates = computed(() =>
+  activeTemplateKind.value === 'all'
+    ? templates.value
+    : templates.value.filter((template) => template.kind === activeTemplateKind.value)
+)
 const result = ref<{
   doc: Doc
   source: 'agent' | 'local'
@@ -346,7 +357,7 @@ const FORM_FIELDS: { key: PosterTextKey; label: string; placeholder: string }[] 
       <!-- AI -->
       <section v-if="tab === 'ai'" class="ai-tab">
         <label class="field">
-            <span class="field__label">描述心晴活动需求</span>
+          <span class="field__label">描述心晴活动需求</span>
           <textarea
             v-model="prompt"
             class="textarea create__prompt"
@@ -416,7 +427,30 @@ const FORM_FIELDS: { key: PosterTextKey; label: string; placeholder: string }[] 
 
       <!-- 模板 -->
       <section v-else-if="tab === 'template'" class="tpl-tab">
-        <article v-for="template in templates" :key="template.id" class="tpl-card">
+        <div class="tpl-tab__kinds">
+          <button
+            type="button"
+            :class="{ 'is-active': activeTemplateKind === 'all' }"
+            @click="activeTemplateKind = 'all'"
+          >
+            全部
+          </button>
+          <button
+            type="button"
+            :class="{ 'is-active': activeTemplateKind === 'wellbeing' }"
+            @click="activeTemplateKind = 'wellbeing'"
+          >
+            心理活动
+          </button>
+          <button
+            type="button"
+            :class="{ 'is-active': activeTemplateKind === 'career' }"
+            @click="activeTemplateKind = 'career'"
+          >
+            生涯发展
+          </button>
+        </div>
+        <article v-for="template in visibleTemplates" :key="template.id" class="tpl-card">
           <div
             class="tpl-card__cover"
             :style="{
@@ -716,6 +750,30 @@ const FORM_FIELDS: { key: PosterTextKey; label: string; placeholder: string }[] 
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
+}
+
+.tpl-tab__kinds {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+  grid-column: 1 / -1;
+}
+
+.tpl-tab__kinds button {
+  min-height: 30px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink-500);
+  background: #fff;
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.tpl-tab__kinds button.is-active {
+  border-color: var(--brand-200);
+  color: var(--brand-700);
+  background: var(--brand-50);
 }
 
 .tpl-card {
