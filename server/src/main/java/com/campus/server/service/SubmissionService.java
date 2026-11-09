@@ -156,6 +156,10 @@ public class SubmissionService {
         FormSubmissionEntity entity = new FormSubmissionEntity();
         entity.setId(Ids.uuid());
         entity.setProjectId(project.getId());
+        // 参与者登录了就记下来，给「我的成长档案」用。
+        // 匿名档同样记：这条只服务于本人在 /me/portfolio 里看自己的参与轨迹，
+        // 组织者列表接口（SubmissionMapper.COLUMNS）并不返回它。
+        entity.setUserId(CurrentUser.optionalUserId());
         entity.setVersionId(project.getPublishedVersionId());
         entity.setPageId(pageId);
         entity.setFormComponentId(formComponentId);

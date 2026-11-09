@@ -23,6 +23,17 @@ public record CurrentUser(String userId, String email) {
         return user;
     }
 
+    /**
+     * 登录了就返回 userId，没登录返回 null。
+     *
+     * <p>给公开接口用：公开活动里参与者在匿名档下同样可以提交转介请求，
+     * 这时不该强制登录，但登录了就顺手把归属记上。
+     */
+    public static String optionalUserId() {
+        CurrentUser user = HOLDER.get();
+        return user == null ? null : user.userId();
+    }
+
     public static void clear() {
         HOLDER.remove();
     }

@@ -122,7 +122,15 @@ public class ProjectService {
         // activityType 优先用模板 category（如 recruitment → 社团招新），
         // 因为前端 templates.ts 的 CATEGORY_META 就是按 category 映射的场景名；
         // 用模板名会得到「社团招新季」这种和列表筛选对不上的值。
+        //
+        // 例外：生涯规划模板（activity_kind = career）不能套用 category 的场景名，
+        // 否则「简历门诊」会被标成「活动报名」。这类直接用模板自己的名字当活动类型，
+        // 项目列表里筛「简历门诊」才筛得出来。
+        String kind = coverSource == null ? null : coverSource.getActivityKind();
+        String careerScene = "career".equals(kind) && coverSource != null
+                ? coverSource.getName() : null;
         project.setActivityType(firstNonBlank(request.activityType(),
+                careerScene,
                 sceneOfCategory(coverSource == null ? null : coverSource.getCategory()),
                 coverSource == null ? null : coverSource.getName(),
                 "校园活动"));
@@ -608,6 +616,20 @@ public class ProjectService {
         }
         if (!project.getOwnerId().equals(current.userId())) {
             throw BizException.forbidden("这不是你的项目");
+        }
+        return project;
+    }
+
+    /**
+     * 按公开 slug 取一个已发布的项目。公开接口用，不需要登录。
+     *
+     * <p>转介、同意、反馈这几条公开链路都要先确认活动是「已发布」状态，
+     * 否则草稿也能被外部提交数据。判断逻辑收在这一个方法里，避免各控制器各写一遍。
+     */
+    public ProjectEntity loadPublishedBySlug(String slug) {
+        ProjectEntity project = projectMapper.findByPublicSlug(slug);
+        if (project == null || !"published".equals(project.getStatus())) {
+            throw BizException.notFound("活动不存在或未发布");
         }
         return project;
     }

@@ -15,6 +15,12 @@ public class TemplateEntity {
     private String name;
     /** recruitment | registration | vote | checkin */
     private String category;
+    /**
+     * 活动大类：wellbeing（心理）/ career（生涯）/ general（通用）。
+     * 这个字段能区分「心理知识问答」和「生涯知识测试」——两者 category 都是 vote，
+     * 但一个属于心理、一个属于生涯，前端分栏必须靠它。
+     */
+    private String activityKind;
     private String description;
     private String coverUrl;
     private JsonNode document;

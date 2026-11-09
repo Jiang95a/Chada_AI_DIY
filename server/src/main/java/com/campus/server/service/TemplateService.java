@@ -22,9 +22,10 @@ public class TemplateService {
         this.templateMapper = templateMapper;
     }
 
-    public List<Dtos.TemplateDto> list(String category) {
+    public List<Dtos.TemplateDto> list(String category, String kind) {
         List<TemplateEntity> rows = templateMapper.listActive(
-                (category == null || category.isBlank()) ? null : category);
+                (category == null || category.isBlank()) ? null : category,
+                (kind == null || kind.isBlank()) ? null : kind);
         return rows.stream().map(this::toDto).toList();
     }
 
@@ -39,12 +40,24 @@ public class TemplateService {
     private Dtos.TemplateDto toDto(TemplateEntity entity) {
         JsonNode document = entity.getDocument();
         return new Dtos.TemplateDto(entity.getId(), entity.getCode(), entity.getName(),
-                entity.getCategory(), entity.getDescription(), entity.getCoverUrl(), document);
+                entity.getCategory(), entity.getDescription(), entity.getCoverUrl(), document,
+                blankTo(entity.getActivityKind(), "general"));
+    }
+
+    private static String blankTo(String value, String fallback) {
+        return (value == null || value.isBlank()) ? fallback : value;
     }
 
     /** 供 ProjectService 取模板文档。 */
     public JsonNode documentOf(String templateId) {
         TemplateEntity entity = templateMapper.findById(templateId);
         return entity == null ? null : entity.getDocument();
+    }
+
+    /** 供 ProjectService 推导 activityType 时判断模板属于心理还是生涯。 */
+    public String kindOf(String templateId) {
+        TemplateEntity entity = templateMapper.findById(templateId);
+        return entity == null || entity.getActivityKind() == null || entity.getActivityKind().isBlank()
+                ? null : entity.getActivityKind();
     }
 }

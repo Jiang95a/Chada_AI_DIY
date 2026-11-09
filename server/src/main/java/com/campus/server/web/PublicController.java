@@ -5,6 +5,7 @@ import com.campus.server.dto.Dtos;
 import com.campus.server.service.ConsentService;
 import com.campus.server.service.FeedbackService;
 import com.campus.server.service.ProjectService;
+import com.campus.server.service.ReferralService;
 import com.campus.server.service.SubmissionService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,13 +32,16 @@ public class PublicController {
     private final SubmissionService submissionService;
     private final ConsentService consentService;
     private final FeedbackService feedbackService;
+    private final ReferralService referralService;
 
     public PublicController(ProjectService projectService, SubmissionService submissionService,
-                            ConsentService consentService, FeedbackService feedbackService) {
+                            ConsentService consentService, FeedbackService feedbackService,
+                            ReferralService referralService) {
         this.projectService = projectService;
         this.submissionService = submissionService;
         this.consentService = consentService;
         this.feedbackService = feedbackService;
+        this.referralService = referralService;
     }
 
     /** 打开活动页：返回发布时的文档快照（不是草稿），并记一次浏览埋点。 */
@@ -117,5 +121,21 @@ public class PublicController {
             @Valid @RequestBody Dtos.ActivityFeedbackRequest request) {
         feedbackService.submitActivity(slug, request);
         return ApiResponse.ok(Map.of("recorded", true));
+    }
+
+    // ============================================================ 转介（希望有人联系我）
+
+    /**
+     * 「希望有人联系我」。匿名档下这是唯一能把求助送出去的通道。
+     *
+     * <p><b>刻意只收三个字段</b>：是否想被联系、联系方式、希望时间。
+     * 不收 answers，所以组织者拿到工单也看不到参与者填过什么。
+     * 不需要登录——想匿名求助的人本来就不该被要求先注册。
+     */
+    @PostMapping("/activities/{slug}/referrals")
+    public ApiResponse.Envelope<Dtos.ReferralReceipt> submitReferral(
+            @PathVariable String slug,
+            @Valid @RequestBody Dtos.ReferralRequest request) {
+        return ApiResponse.ok(referralService.submit(slug, request));
     }
 }

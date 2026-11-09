@@ -13,7 +13,7 @@ import type { Block, Doc, Page } from '@/types/editor'
  */
 
 function makePage(role: Page['role'], name: string, blocks: Block[]): Page {
-  return { id: `page_${name}`, name, role, blocks }
+  return { id: `page_${name}`, name, role, blocks, bg: DEFAULT_THEME.bg }
 }
 
 function makeDoc(pages: Page[], title = '心晴分享会', org = '心理社'): Doc {

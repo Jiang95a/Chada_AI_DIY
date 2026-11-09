@@ -67,7 +67,19 @@ public final class Dtos {
     // ================================================================ Templates
 
     public record TemplateDto(String id, String code, String name, String category,
-                              String description, String coverUrl, JsonNode document) {
+                              String description, String coverUrl, JsonNode document,
+                              /**
+                               * 活动大类：{@code wellbeing}（心理）/ {@code career}（生涯）/
+                               * {@code general}（通用）。前端按这个分栏，比猜 category 可靠。
+                               *
+                               * <p>JSON 字段名必须叫 {@code kind}：前端
+                               * {@code web/src/services/templates.ts} 的 {@code TemplateApiRecord}
+                               * 读的是 {@code template.kind}，且 {@code loadTemplateCatalog(kind)}
+                               * 依赖它过滤远程模板。早先叫 {@code activityKind} 时前端取不到值，
+                               * 所有模板都会退化成 {@code general}，生涯分栏永远为空。
+                               * 数据库列名 {@code activity_kind} 不改，只是对外 JSON 换个名字。
+                               */
+                              String kind) {
     }
 
     // ================================================================ Projects
@@ -197,6 +209,59 @@ public final class Dtos {
     }
 
     public record PublicEventRequest(String eventType, String pageId, JsonNode metadata) {
+    }
+
+    // ================================================================ 转介 / 参与轨迹
+
+    /**
+     * 参与者在活动页点「希望有人联系我」时提交的求助请求。
+     *
+     * <p>刻意不接收 {@code answers}：组织者需要在不知道是谁、不知道说了什么的前提下，
+     * 仍然知道「有一个人需要被联系」。这条记录就是那个缺口。
+     */
+    public record ReferralRequest(
+            @jakarta.validation.constraints.NotNull(message = "请先同意参与说明")
+            Boolean wantsContact,
+            @jakarta.validation.constraints.Size(max = 40, message = "联系方式最多 40 字")
+            String contact,
+            @jakarta.validation.constraints.Size(max = 60, message = "希望的时间最多 60 字")
+            String preferredTime) {
+    }
+
+    /** 参与者拿到的回执：只给编号，不给任何可用于反查身份的东西。 */
+    public record ReferralReceipt(String referralId, String status, String createdAt,
+                                  String message) {
+    }
+
+    /** 组织者看到的待办项，不含任何参与者身份信息。 */
+    public record ReferralTodoDto(String id, String activityTitle, String publicSlug,
+                                  String contact, String preferredTime, String status,
+                                  String createdAt, String handledAt,
+                                  /** 从提交到现在过去了多少小时，前端用来标红「超过 24 小时未联系」 */
+                                  long pendingHours) {
+    }
+
+    /** 组织者标记已联系后返回的最新状态。 */
+    public record ReferralUpdateDto(String id, String status, String handledAt) {
+    }
+
+    /** 成长档案里的一个活动。 */
+    public record PortfolioItemDto(String projectId, String title, String activityType,
+                                   String category, String slug, String publicUrl,
+                                   String role, String participationPath,
+                                   String firstJoinedAt, String lastJoinedAt,
+                                   long joinedCount, String privacyMode,
+                                   boolean consentRecorded) {
+    }
+
+    /**
+     * 个人成长档案。只返回本人参与的、已发布的活动；
+     * 匿名参与的只出现 {@code role = anonymous}，不暴露任何回答内容。
+     */
+    public record PortfolioDto(String userId, String displayName, long totalActivities,
+                               long wellbeingCount, long careerCount,
+                               java.util.List<java.util.Map<String, Object>> byMonth,
+                               java.util.List<PortfolioItemDto> items) {
     }
 
     public record SubmissionResult(String submissionId, String status, String submittedAt) {

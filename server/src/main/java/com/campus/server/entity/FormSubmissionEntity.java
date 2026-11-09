@@ -20,6 +20,13 @@ import java.time.LocalDateTime;
 public class FormSubmissionEntity {
     private String id;
     private String projectId;
+    /**
+     * 参与者本人（登录时才有）。给「我的成长档案」用。
+     *
+     * <p>注意：组织者查询报名列表时<b>不返回</b>这个字段——它只用于参与者查自己，
+     * 不用于组织者点名。
+     */
+    private String userId;
     private String versionId;
     private String pageId;
     private String formComponentId;

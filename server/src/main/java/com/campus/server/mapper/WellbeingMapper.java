@@ -2,6 +2,7 @@ package com.campus.server.mapper;
 
 import com.campus.server.entity.ActivityConsentEntity;
 import com.campus.server.entity.ActivityFeedbackEntity;
+import com.campus.server.entity.ReferralRequestEntity;
 import com.campus.server.entity.UserNotificationEntity;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -134,4 +135,87 @@ public interface WellbeingMapper {
              WHERE user_id = #{userId} AND read_at IS NULL
             """)
     int markAllRead(@Param("userId") String userId);
+
+    // ---------------------------------------------------------------- referral_requests
+    // DDL 见 docs/sql/009_career_and_referral.sql。
+    // 组织者查询一律不取 user_id —— 这是这张表的核心约束，写在这里当约定。
+
+    String REFERRAL_COLUMNS =
+            "id, project_id, user_id, contact, preferred_time, status, created_at, handled_at ";
+
+    @Insert("""
+            INSERT INTO referral_requests (id, project_id, user_id, contact, preferred_time, status)
+            VALUES (#{id}, #{projectId}, #{userId}, #{contact}, #{preferredTime}, #{status})
+            """)
+    int insertReferral(ReferralRequestEntity referral);
+
+    @Select("SELECT " + REFERRAL_COLUMNS + " FROM referral_requests WHERE id = #{id} LIMIT 1")
+    ReferralRequestEntity findReferral(@Param("id") String id);
+
+    /** 组织者待办列表：只查自己项目的工单，按提交时间倒序。 */
+    @Select("""
+            <script>
+            SELECT r.id, r.project_id, r.contact, r.preferred_time, r.status, r.created_at, r.handled_at,
+                   p.title AS activity_title, p.public_slug
+              FROM referral_requests r
+              JOIN projects p ON p.id = r.project_id
+             WHERE p.owner_id = #{ownerId}
+             <if test='status != null and status != ""'> AND r.status = #{status} </if>
+             ORDER BY r.created_at DESC
+             LIMIT #{limit}
+            </script>
+            """)
+    List<java.util.Map<String, Object>> listReferralsForOwner(@Param("ownerId") String ownerId,
+                                                              @Param("status") String status,
+                                                              @Param("limit") int limit);
+
+    @Select("""
+            <script>
+            SELECT COUNT(*) FROM referral_requests r
+              JOIN projects p ON p.id = r.project_id
+             WHERE p.owner_id = #{ownerId}
+             <if test='status != null and status != ""'> AND r.status = #{status} </if>
+            </script>
+            """)
+    long countReferralsForOwner(@Param("ownerId") String ownerId, @Param("status") String status);
+
+    /** 组织者推进状态。只能动自己项目下的工单（ownerId 一起判）。 */
+    @Update("""
+            UPDATE referral_requests r
+              JOIN projects p ON p.id = r.project_id
+               SET r.status = #{status},
+                   r.handled_at = IF(#{status} = 'pending', NULL, NOW())
+             WHERE r.id = #{id} AND p.owner_id = #{ownerId}
+            """)
+    int updateReferralStatus(@Param("id") String id, @Param("ownerId") String ownerId,
+                             @Param("status") String status);
+
+    // ---------------------------------------------------------------- 成长档案
+
+    /**
+     * 本人参与过的已发布活动。匿名参与也进列表，但 role 标成 anonymous，
+     * 且绝不返回 answers —— 档案是「我参加过什么」，不是「我说过什么」。
+     */
+    @Select("""
+            SELECT s.project_id                        AS projectId,
+                   p.title                             AS title,
+                   p.activity_type                     AS activityType,
+                   t.activity_kind                     AS category,
+                   p.public_slug                       AS slug,
+                   s.privacy_mode_snapshot             AS privacyMode,
+                   CASE WHEN s.privacy_mode_snapshot = 'anonymous' THEN 'anonymous' ELSE 'participant' END AS role,
+                   COUNT(*)                            AS joinedCount,
+                   MIN(s.submitted_at)                 AS firstJoinedAt,
+                   MAX(s.submitted_at)                 AS lastJoinedAt,
+                   MAX(s.consent_id IS NOT NULL)       AS consentRecorded
+              FROM form_submissions s
+              JOIN projects p ON p.id = s.project_id
+              LEFT JOIN templates t ON t.id = p.template_id
+             WHERE s.user_id = #{userId} AND p.status = 'published'
+             GROUP BY s.project_id, p.title, p.activity_type, t.activity_kind,
+                      p.public_slug, s.privacy_mode_snapshot
+             ORDER BY MAX(s.submitted_at) DESC
+             LIMIT 200
+            """)
+    List<java.util.Map<String, Object>> portfolioOfUser(@Param("userId") String userId);
 }

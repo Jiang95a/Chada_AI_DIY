@@ -13,20 +13,24 @@ import java.util.List;
 public interface SubmissionMapper {
 
     // privacy_mode / retention_days 是 SQL 保留字风险很小的别名，这里统一用 s. 前缀避免歧义
+    // user_id 刻意<b>不在</b> COLUMNS 里：它只给成长档案查本人用，
+    // 任何列表 / 详情接口都不该把它带出去（组织者不该拿到参与者身份）。
     String COLUMNS =
             "id, project_id, version_id, page_id, form_component_id, answers, "
           + "idempotency_key, consent_id, privacy_mode_snapshot, retention_days_snapshot, "
           + "anonymous, anonymous_token, purge_after, submitter_hash, status, submitted_at ";
 
     @Insert("""
-            INSERT INTO form_submissions (id, project_id, version_id, page_id, form_component_id,
-                                          answers, idempotency_key, consent_id, privacy_mode_snapshot,
-                                          retention_days_snapshot, anonymous, anonymous_token,
-                                          purge_after, submitter_hash, status)
-            VALUES (#{id}, #{projectId}, #{versionId}, #{pageId}, #{formComponentId},
-                    #{answers}, #{idempotencyKey}, #{consentId}, #{privacyModeSnapshot},
-                    #{retentionDaysSnapshot}, #{anonymous}, #{anonymousToken},
-                    #{purgeAfter}, #{submitterHash}, #{status})
+            INSERT INTO form_submissions (id, project_id, user_id, version_id, page_id,
+                                          form_component_id, answers, idempotency_key, consent_id,
+                                          privacy_mode_snapshot, retention_days_snapshot,
+                                          anonymous, anonymous_token, purge_after,
+                                          submitter_hash, status)
+            VALUES (#{id}, #{projectId}, #{userId}, #{versionId}, #{pageId},
+                    #{formComponentId}, #{answers}, #{idempotencyKey}, #{consentId},
+                    #{privacyModeSnapshot}, #{retentionDaysSnapshot},
+                    #{anonymous}, #{anonymousToken}, #{purgeAfter},
+                    #{submitterHash}, #{status})
             """)
     int insert(FormSubmissionEntity submission);
 
