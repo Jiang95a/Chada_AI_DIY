@@ -3,44 +3,44 @@
    ========================================================================== */
 
 :root {
-  --brand-50: #edf5ef;
-  --brand-100: #dcecdf;
-  --brand-200: #bfd9c7;
-  --brand-300: #91b9a1;
-  --brand-400: #659579;
-  --brand-500: #43795d;
-  --brand-600: #2f634b;
-  --brand-700: #244e3b;
-  --violet-500: #c98976;
+  --brand-50: #edf3ee;
+  --brand-100: #dce9df;
+  --brand-200: #bdd4c4;
+  --brand-300: #8eaf99;
+  --brand-400: #668b73;
+  --brand-500: #456f57;
+  --brand-600: #31543f;
+  --brand-700: #243f31;
+  --violet-500: #bd836c;
 
-  --ink-900: #1d2b24;
-  --ink-800: #2b3d33;
-  --ink-700: #40554a;
-  --ink-600: #586c61;
-  --ink-500: #71847a;
-  --ink-400: #94a49b;
-  --ink-300: #c1cdc5;
-  --ink-200: #dce5df;
-  --ink-100: #edf2ee;
-  --ink-50: #f6f8f5;
+  --ink-900: #1e2d25;
+  --ink-800: #2c3d33;
+  --ink-700: #405248;
+  --ink-600: #56695e;
+  --ink-500: #708078;
+  --ink-400: #94a098;
+  --ink-300: #bec8c1;
+  --ink-200: #dae2dc;
+  --ink-100: #ebf0ec;
+  --ink-50: #f7f7f2;
 
-  --bg: #f1f5ef;
+  --bg: #f3f1ea;
   --panel: #ffffff;
-  --line: #dfe8e1;
-  --line-strong: #cfdcd3;
+  --line: #e2e3db;
+  --line-strong: #d1d6ce;
 
-  --mint-500: #589777;
-  --mint-50: #edf7f1;
-  --amber-500: #d6a05b;
-  --amber-50: #fbf5e9;
+  --mint-500: #5e9074;
+  --mint-50: #edf5ef;
+  --amber-500: #c89458;
+  --amber-50: #fbf4e8;
   --rose-500: #ef4444;
   --rose-50: #fef2f2;
   --sky-500: #6c95a1;
   --sky-50: #edf5f6;
 
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
-  --shadow-md: 0 10px 28px -14px rgba(16, 24, 40, 0.22);
-  --shadow-lg: 0 32px 64px -28px rgba(16, 24, 40, 0.32);
+  --shadow-sm: 0 1px 2px rgba(31, 45, 37, 0.05);
+  --shadow-md: 0 18px 40px -24px rgba(31, 45, 37, 0.22);
+  --shadow-lg: 0 36px 80px -40px rgba(31, 45, 37, 0.34);
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -490,4 +490,37 @@ svg {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+@keyframes page-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes soft-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+.workspace-content > main,
+.landing-page > section {
+  animation: page-rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

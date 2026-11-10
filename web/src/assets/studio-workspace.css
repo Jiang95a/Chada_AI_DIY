@@ -720,3 +720,115 @@ html[data-motion='reduced'] *::after {
     display: none;
   }
 }
+
+/* 心屿组织者工作台：用深绿工作台替代通用后台侧栏 */
+.workspace-sidebar {
+  color: #f3f4ed;
+  border-right-color: rgb(255 255 255 / 7%);
+  background:
+    radial-gradient(circle at 30% 0%, rgb(117 161 133 / 18%), transparent 28%),
+    linear-gradient(180deg, #1c3528, #152b21 68%, #102219);
+}
+
+.workspace-brand {
+  padding-bottom: 24px;
+}
+
+.workspace-brand-mark {
+  background: linear-gradient(145deg, #d3ddc4, #6d9a79);
+  box-shadow: 0 10px 24px rgb(0 0 0 / 20%);
+}
+
+.workspace-brand-copy strong {
+  color: #fff;
+}
+
+.workspace-brand-copy small {
+  color: rgb(255 255 255 / 38%);
+}
+
+.workspace-org-card {
+  border-color: rgb(255 255 255 / 10%);
+  color: #eef3ea;
+  background: rgb(255 255 255 / 6%);
+}
+
+.workspace-org-card:hover,
+.workspace-org-card[aria-expanded='true'] {
+  border-color: rgb(255 255 255 / 18%);
+  background: rgb(255 255 255 / 10%);
+}
+
+.workspace-org-avatar {
+  color: #243d2f;
+  background: #d8e4d4;
+}
+
+.workspace-org-card small {
+  color: rgb(255 255 255 / 43%);
+}
+
+.workspace-nav-label {
+  color: rgb(255 255 255 / 30%);
+}
+
+.workspace-nav-label--tools {
+  border-top-color: rgb(255 255 255 / 8%);
+}
+
+.workspace-nav-item {
+  color: rgb(255 255 255 / 62%);
+}
+
+.workspace-nav-item:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 7%);
+}
+
+.workspace-nav-item.is-active {
+  color: #1d3528;
+  background: #e7ecd9;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 25%);
+}
+
+.workspace-nav-item.is-active svg {
+  color: #315b43;
+}
+
+.workspace-nav-item--button.is-ai {
+  color: #c9dfd0;
+}
+
+.workspace-nav-badge {
+  color: #24402f;
+  background: #d7e4cf;
+}
+
+.workspace-help-trigger {
+  color: rgb(255 255 255 / 44%);
+}
+
+.workspace-profile {
+  border-color: rgb(255 255 255 / 9%);
+  color: #eef3ea;
+  background: rgb(255 255 255 / 5%);
+}
+
+.workspace-profile small {
+  color: rgb(255 255 255 / 38%);
+}
+
+.workspace-profile-avatar {
+  color: #203a2b;
+  background: linear-gradient(145deg, #d7dfc5, #9bb69d);
+}
+
+.workspace-topbar {
+  border-bottom-color: rgb(218 220 209 / 86%);
+  background: rgb(247 245 238 / 88%);
+}
+
+.workspace-topbar .workspace-top-avatar {
+  color: #fff;
+  background: linear-gradient(145deg, #5c876e, #2d513c);
+}

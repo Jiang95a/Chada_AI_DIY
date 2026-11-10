@@ -65,6 +65,18 @@ async function copyId(): Promise<void> {
   }
 }
 
+function roleLabel(role: Portfolio['items'][number]['role']): string {
+  if (role === 'organizer') return '组织者'
+  if (role === 'anonymous') return '匿名参加'
+  return '参与者'
+}
+
+function monthLabel(value: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月`
+}
+
 onMounted(async () => {
   await auth.fetchMe()
   await projectStore.loadProjects()
@@ -77,18 +89,6 @@ onMounted(async () => {
     portfolioLoading.value = false
   }
 })
-
-function roleLabel(role: Portfolio['items'][number]['role']): string {
-  if (role === 'organizer') return '组织者'
-  if (role === 'anonymous') return '匿名参加'
-  return '参与者'
-}
-
-function monthLabel(value: string): string {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return `${date.getFullYear()} 年 ${date.getMonth() + 1} 月`
-}
 </script>
 
 <template>
@@ -96,43 +96,41 @@ function monthLabel(value: string): string {
     <main class="account-page">
       <header class="account-heading">
         <div>
-          <p class="eyebrow">Account</p>
+          <p class="eyebrow">Your place in Xinyu</p>
           <h1>个人资料</h1>
-          <p>管理公开昵称和账号信息，了解你的心晴活动组织与参与数据。</p>
+          <p>管理账号信息，也回看你与心屿一起发生过的连接。</p>
         </div>
         <div class="account-heading-actions">
-          <RouterLink class="app-button app-button--secondary" to="/settings">
-            <Icon name="sliders" :size="15" />偏好设置
-          </RouterLink>
-          <RouterLink class="app-button app-button--secondary" to="/help">
-            <Icon name="help" :size="15" />帮助与反馈
-          </RouterLink>
+          <RouterLink to="/settings"><Icon name="sliders" :size="15" />偏好设置</RouterLink>
+          <RouterLink to="/help"><Icon name="help" :size="15" />帮助与反馈</RouterLink>
         </div>
       </header>
 
       <section class="profile-hero">
-        <div class="profile-avatar">{{ initials }}</div>
+        <div class="profile-orbit">
+          <span class="profile-avatar">{{ initials }}</span>
+          <i /><i /><i />
+        </div>
         <div class="profile-identity">
           <span class="profile-status"><i />{{ auth.user?.status === 'active' ? '账号正常' : '账号受限' }}</span>
           <h2>{{ auth.user?.displayName || '未命名用户' }}</h2>
           <p>{{ auth.user?.email || '正在加载账号信息…' }}</p>
+          <blockquote>“在这里，不需要急着成为一个更好的人。”</blockquote>
         </div>
-        <div class="profile-completion">
+        <div class="profile-progress">
           <span>资料完整度</span>
-          <strong>{{ completion }}%</strong>
+          <strong>{{ completion }}<small>%</small></strong>
           <i><b :style="{ width: `${completion}%` }" /></i>
         </div>
       </section>
 
       <div class="account-grid">
-        <section class="account-card">
-          <div class="account-card-head">
-            <span><Icon name="users" :size="17" /></span>
-            <div>
-              <h2>基本信息</h2>
-              <p>昵称会在工作台和团队协作中显示。</p>
-            </div>
-          </div>
+        <section class="account-card identity-card">
+          <header>
+            <span>ACCOUNT</span>
+            <h2>基本信息</h2>
+            <p>昵称会显示在活动组织与团队协作中。</p>
+          </header>
           <form class="profile-form" @submit.prevent="saveProfile">
             <label>
               <span>昵称</span>
@@ -150,71 +148,58 @@ function monthLabel(value: string): string {
                 <button type="button" @click="copyId"><Icon name="copy" :size="13" />复制</button>
               </div>
             </label>
-            <div class="profile-form-actions">
-              <button class="app-button app-button--primary" type="submit" :disabled="saving">
-                <Icon name="check" :size="15" />{{ saving ? '保存中…' : '保存资料' }}
-              </button>
-            </div>
+            <button class="profile-save" type="submit" :disabled="saving">
+              <Icon name="check" :size="15" />{{ saving ? '保存中…' : '保存资料' }}
+            </button>
           </form>
         </section>
 
         <aside class="profile-side">
-          <section class="account-card">
-            <div class="account-card-head">
-              <span><Icon name="chart" :size="17" /></span>
-              <div>
-                <h2>创作概览</h2>
-                <p>当前账号的心晴活动数据。</p>
-              </div>
+          <section class="overview-card">
+            <div>
+              <span>组织活动</span>
+              <strong>{{ projectStore.projectCount }}</strong>
             </div>
-            <div class="profile-metrics">
-              <div>
-                <strong>{{ projectStore.projectCount }}</strong
-                ><span>全部心晴活动</span>
-              </div>
-              <div>
-                <strong>{{ publishedCount }}</strong
-                ><span>已发布</span>
-              </div>
-              <div>
-                <strong>{{ submissionCount }}</strong
-                ><span>累计提交</span>
-              </div>
+            <div>
+              <span>已经发布</span>
+              <strong>{{ publishedCount }}</strong>
+            </div>
+            <div>
+              <span>累计参与</span>
+              <strong>{{ submissionCount }}</strong>
             </div>
           </section>
           <section class="account-tip">
-            <Icon name="info" :size="18" />
+            <Icon name="lock" :size="18" />
             <div>
-              <strong>账号安全提示</strong>
-              <p>心理活动页面应只收集必要信息，不要在公开页面暴露密码或其他同学的敏感资料。</p>
+              <strong>隐私提示</strong>
+              <p>活动页面只应收集必要信息。匿名参与不会在成长档案中暴露活动回答。</p>
             </div>
           </section>
         </aside>
       </div>
 
-      <section class="portfolio-card">
-        <div class="account-card-head">
-          <span><Icon name="layers" :size="17" /></span>
+      <section class="journey-section">
+        <header>
           <div>
+            <span>MY JOURNEY</span>
             <h2>我的参与轨迹</h2>
-            <p>只展示你本人参与过或组织过的已发布活动，匿名参与不会显示活动回答。</p>
+            <p>只展示你本人参与或组织过的已发布活动。</p>
           </div>
+          <span class="journey-count">{{ portfolio?.totalActivities || 0 }} 场连接</span>
+        </header>
+
+        <div v-if="portfolioLoading" class="journey-state">
+          <Icon name="refresh" :size="22" />
+          <strong>正在整理参与轨迹</strong>
         </div>
-        <div v-if="portfolioLoading" class="portfolio-state">
-          <Icon name="refresh" :size="20" />
-          <strong>正在加载参与轨迹</strong>
-        </div>
-        <div v-else-if="portfolioError" class="portfolio-state is-error">
-          <Icon name="alert" :size="20" />
+        <div v-else-if="portfolioError" class="journey-state is-error">
+          <Icon name="alert" :size="22" />
           <strong>参与轨迹暂时不可用</strong>
           <p>{{ portfolioError }}</p>
         </div>
-        <div v-else-if="portfolio" class="portfolio-body">
-          <div class="portfolio-metrics">
-            <div>
-              <strong>{{ portfolio.totalActivities }}</strong
-              ><span>总场次</span>
-            </div>
+        <div v-else-if="portfolio" class="journey-content">
+          <div class="journey-metrics">
             <div>
               <strong>{{ portfolio.wellbeingCount }}</strong
               ><span>心理活动</span>
@@ -223,18 +208,27 @@ function monthLabel(value: string): string {
               <strong>{{ portfolio.careerCount }}</strong
               ><span>生涯活动</span>
             </div>
+            <div>
+              <strong>{{ portfolio.totalActivities }}</strong
+              ><span>全部场次</span>
+            </div>
           </div>
-          <div v-if="portfolio.items.length" class="portfolio-list">
-            <article v-for="item in portfolio.items" :key="item.projectId">
-              <span class="portfolio-role" :class="`is-${item.role}`">{{ roleLabel(item.role) }}</span>
-              <div>
-                <strong>{{ item.title }}</strong>
-                <small>{{ item.activityType }} · {{ monthLabel(item.firstJoinedAt) }}</small>
+
+          <div v-if="portfolio.items.length" class="journey-list">
+            <article v-for="(item, index) in portfolio.items" :key="item.projectId">
+              <span class="journey-index">{{ String(index + 1).padStart(2, '0') }}</span>
+              <span class="journey-line"><i /></span>
+              <div class="journey-copy">
+                <span class="journey-role" :class="`is-${item.role}`">{{ roleLabel(item.role) }}</span>
+                <h3>{{ item.title }}</h3>
+                <p>{{ item.activityType }} · {{ monthLabel(item.firstJoinedAt) }}</p>
               </div>
-              <RouterLink :to="`/p/${item.slug}`" target="_blank"><Icon name="arrow-right" :size="15" /></RouterLink>
+              <RouterLink :to="`/p/${item.slug}`" target="_blank" aria-label="打开活动">
+                <Icon name="arrow-right" :size="16" />
+              </RouterLink>
             </article>
           </div>
-          <p v-else class="portfolio-empty">还没有参与轨迹，先去参加一场心晴活动吧。</p>
+          <p v-else class="journey-state">还没有参与轨迹，先去参加一场心晴活动吧。</p>
         </div>
       </section>
     </main>
@@ -243,109 +237,199 @@ function monthLabel(value: string): string {
 
 <style scoped>
 .account-page {
-  width: min(1180px, 100%);
+  width: min(1220px, 100%);
   margin: 0 auto;
-  padding: 34px 34px 60px;
+  padding: 32px 34px 64px;
 }
+
 .account-heading {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
 }
+
+.eyebrow {
+  color: var(--ink-400);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
 .account-heading h1 {
-  margin: 0;
-  font-size: clamp(30px, 4vw, 42px);
-  letter-spacing: -0.05em;
+  margin: 6px 0 7px;
+  font-family: var(--font-serif);
+  font-size: clamp(32px, 4.2vw, 48px);
+  letter-spacing: -0.055em;
 }
+
 .account-heading > div > p:last-child {
-  margin: 9px 0 0;
-  color: var(--muted);
-  font-size: 11px;
+  color: var(--ink-500);
+  font-size: 10px;
 }
+
 .account-heading-actions {
   display: flex;
-  gap: 8px;
+  gap: 13px;
 }
-.account-heading-actions .app-button {
-  min-height: 39px;
-  font-size: 10px;
-}
-.profile-hero {
-  display: grid;
+
+.account-heading-actions a {
+  display: inline-flex;
   align-items: center;
-  gap: 18px;
-  margin-top: 26px;
-  padding: 24px;
-  border: 1px solid #dbe4f4;
-  border-radius: 20px;
-  background:
-    radial-gradient(circle at 85% 15%, rgb(36 87 214 / 12%), transparent 30%), linear-gradient(135deg, #f7f9ff, #fff);
-  grid-template-columns: auto minmax(0, 1fr) minmax(180px, 260px);
+  gap: 5px;
+  color: var(--ink-500);
+  font-size: 9px;
 }
-.profile-avatar {
+
+.profile-hero {
+  position: relative;
   display: grid;
-  width: 74px;
-  height: 74px;
-  border-radius: 23px;
+  min-height: 245px;
+  align-items: center;
+  gap: 28px;
+  overflow: hidden;
+  margin-top: 24px;
+  padding: 34px;
+  border-radius: 26px;
   color: #fff;
-  background: linear-gradient(145deg, #f28b65, #e95867);
-  font-size: 29px;
-  font-weight: 800;
-  box-shadow: 0 15px 28px -18px rgb(233 88 103 / 80%);
+  background:
+    radial-gradient(circle at 90% 10%, rgb(255 255 255 / 16%), transparent 25%),
+    linear-gradient(130deg, #1e382b, #406d54 62%, #98765f);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.profile-hero::after {
+  position: absolute;
+  right: -90px;
+  bottom: -170px;
+  width: 420px;
+  height: 420px;
+  border: 1px solid rgb(255 255 255 / 13%);
+  border-radius: 50%;
+  content: '';
+}
+
+.profile-orbit {
+  position: relative;
+  display: grid;
+  width: 118px;
+  height: 118px;
   place-items: center;
 }
+
+.profile-avatar {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  color: #264331;
+  background: #eef0df;
+  font-family: var(--font-serif);
+  font-size: 34px;
+  place-items: center;
+}
+
+.profile-orbit i {
+  position: absolute;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 50%;
+}
+
+.profile-orbit i:nth-child(2) {
+  inset: 4px;
+}
+
+.profile-orbit i:nth-child(3) {
+  inset: -8px;
+  animation: orbitPulse 5s ease-in-out infinite;
+}
+
+.profile-orbit i:nth-child(4) {
+  inset: -22px;
+}
+
 .profile-identity {
+  position: relative;
+  z-index: 1;
   min-width: 0;
 }
-.profile-identity h2 {
-  margin: 7px 0 4px;
-  font-size: 22px;
-}
-.profile-identity p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 10px;
-}
+
 .profile-status {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: var(--mint);
+  color: #cbe8d6;
   font-size: 8px;
-  font-weight: 750;
 }
+
 .profile-status i {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: currentcolor;
+  background: #8ee0b2;
 }
-.profile-completion {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+
+.profile-identity h2 {
+  margin-top: 9px;
+  font-family: var(--font-serif);
+  font-size: 30px;
+  letter-spacing: -0.04em;
 }
-.profile-completion span {
-  color: var(--muted);
+
+.profile-identity > p {
+  margin-top: 4px;
+  color: rgb(255 255 255 / 55%);
   font-size: 9px;
 }
-.profile-completion strong {
-  font-size: 23px;
+
+.profile-identity blockquote {
+  margin: 20px 0 0;
+  color: rgb(255 255 255 / 70%);
+  font-family: var(--font-serif);
+  font-size: 15px;
 }
-.profile-completion > i {
-  height: 5px;
+
+.profile-progress {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 180px;
+  flex-direction: column;
+}
+
+.profile-progress > span {
+  color: rgb(255 255 255 / 44%);
+  font-size: 8px;
+}
+
+.profile-progress > strong {
+  margin-top: 6px;
+  font-family: var(--font-serif);
+  font-size: 33px;
+}
+
+.profile-progress > strong small {
+  font-family: var(--font);
+  font-size: 12px;
+}
+
+.profile-progress > i {
+  height: 4px;
   overflow: hidden;
-  margin-top: 3px;
+  margin-top: 7px;
   border-radius: 99px;
-  background: #e8edf5;
+  background: rgb(255 255 255 / 14%);
 }
-.profile-completion > i b {
+
+.profile-progress > i b {
   display: block;
   height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--primary), var(--mint));
+  background: #cfe3d4;
 }
+
 .account-grid {
   display: grid;
   align-items: start;
@@ -353,80 +437,86 @@ function monthLabel(value: string): string {
   margin-top: 14px;
   grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.75fr);
 }
-.profile-side {
-  display: grid;
-  gap: 14px;
-}
-.account-card {
-  padding: 22px;
+
+.account-card,
+.overview-card,
+.journey-section {
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 19px;
   background: #fff;
-  box-shadow: var(--shadow-sm);
 }
-.account-card-head {
-  display: flex;
-  align-items: flex-start;
-  gap: 11px;
-  padding-bottom: 17px;
-  border-bottom: 1px solid var(--line);
+
+.account-card {
+  padding: 24px;
 }
-.account-card-head > span {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  flex: 0 0 auto;
-  border-radius: 11px;
-  color: var(--primary);
-  background: var(--primary-soft);
-  place-items: center;
+
+.identity-card > header span,
+.journey-section > header span {
+  color: var(--brand-500);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
 }
-.account-card-head h2 {
-  margin: 0;
-  font-size: 14px;
+
+.identity-card h2,
+.journey-section h2 {
+  margin-top: 6px;
+  font-family: var(--font-serif);
+  font-size: 24px;
+  letter-spacing: -0.04em;
 }
-.account-card-head p {
-  margin: 4px 0 0;
-  color: var(--muted);
-  font-size: 9px;
+
+.identity-card header p,
+.journey-section header p {
+  margin-top: 5px;
+  color: var(--ink-400);
+  font-size: 8px;
 }
+
 .profile-form {
   display: grid;
-  gap: 15px;
-  margin-top: 18px;
+  gap: 13px;
+  margin-top: 22px;
 }
+
 .profile-form label {
   display: grid;
-  gap: 7px;
+  gap: 6px;
 }
+
 .profile-form label > span {
-  color: var(--ink-soft);
+  color: var(--ink-600);
   font-size: 9px;
-  font-weight: 750;
+  font-weight: 700;
 }
+
 .profile-form input {
   width: 100%;
-  height: 41px;
+  min-height: 42px;
   padding: 0 12px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  outline: none;
-  background: var(--surface-soft);
-  font-size: 11px;
+  outline: 0;
+  background: #fbfbf7;
+  font-size: 10px;
 }
+
 .profile-form input:focus {
-  border-color: #9db5f2;
+  border-color: var(--brand-300);
   background: #fff;
-  box-shadow: 0 0 0 3px rgb(36 87 214 / 8%);
+  box-shadow: 0 0 0 3px rgb(69 111 87 / 7%);
 }
+
 .profile-form small {
-  color: var(--muted);
-  font-size: 8px;
+  color: var(--ink-400);
+  font-size: 7px;
 }
+
 .profile-id {
   display: flex;
   gap: 7px;
 }
+
 .profile-id button {
   display: inline-flex;
   min-width: 70px;
@@ -439,195 +529,298 @@ function monthLabel(value: string): string {
   font-size: 9px;
   cursor: pointer;
 }
-.profile-form-actions {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 3px;
+
+.profile-save {
+  display: inline-flex;
+  width: max-content;
+  min-height: 37px;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--brand-600);
+  font-size: 9px;
+  cursor: pointer;
 }
-.profile-metrics {
+
+.profile-save:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.profile-side {
   display: grid;
-  gap: 8px;
-  margin-top: 18px;
+  gap: 14px;
+}
+
+.overview-card {
+  display: grid;
+  border-radius: 19px;
+  overflow: hidden;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-.profile-metrics div {
+
+.overview-card > div {
   display: flex;
-  align-items: center;
+  min-height: 120px;
+  justify-content: center;
+  padding: 14px;
+  border-right: 1px solid var(--line);
   flex-direction: column;
-  gap: 4px;
-  padding: 13px 5px;
-  border-radius: 12px;
-  background: var(--surface-soft);
 }
-.profile-metrics strong {
-  font-size: 22px;
+
+.overview-card > div:last-child {
+  border-right: 0;
 }
-.profile-metrics span {
-  color: var(--muted);
-  font-size: 8px;
+
+.overview-card span {
+  color: var(--ink-400);
+  font-size: 7px;
 }
+
+.overview-card strong {
+  margin-top: 7px;
+  font-family: var(--font-serif);
+  font-size: 25px;
+}
+
 .account-tip {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 16px;
-  border-radius: 15px;
-  color: #8a5b0c;
-  background: var(--amber-soft);
+  padding: 18px;
+  border-radius: 17px;
+  color: #6f5137;
+  background: #f5eee1;
 }
+
 .account-tip strong {
   font-size: 10px;
 }
+
 .account-tip p {
-  margin: 5px 0 0;
-  font-size: 9px;
+  margin-top: 5px;
+  font-size: 8px;
   line-height: 1.7;
 }
 
-.portfolio-card {
+.journey-section {
   margin-top: 14px;
-  padding: 22px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: var(--shadow-sm);
+  padding: 24px;
 }
 
-.portfolio-metrics {
-  display: grid;
-  gap: 8px;
-  margin-top: 18px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.portfolio-metrics div {
+.journey-section > header {
   display: flex;
-  align-items: center;
-  flex-direction: column;
-  gap: 4px;
-  padding: 15px 5px;
-  border-radius: 12px;
-  background: var(--surface-soft);
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 19px;
+  border-bottom: 1px solid var(--line);
 }
 
-.portfolio-metrics strong {
-  font-size: 23px;
+.journey-count {
+  color: var(--brand-600) !important;
+  letter-spacing: 0 !important;
+  font-size: 9px !important;
 }
 
-.portfolio-metrics span {
-  color: var(--muted);
-  font-size: 8px;
+.journey-content {
+  display: grid;
+  gap: 24px;
+  margin-top: 20px;
+  grid-template-columns: 220px minmax(0, 1fr);
 }
 
-.portfolio-list {
+.journey-metrics {
   display: grid;
   gap: 7px;
-  margin-top: 18px;
 }
 
-.portfolio-list article {
-  display: grid;
-  align-items: center;
-  gap: 11px;
-  padding: 11px 12px;
-  border: 1px solid var(--line);
-  border-radius: 11px;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-}
-
-.portfolio-role {
-  padding: 4px 7px;
-  border-radius: 999px;
-  color: var(--primary);
-  background: var(--primary-soft);
-  font-size: 7px;
-  font-weight: 700;
-}
-
-.portfolio-role.is-anonymous {
-  color: var(--ink-500);
-  background: var(--ink-100);
-}
-
-.portfolio-list article > div {
+.journey-metrics div {
   display: flex;
-  min-width: 0;
+  min-height: 70px;
+  justify-content: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fbfbf7;
   flex-direction: column;
 }
 
-.portfolio-list strong {
-  font-size: 11px;
+.journey-metrics strong {
+  font-family: var(--font-serif);
+  font-size: 24px;
 }
 
-.portfolio-list small {
+.journey-metrics span {
   margin-top: 3px;
-  color: var(--muted);
-  font-size: 8px;
+  color: var(--ink-400);
+  font-size: 7px;
 }
 
-.portfolio-list a {
+.journey-list {
+  display: grid;
+}
+
+.journey-list article {
+  display: grid;
+  min-height: 88px;
+  align-items: center;
+  gap: 12px;
+  grid-template-columns: 28px 24px minmax(0, 1fr) auto;
+}
+
+.journey-index {
+  color: var(--ink-300);
+  font-family: var(--font-serif);
+}
+
+.journey-line {
+  position: relative;
+  align-self: stretch;
+  display: grid;
+  place-items: start center;
+}
+
+.journey-line::after {
+  position: absolute;
+  top: 18px;
+  bottom: 0;
+  width: 1px;
+  background: var(--line);
+  content: '';
+}
+
+.journey-list article:last-child .journey-line::after {
+  display: none;
+}
+
+.journey-line i {
+  position: relative;
+  z-index: 1;
+  width: 7px;
+  height: 7px;
+  margin-top: 11px;
+  border: 2px solid var(--brand-400);
+  border-radius: 50%;
+  background: #fff;
+}
+
+.journey-copy {
+  min-width: 0;
+}
+
+.journey-role {
+  color: var(--brand-600);
+  font-size: 7px;
+  font-weight: 750;
+}
+
+.journey-role.is-anonymous {
   color: var(--ink-400);
 }
 
-.portfolio-state,
-.portfolio-empty {
+.journey-copy h3 {
+  margin-top: 4px;
+  font-size: 11px;
+}
+
+.journey-copy p {
+  margin-top: 4px;
+  color: var(--ink-400);
+  font-size: 8px;
+}
+
+.journey-list article > a {
+  color: var(--ink-300);
+}
+
+.journey-state {
   display: flex;
-  min-height: 150px;
+  min-height: 180px;
   align-items: center;
   justify-content: center;
   flex-direction: column;
   gap: 6px;
-  color: var(--muted);
+  color: var(--ink-400);
   text-align: center;
 }
 
-.portfolio-state strong {
+.journey-state strong {
   color: var(--ink-700);
   font-size: 10px;
 }
 
-.portfolio-state p,
-.portfolio-empty {
-  font-size: 9px;
+.journey-state p {
+  font-size: 8px;
 }
 
-.portfolio-state.is-error {
-  color: #b5473d;
+.journey-state.is-error {
+  color: #a14b3f;
 }
 
-@media (max-width: 850px) {
+@keyframes orbitPulse {
+  50% {
+    opacity: 0.45;
+    transform: scale(1.05);
+  }
+}
+
+@media (max-width: 900px) {
   .account-heading {
     align-items: flex-start;
     flex-direction: column;
   }
-  .account-grid {
+
+  .account-grid,
+  .journey-content {
     grid-template-columns: 1fr;
   }
-  .portfolio-metrics {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
+
   .profile-hero {
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto minmax(0, 1fr);
   }
-  .profile-completion {
+
+  .profile-progress {
     grid-column: 1 / -1;
+    width: 100%;
   }
 }
+
 @media (max-width: 600px) {
   .account-page {
-    padding: 22px 18px 44px;
+    padding: 22px 16px 42px;
   }
+
+  .profile-hero {
+    padding: 24px 18px;
+    grid-template-columns: 1fr;
+  }
+
+  .profile-orbit {
+    width: 96px;
+    height: 96px;
+  }
+
   .account-heading-actions {
-    width: 100%;
     flex-wrap: wrap;
   }
-  .account-heading-actions .app-button {
-    flex: 1;
+
+  .overview-card {
+    grid-template-columns: 1fr;
   }
-  .profile-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 19px;
+
+  .overview-card > div {
+    min-height: 72px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .overview-card > div:last-child {
+    border-bottom: 0;
   }
 }
 </style>

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
-import WellbeingToolkit from '@/components/public/WellbeingToolkit.vue'
 import Icon from '@/components/ui/Icon.vue'
 import { getAccessToken } from '@/services/http'
 import { listPublicActivities, type PublicActivitySummary } from '@/services/public'
@@ -25,7 +24,7 @@ const demoActivities: PublicActivitySummary[] = [
   },
   {
     slug: 'self-care-21',
-    title: '21 天自我关怀打卡',
+    title: '21 天自我关怀练习',
     description: '每天完成一个很小的照顾自己的动作。',
     activityType: '自我关怀',
     coverTone: 'photo',
@@ -34,9 +33,9 @@ const demoActivities: PublicActivitySummary[] = [
     status: 'published',
   },
   {
-    slug: 'psychology-club',
+    slug: 'mindful-club',
     title: '心屿心理协会秋季招新',
-    description: '和一群愿意倾听、也愿意行动的同学相遇。',
+    description: '和愿意倾听、也愿意行动的同学相遇。',
     activityType: '心理社团',
     coverTone: 'volunteer',
     coverCode: 'JOIN XINYU',
@@ -46,6 +45,7 @@ const demoActivities: PublicActivitySummary[] = [
 ]
 
 const visibleActivities = computed(() => activities.value.slice(0, 3))
+const featuredActivity = computed(() => visibleActivities.value[0])
 
 async function loadActivities(): Promise<void> {
   try {
@@ -60,7 +60,7 @@ async function loadActivities(): Promise<void> {
       return
     }
   } catch {
-    // 展示本地演示内容，避免公开首页在断网时变成空白。
+    // 首页断网时继续展示本地内容。
   }
   const local = projectStore.projects
     .filter((project) => project.status === 'published')
@@ -89,1063 +89,781 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="wellbeing-home">
-    <section class="home-hero">
+  <main class="landing-page">
+    <section class="hero">
+      <div class="hero-visual" aria-hidden="true" />
+      <div class="hero-shade" />
       <div class="hero-copy">
-        <span class="hero-kicker"><i />CAMPUS MENTAL WELLBEING</span>
+        <span class="hero-kicker"><i />A QUIET PLACE FOR CAMPUS</span>
         <h1>让每一份心事，<br />都有<span>温柔的回响</span>。</h1>
-        <p>心屿同行服务心理社团、班级心理委员和校园心理活动，让表达更安心，让组织更轻松。</p>
+        <p>心屿同行服务校园心理社团和心理委员。发起一场活动，留出一块可以倾听、表达和休息的空间。</p>
         <div class="hero-actions">
-          <button class="hero-primary" type="button" @click="router.push('/campus')">
-            发现心晴活动 <Icon name="arrow-right" :size="17" />
-          </button>
-          <button class="hero-secondary" type="button" @click="goProtected('/projects')">
-            <Icon name="grid" :size="16" />进入运营台
+          <RouterLink class="hero-primary" to="/campus">
+            发现近期活动 <Icon name="arrow-right" :size="17" />
+          </RouterLink>
+          <button type="button" @click="goProtected('/projects/new')">
+            <Icon name="plus" :size="16" />发起心理活动
           </button>
         </div>
         <div class="hero-trust">
-          <span><Icon name="check" :size="13" />最小必要信息</span>
-          <span><Icon name="check" :size="13" />匿名参与可选</span>
+          <span><Icon name="lock" :size="13" />隐私优先</span>
           <span><Icon name="check" :size="13" />不做心理诊断</span>
+          <span><Icon name="users" :size="13" />支持匿名参与</span>
         </div>
       </div>
 
-      <div class="hero-notes" aria-label="心屿活动与工具预览">
-        <article class="note-card note-card--today">
-          <span>今天，也照顾一下自己</span>
-          <strong>给情绪留一点呼吸的空间</strong>
-          <div class="breath-ring"><i /><b>慢慢来</b></div>
-          <small>一分钟呼吸练习 · 不记录隐私</small>
+      <RouterLink v-if="featuredActivity" :to="`/p/${featuredActivity.slug}`" class="hero-invite">
+        <span>WEEKLY INVITATION</span>
+        <strong>{{ featuredActivity.title }}</strong>
+        <p>{{ featuredActivity.description }}</p>
+        <div>
+          <em>{{ featuredActivity.activityType || '心晴活动' }}</em
+          ><Icon name="arrow-right" :size="16" />
+        </div>
+      </RouterLink>
+    </section>
+
+    <section class="intro-strip">
+      <span>心屿的方式</span>
+      <h2>不急着给答案，先把参与和表达变得更容易。</h2>
+      <div class="intro-points">
+        <article>
+          <i><Icon name="calendar" :size="19" /></i>
+          <div><strong>活动更容易被看见</strong><small>近期可报名活动集中展示，减少寻找和犹豫。</small></div>
         </article>
-        <article class="note-card note-card--event">
-          <span>本周心晴活动</span>
-          <strong>考试周解压游园会</strong>
-          <p>5 个轻量互动摊位，可以匿名报名。</p>
-          <div><b>28</b> 人已经参加 <Icon name="arrow-right" :size="14" /></div>
+        <article>
+          <i><Icon name="lock" :size="19" /></i>
+          <div><strong>参与边界更清楚</strong><small>匿名、同意、隐私与退出说明随活动一起出现。</small></div>
         </article>
-        <article class="note-card note-card--maker">
-          <span>运营台 · 创作工具</span>
-          <strong>把活动想法做成页面</strong>
-          <div class="maker-mini"><i /><i /><i /></div>
-          <small>AI 生成 + 可视化调整</small>
+        <article>
+          <i><Icon name="users" :size="19" /></i>
+          <div><strong>组织者更容易上手</strong><small>从活动信息到页面和海报，都能在页面工坊完成。</small></div>
         </article>
       </div>
     </section>
 
-    <WellbeingToolkit />
-    <div class="toolkit-more">
-      <RouterLink to="/tools">打开完整心晴工具箱 <Icon name="arrow-right" :size="14" /></RouterLink>
-    </div>
-
-    <section id="services" class="home-services">
-      <header>
-        <span>我们陪伴的方式</span>
-        <h2>不急着给答案，先把参与和表达变得更容易。</h2>
-      </header>
-      <div class="service-list">
-        <RouterLink to="/about">
-          <span class="service-index">01</span>
-          <i class="service-icon is-green"><Icon name="users" :size="20" /></i>
-          <div>
-            <h3>心理社团连接</h3>
-            <p>招新、部门介绍与成员活动报名。</p>
-          </div>
-          <Icon name="arrow-right" :size="16" />
-        </RouterLink>
-        <RouterLink to="/campus">
-          <span class="service-index">02</span>
-          <i class="service-icon is-clay"><Icon name="calendar" :size="20" /></i>
-          <div>
-            <h3>心晴活动组织</h3>
-            <p>游园会、团体辅导与主题分享。</p>
-          </div>
-          <Icon name="arrow-right" :size="16" />
-        </RouterLink>
-        <RouterLink to="/tools">
-          <span class="service-index">03</span>
-          <i class="service-icon is-blue"><Icon name="clock" :size="20" /></i>
-          <div>
-            <h3>日常自我关怀</h3>
-            <p>轻量打卡、练习与温柔的日常提醒。</p>
-          </div>
-          <Icon name="arrow-right" :size="16" />
-        </RouterLink>
-        <RouterLink to="/resources">
-          <span class="service-index">04</span>
-          <i class="service-icon is-cream"><Icon name="send" :size="20" /></i>
-          <div>
-            <h3>安心表达入口</h3>
-            <p>匿名提问、活动反馈与保密说明。</p>
-          </div>
-          <Icon name="arrow-right" :size="16" />
-        </RouterLink>
-      </div>
-    </section>
-
-    <section id="activities" class="home-activities">
+    <section class="activities-section">
       <header>
         <div>
-          <span>正在发生</span>
-          <h2>最近的心晴活动</h2>
+          <span>UPCOMING TOGETHER</span>
+          <h2>最近可以参与的心晴活动</h2>
+          <p>按自己的节奏来，不需要发言，也不需要完成任务。</p>
         </div>
-        <button type="button" @click="router.push('/campus')">查看全部 <Icon name="arrow-right" :size="15" /></button>
+        <RouterLink to="/campus">查看全部 <Icon name="arrow-right" :size="15" /></RouterLink>
       </header>
-      <div class="activity-list">
+
+      <div class="activity-grid">
         <RouterLink
           v-for="(activity, index) in visibleActivities"
           :key="activity.slug"
           :to="`/p/${activity.slug}`"
-          class="activity-row"
+          class="activity-card"
+          :class="[`activity-card--${index + 1}`, `tone-${activity.coverTone || 'read'}`]"
         >
-          <span class="activity-date"
-            ><b>{{ String(index + 5).padStart(2, '0') }}</b
-            ><small>NOV</small></span
-          >
-          <span class="activity-copy">
-            <em>{{ activity.activityType || '心晴活动' }}</em>
+          <span class="activity-type">{{ activity.activityType || '心晴活动' }}</span>
+          <div>
+            <small>0{{ index + 1 }}</small>
             <strong>{{ activity.title }}</strong>
-            <p>{{ activity.description || '查看活动详情并了解参与方式。' }}</p>
-          </span>
-          <span class="activity-meta">
-            <i :class="`tone-${activity.coverTone || 'read'}`" />
-            <small>{{ activity.status === 'published' ? '报名中' : '活动回顾' }}</small>
-          </span>
-          <Icon name="arrow-right" :size="17" />
+            <p>{{ activity.description || '查看活动详情与参与方式。' }}</p>
+          </div>
+          <span class="activity-open">了解活动 <Icon name="arrow-right" :size="14" /></span>
         </RouterLink>
       </div>
     </section>
 
-    <section id="maker" class="home-maker">
-      <div class="maker-copy">
-        <span>藏在运营台里的创作工具</span>
-        <h2>需要自己设计时，<br />页面工坊随时在。</h2>
-        <p>活动介绍、报名表、匿名提问、打卡页都可以从心晴模板开始，也可以让 AI 先生成初稿，再自由调整。</p>
+    <section class="nearby-section">
+      <div class="nearby-copy">
+        <span>你在心屿可以做什么</span>
+        <h2>不只找活动，也可以停一下。</h2>
+        <p>心晴工具、心理资源和心屿社团介绍，都在同一个安静的空间里。</p>
+      </div>
+      <div class="nearby-links">
+        <RouterLink to="/tools">
+          <i><Icon name="spark" :size="20" /></i>
+          <div><strong>心晴工具</strong><small>呼吸、感受和片刻自我照顾</small></div>
+          <Icon name="arrow-right" :size="16" />
+        </RouterLink>
+        <RouterLink to="/resources">
+          <i><Icon name="help" :size="20" /></i>
+          <div><strong>心理资源</strong><small>科普、校内支持与求助方向</small></div>
+          <Icon name="arrow-right" :size="16" />
+        </RouterLink>
+        <RouterLink to="/about">
+          <i><Icon name="users" :size="20" /></i>
+          <div><strong>关于心屿</strong><small>社团理念、活动方式和边界</small></div>
+          <Icon name="arrow-right" :size="16" />
+        </RouterLink>
+      </div>
+    </section>
+
+    <section class="maker-section">
+      <div>
+        <span>FOR ORGANIZERS</span>
+        <h2>一场活动，从想法到分享。</h2>
+        <p>组织者只需要填写活动信息。页面工坊会帮助生成 H5 和分享海报，隐私说明也随内容一起准备。</p>
         <button type="button" @click="goProtected('/projects/new')">
           打开页面工坊 <Icon name="arrow-right" :size="16" />
         </button>
       </div>
-      <div class="maker-steps">
-        <article>
-          <b>01</b><Icon name="spark" :size="20" /><strong>生成初稿</strong><small>描述活动，AI 规划页面</small>
-        </article>
-        <article>
-          <b>02</b><Icon name="cursor" :size="20" /><strong>调整内容</strong><small>组件、文案、颜色自由修改</small>
-        </article>
-        <article>
-          <b>03</b><Icon name="qr" :size="20" /><strong>发布收集</strong><small>分享活动，查看参与数据</small>
-        </article>
+      <div class="maker-preview">
+        <div class="maker-window-bar"><i /><i /><i /></div>
+        <span>活动草稿</span>
+        <strong>考试周心晴游园会</strong>
+        <div class="maker-blocks"><i /><i /><i /></div>
+        <small>页面说明、报名与隐私提示已准备</small>
       </div>
     </section>
 
-    <section id="safety" class="home-safety">
+    <section class="safety-section">
       <div>
         <span>WELLBEING IS NOT A SCORE</span>
         <h2>关注参与，不评判内心。</h2>
       </div>
-      <ul>
-        <li>
+      <div class="safety-list">
+        <article>
           <b>01</b><span><strong>不做心理诊断</strong><small>平台只支持活动组织，不提供诊断或治疗结论。</small></span>
-        </li>
-        <li>
-          <b>02</b><span><strong>只收集必要信息</strong><small>活动组织者应清楚说明信息用途和查看范围。</small></span>
-        </li>
-        <li>
-          <b>03</b><span><strong>保留求助边界</strong><small>遇到紧急情况，应联系学校心理中心或专业机构。</small></span>
-        </li>
-      </ul>
+        </article>
+        <article><b>02</b><strong>只收集必要信息</strong><small>活动开始前就能看到信息用途和查看范围。</small></article>
+        <article><b>03</b><strong>匿名不等于失联</strong><small>参与者可以主动选择“希望有人联系我”。</small></article>
+      </div>
     </section>
   </main>
 </template>
 
 <style scoped>
-.wellbeing-home {
-  min-height: 100vh;
+.landing-page {
   color: var(--ink-900);
-  background:
-    radial-gradient(circle at 6% 8%, rgb(188 217 198 / 28%), transparent 24%),
-    radial-gradient(circle at 94% 4%, rgb(238 218 203 / 40%), transparent 26%), #f6f8f3;
+  background: #f7f5f0;
 }
 
-.home-nav {
-  position: sticky;
-  z-index: 50;
-  top: 0;
-  display: grid;
-  min-height: 76px;
-  align-items: center;
-  gap: 24px;
-  padding: 0 6vw;
-  border-bottom: 1px solid rgb(219 229 221 / 85%);
-  background: rgb(248 250 245 / 90%);
-  backdrop-filter: blur(18px);
-  grid-template-columns: auto 1fr auto;
-}
-
-.home-brand {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-}
-
-.home-brand-mark {
+.hero {
   position: relative;
   display: grid;
-  width: 40px;
-  height: 40px;
+  min-height: min(760px, calc(100vh - 70px));
+  align-items: center;
   overflow: hidden;
-  border-radius: 50% 50% 46% 54%;
-  background: linear-gradient(145deg, #9ac8a9, #2f634b);
-  box-shadow: 0 8px 22px rgb(47 99 75 / 18%);
-  place-items: center;
-}
-
-.home-brand-mark i,
-.home-brand-mark b {
-  position: absolute;
-  width: 17px;
-  height: 8px;
-  border: 1.5px solid #fff;
-  border-radius: 50%;
-}
-
-.home-brand-mark i {
-  transform: translate(-5px, -2px) rotate(-28deg);
-}
-
-.home-brand-mark b {
-  transform: translate(5px, 3px) rotate(-28deg);
-}
-
-.home-brand > span:last-child {
-  display: flex;
-  flex-direction: column;
-}
-
-.home-brand strong {
-  font-size: 16px;
-  letter-spacing: -0.02em;
-}
-
-.home-brand small {
-  margin-top: 2px;
-  color: var(--ink-400);
-  font-size: 8px;
-  letter-spacing: 0.04em;
-}
-
-.home-nav nav {
-  display: flex;
-  justify-content: center;
-  gap: 28px;
-}
-
-.home-nav nav button {
-  padding: 7px 0;
-  border: 0;
-  color: var(--ink-600);
-  background: transparent;
-  font-size: 11px;
-  font-weight: 650;
-  cursor: pointer;
-}
-
-.home-nav nav button:hover {
-  color: var(--brand-600);
-}
-
-.home-nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.home-login,
-.home-join {
-  min-height: 37px;
-  padding: 0 13px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.home-login {
-  border: 1px solid var(--line);
-  color: var(--ink-600);
-  background: #fff;
-}
-
-.home-join {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 0;
+  padding: 72px max(7vw, 34px);
   color: #fff;
-  background: var(--brand-600);
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.55fr);
 }
 
-.home-hero {
-  display: grid;
-  width: min(1320px, calc(100% - 10vw));
-  align-items: center;
-  gap: 7vw;
-  margin: 0 auto;
-  padding: 82px 0 72px;
-  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+.hero-visual {
+  position: absolute;
+  inset: 0;
+  background: url('@/assets/heart-island-hero.svg') center / cover no-repeat;
+  transform: scale(1.015);
+}
+
+.hero-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgb(18 41 32 / 88%) 0%, rgb(22 50 39 / 68%) 46%, rgb(24 51 42 / 18%) 78%);
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
 }
 
 .hero-kicker {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: var(--brand-600);
-  font-size: 9px;
+  color: rgb(229 245 235 / 72%);
+  font-size: 8px;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
 }
 
 .hero-kicker i {
-  width: 22px;
+  width: 26px;
   height: 1px;
-  background: var(--brand-500);
+  background: #9ac8aa;
 }
 
-.hero-copy h1 {
+.hero h1 {
   margin: 20px 0 18px;
   font-family: var(--font-serif);
-  font-size: clamp(46px, 6vw, 80px);
+  font-size: clamp(48px, 6.2vw, 84px);
   font-weight: 650;
   letter-spacing: -0.075em;
   line-height: 1.08;
 }
 
-.hero-copy h1 span {
-  color: var(--brand-600);
+.hero h1 span {
+  color: #b6dfc4;
 }
 
 .hero-copy > p {
   max-width: 620px;
-  color: var(--ink-500);
-  font-size: 14px;
+  color: rgb(255 255 255 / 72%);
+  font-size: 13px;
   line-height: 1.9;
 }
 
 .hero-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 28px;
+  gap: 9px;
+  margin-top: 26px;
 }
 
 .hero-primary,
-.hero-secondary {
+.hero-actions button {
   display: inline-flex;
-  min-height: 46px;
+  min-height: 44px;
   align-items: center;
-  gap: 8px;
-  padding: 0 18px;
+  gap: 7px;
+  padding: 0 17px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 750;
-  cursor: pointer;
 }
 
 .hero-primary {
-  border: 0;
-  color: #fff;
-  background: var(--brand-600);
-  box-shadow: 0 16px 30px -18px rgb(47 99 75 / 74%);
+  color: #173429;
+  background: #d7eadc;
 }
 
-.hero-secondary {
-  border: 1px solid var(--line-strong);
-  color: var(--ink-600);
-  background: rgb(255 255 255 / 75%);
+.hero-actions button {
+  border: 1px solid rgb(255 255 255 / 30%);
+  color: #fff;
+  background: rgb(255 255 255 / 9%);
+  cursor: pointer;
 }
 
 .hero-trust {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 18px;
-  margin-top: 30px;
+  gap: 16px;
+  margin-top: 26px;
 }
 
 .hero-trust span {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: var(--ink-400);
-  font-size: 9px;
-}
-
-.hero-trust svg {
-  color: var(--brand-500);
-}
-
-.hero-notes {
-  position: relative;
-  min-height: 540px;
-}
-
-.hero-notes::before {
-  position: absolute;
-  inset: 10% 5% 4%;
-  border-radius: 45% 55% 52% 48%;
-  background: linear-gradient(145deg, rgb(221 236 225 / 80%), rgb(246 233 221 / 72%));
-  content: '';
-  filter: blur(1px);
-  transform: rotate(-5deg);
-}
-
-.note-card {
-  position: absolute;
-  border: 1px solid rgb(255 255 255 / 65%);
-  border-radius: 25px;
-  box-shadow: 0 30px 65px -38px rgb(42 66 51 / 44%);
-  backdrop-filter: blur(14px);
-}
-
-.note-card > span {
-  color: var(--ink-400);
+  color: rgb(255 255 255 / 58%);
   font-size: 8px;
-  font-weight: 750;
-  letter-spacing: 0.08em;
 }
 
-.note-card strong {
-  display: block;
-  margin-top: 8px;
-  font-family: var(--font-serif);
-  letter-spacing: -0.035em;
-}
-
-.note-card--today {
-  top: 5%;
-  left: 1%;
-  width: 68%;
-  padding: 24px;
-  background: rgb(255 255 255 / 88%);
-  transform: rotate(-2deg);
-}
-
-.note-card--today strong {
-  max-width: 270px;
-  font-size: 22px;
-  line-height: 1.35;
-}
-
-.breath-ring {
+.hero-invite {
   position: relative;
-  display: grid;
-  width: 128px;
-  height: 128px;
-  margin: 24px auto 14px;
-  border: 1px solid rgb(66 124 91 / 18%);
-  border-radius: 50%;
-  background: radial-gradient(circle, rgb(224 239 228 / 70%), transparent 68%);
-  place-items: center;
-}
-
-.breath-ring::before,
-.breath-ring::after {
-  position: absolute;
-  border: 1px solid rgb(66 124 91 / 15%);
-  border-radius: 50%;
-  content: '';
-}
-
-.breath-ring::before {
-  inset: 14px;
-}
-
-.breath-ring::after {
-  inset: 29px;
-}
-
-.breath-ring b {
-  color: var(--brand-600);
-  font-size: 12px;
-}
-
-.note-card--today small,
-.note-card--maker small {
-  display: block;
-  color: var(--ink-400);
-  font-size: 8px;
-  text-align: center;
-}
-
-.note-card--event {
-  right: 0;
-  bottom: 24%;
-  width: 68%;
+  z-index: 1;
+  align-self: end;
+  justify-self: end;
+  width: min(310px, 100%);
   padding: 22px;
-  background: rgb(250 245 238 / 92%);
-  transform: rotate(2.5deg);
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 20px;
+  color: #fff;
+  background: rgb(227 237 226 / 13%);
+  box-shadow: 0 20px 50px -35px rgb(0 0 0 / 55%);
+  backdrop-filter: blur(16px);
 }
 
-.note-card--event strong {
-  font-size: 20px;
+.hero-invite > span {
+  color: rgb(255 255 255 / 48%);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
 }
 
-.note-card--event p {
-  margin: 10px 0 18px;
-  color: var(--ink-500);
+.hero-invite strong {
+  display: block;
+  margin-top: 13px;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  letter-spacing: -0.04em;
+}
+
+.hero-invite p {
+  margin-top: 8px;
+  color: rgb(255 255 255 / 58%);
   font-size: 9px;
   line-height: 1.7;
 }
 
-.note-card--event > div {
+.hero-invite > div {
   display: flex;
   align-items: center;
-  gap: 5px;
-  color: var(--ink-500);
-  font-size: 8px;
+  justify-content: space-between;
+  margin-top: 20px;
 }
 
-.note-card--event > div b {
-  color: var(--brand-600);
-  font-size: 15px;
+.hero-invite em {
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #d7eadc;
+  background: rgb(255 255 255 / 10%);
+  font-size: 7px;
+  font-style: normal;
 }
 
-.note-card--event > div svg {
-  margin-left: auto;
-  color: var(--brand-600);
-}
-
-.note-card--maker {
-  bottom: 0;
-  left: 0;
-  width: 46%;
-  padding: 18px;
-  background: rgb(238 246 240 / 92%);
-  transform: rotate(-1deg);
-}
-
-.note-card--maker strong {
-  font-size: 15px;
-}
-
-.maker-mini {
-  display: flex;
-  height: 58px;
-  align-items: flex-end;
-  gap: 4px;
-  margin: 16px 0 10px;
-  padding: 10px;
-  border-radius: 12px;
-  background: #fff;
-}
-
-.maker-mini i {
-  height: 70%;
-  flex: 1;
-  border-radius: 6px;
-  background: linear-gradient(180deg, #b9d8c3, #edf5ef);
-}
-
-.maker-mini i:nth-child(2) {
-  height: 100%;
-  background: linear-gradient(180deg, #8fbaa0, #e5f0e8);
-}
-
-.maker-mini i:nth-child(3) {
-  height: 46%;
-  background: linear-gradient(180deg, #ebcdbf, #faf2ed);
-}
-
-.home-services,
-.home-activities,
-.home-maker,
-.home-safety,
-.home-footer {
-  width: min(1320px, calc(100% - 10vw));
+.intro-strip,
+.activities-section,
+.nearby-section,
+.maker-section,
+.safety-section {
+  width: min(1220px, calc(100% - 10vw));
   margin: 0 auto;
 }
 
-.toolkit-more {
-  width: min(1320px, calc(100% - 10vw));
-  margin: -48px auto 54px;
-  text-align: right;
+.intro-strip {
+  padding: 74px 0 62px;
+  text-align: center;
 }
 
-.toolkit-more a {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--brand-600);
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.home-services {
-  padding: 54px 0 62px;
-  border-top: 1px solid var(--line);
-}
-
-.home-services > header span,
-.home-activities > header span,
-.home-maker-copy > span,
-.home-safety > div > span {
+.intro-strip > span,
+.activities-section > header span,
+.nearby-copy > span,
+.maker-section > div:first-child > span,
+.safety-section > div > span {
   color: var(--brand-500);
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
 }
 
-.home-services > header h2 {
-  max-width: 680px;
-  margin-top: 12px;
+.intro-strip h2 {
+  max-width: 780px;
+  margin: 13px auto 34px;
   font-family: var(--font-serif);
-  font-size: clamp(27px, 3.3vw, 42px);
-  letter-spacing: -0.045em;
-  line-height: 1.3;
+  font-size: clamp(31px, 4vw, 46px);
+  letter-spacing: -0.055em;
+  line-height: 1.35;
 }
 
-.service-list {
+.intro-points {
   display: grid;
   gap: 1px;
-  margin-top: 34px;
   border: 1px solid var(--line);
   border-radius: 20px;
   background: var(--line);
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   overflow: hidden;
 }
 
-.service-list > a {
-  position: relative;
+.intro-points article {
   display: flex;
-  min-height: 210px;
-  justify-content: flex-end;
+  min-height: 150px;
+  align-items: flex-start;
+  gap: 12px;
   padding: 22px;
-  background: #fff;
-  flex-direction: column;
+  background: #fbfaf6;
+  text-align: left;
 }
 
-.service-list > a:hover {
-  background: #fbfdfa;
-}
-
-.service-index {
-  position: absolute;
-  top: 18px;
-  left: 20px;
-  color: var(--ink-300);
-  font-family: var(--font-serif);
-  font-size: 24px;
-}
-
-.service-icon {
+.intro-points i {
   display: grid;
-  width: 40px;
-  height: 40px;
-  margin-bottom: 18px;
-  border-radius: 13px;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-radius: 12px;
+  color: var(--brand-600);
+  background: var(--brand-50);
   place-items: center;
 }
 
-.service-icon.is-green {
-  color: #2f634b;
-  background: #e5f0e8;
+.intro-points strong {
+  display: block;
+  font-size: 12px;
 }
 
-.service-icon.is-clay {
-  color: #9b5e49;
-  background: #f7eae3;
-}
-
-.service-icon.is-blue {
-  color: #567f88;
-  background: #e8f1f2;
-}
-
-.service-icon.is-cream {
-  color: #8a713f;
-  background: #f7f1df;
-}
-
-.service-list h3 {
-  font-size: 15px;
-}
-
-.service-list p {
-  margin-top: 8px;
+.intro-points small {
+  display: block;
+  margin-top: 7px;
   color: var(--ink-400);
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1.7;
 }
 
-.service-list > a > svg {
-  position: absolute;
-  right: 20px;
-  bottom: 22px;
-  color: var(--ink-300);
+.activities-section {
+  padding: 56px 0 74px;
+  border-top: 1px solid var(--line);
 }
 
-.home-activities {
-  padding: 58px 0 66px;
-}
-
-.home-activities > header {
+.activities-section > header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
 }
 
-.home-activities h2 {
+.activities-section h2 {
   margin-top: 8px;
   font-family: var(--font-serif);
-  font-size: 34px;
-  letter-spacing: -0.04em;
+  font-size: 35px;
+  letter-spacing: -0.045em;
 }
 
-.home-activities > header button {
+.activities-section header p {
+  margin-top: 7px;
+  color: var(--ink-400);
+  font-size: 9px;
+}
+
+.activities-section > header > a {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 0;
-  border: 0;
+  gap: 5px;
   color: var(--brand-600);
-  background: transparent;
-  font-size: 10px;
-  cursor: pointer;
+  font-size: 9px;
 }
 
-.activity-list {
+.activity-grid {
   display: grid;
-  gap: 9px;
+  gap: 12px;
   margin-top: 24px;
+  grid-template-columns: 1.1fr 0.9fr;
 }
 
-.activity-row {
-  display: grid;
-  min-height: 112px;
-  align-items: center;
-  gap: 20px;
-  padding: 18px 22px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: rgb(255 255 255 / 72%);
-  grid-template-columns: 64px minmax(0, 1fr) auto auto;
-  transition:
-    transform 160ms ease,
-    border-color 160ms ease,
-    background 160ms ease;
-}
-
-.activity-row:hover {
-  border-color: var(--brand-200);
-  background: #fff;
-  transform: translateX(4px);
-}
-
-.activity-date {
+.activity-card {
+  position: relative;
   display: flex;
-  align-items: center;
+  min-height: 270px;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 22px;
+  border-radius: 21px;
+  color: #fff;
   flex-direction: column;
 }
 
-.activity-date b {
-  font-family: var(--font-serif);
-  font-size: 28px;
-  font-weight: 500;
+.activity-card--1 {
+  min-height: 554px;
+  grid-row: span 2;
 }
 
-.activity-date small {
-  color: var(--ink-400);
+.activity-card.tone-read {
+  background: linear-gradient(145deg, #547d63, #b7c78f);
+}
+
+.activity-card.tone-photo {
+  background: linear-gradient(145deg, #967965, #d4b198);
+}
+
+.activity-card.tone-volunteer {
+  background: linear-gradient(145deg, #577b79, #b4c9c5);
+}
+
+.activity-card::after {
+  position: absolute;
+  right: -80px;
+  bottom: -100px;
+  width: 250px;
+  height: 250px;
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 50%;
+  content: '';
+}
+
+.activity-type,
+.activity-card > div,
+.activity-open {
+  position: relative;
+  z-index: 1;
+}
+
+.activity-type {
+  align-self: flex-start;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 15%);
   font-size: 8px;
-  letter-spacing: 0.12em;
+  backdrop-filter: blur(6px);
 }
 
-.activity-copy {
+.activity-card > div {
+  max-width: 500px;
+}
+
+.activity-card > div > small {
+  color: rgb(255 255 255 / 38%);
+  font-family: var(--font-serif);
+  font-size: 22px;
+}
+
+.activity-card > div > strong {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--font-serif);
+  font-size: 27px;
+  letter-spacing: -0.045em;
+  line-height: 1.22;
+}
+
+.activity-card--1 > div > strong {
+  font-size: clamp(33px, 4vw, 48px);
+}
+
+.activity-card > div > p {
+  max-width: 420px;
+  margin-top: 10px;
+  color: rgb(255 255 255 / 62%);
+  font-size: 9px;
+  line-height: 1.75;
+}
+
+.activity-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  margin-top: 18px;
+  color: rgb(255 255 255 / 72%);
+  font-size: 8px;
+}
+
+.nearby-section {
+  display: grid;
+  gap: 50px;
+  padding: 66px 0;
+  border-top: 1px solid var(--line);
+  grid-template-columns: 0.8fr 1.2fr;
+}
+
+.nearby-copy h2,
+.maker-section h2,
+.safety-section h2 {
+  margin-top: 10px;
+  font-family: var(--font-serif);
+  font-size: 37px;
+  letter-spacing: -0.05em;
+  line-height: 1.3;
+}
+
+.nearby-copy p,
+.maker-section p {
+  margin-top: 13px;
+  color: var(--ink-500);
+  font-size: 10px;
+  line-height: 1.8;
+}
+
+.nearby-links {
+  display: grid;
+  gap: 1px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.nearby-links a {
+  display: grid;
+  align-items: center;
+  gap: 13px;
+  padding: 18px;
+  background: #fff;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.nearby-links a > i {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: var(--brand-600);
+  background: var(--brand-50);
+  place-items: center;
+}
+
+.nearby-links a > div {
   display: flex;
   min-width: 0;
   flex-direction: column;
 }
 
-.activity-copy em {
-  color: var(--brand-600);
-  font-size: 8px;
-  font-style: normal;
-  font-weight: 750;
+.nearby-links strong {
+  font-size: 11px;
 }
 
-.activity-copy strong {
-  margin-top: 5px;
-  font-size: 16px;
-}
-
-.activity-copy p {
-  margin-top: 6px;
+.nearby-links small {
+  margin-top: 4px;
   color: var(--ink-400);
-  font-size: 9px;
-}
-
-.activity-meta {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: var(--ink-500);
   font-size: 8px;
 }
 
-.activity-meta i {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #86b394;
-}
-
-.activity-meta i.tone-photo {
-  background: #d9a58e;
-}
-
-.activity-meta i.tone-volunteer {
-  background: #87a9b3;
-}
-
-.activity-row > svg {
+.nearby-links a > svg {
   color: var(--ink-300);
 }
 
-.home-maker {
-  position: relative;
+.maker-section {
   display: grid;
-  gap: 60px;
-  overflow: hidden;
-  margin-bottom: 68px;
-  padding: 54px;
-  border-radius: 32px;
+  align-items: center;
+  gap: 45px;
+  padding: 44px;
+  border-radius: 28px;
   color: #fff;
   background:
-    radial-gradient(circle at 88% 12%, rgb(255 255 255 / 12%), transparent 25%),
-    linear-gradient(135deg, #213d2f, #416f56 64%, #8b725c);
-  grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
+    radial-gradient(circle at 90% 0%, rgb(255 255 255 / 15%), transparent 24%),
+    linear-gradient(135deg, #203b2f, #466d58 64%, #94745e);
+  grid-template-columns: 1fr 0.9fr;
 }
 
-.home-maker::after {
-  position: absolute;
-  right: -100px;
-  bottom: -180px;
-  width: 420px;
-  height: 420px;
-  border: 1px solid rgb(255 255 255 / 12%);
-  border-radius: 50%;
-  content: '';
+.maker-section > div:first-child > span {
+  color: #b8d8c2;
 }
 
-.maker-copy {
-  position: relative;
-  z-index: 1;
+.maker-section p {
+  color: rgb(255 255 255 / 62%);
 }
 
-.maker-copy > span {
-  color: #b9dcc7;
-}
-
-.maker-copy h2 {
-  margin: 14px 0 14px;
-  font-family: var(--font-serif);
-  font-size: clamp(34px, 4.5vw, 55px);
-  letter-spacing: -0.055em;
-  line-height: 1.16;
-}
-
-.maker-copy p {
-  max-width: 540px;
-  color: rgb(255 255 255 / 66%);
-  font-size: 11px;
-  line-height: 1.9;
-}
-
-.maker-copy button {
+.maker-section button {
   display: inline-flex;
-  min-height: 42px;
+  min-height: 39px;
   align-items: center;
-  gap: 7px;
-  margin-top: 24px;
-  padding: 0 16px;
-  border: 1px solid rgb(255 255 255 / 24%);
+  gap: 6px;
+  margin-top: 20px;
+  padding: 0 14px;
+  border: 1px solid rgb(255 255 255 / 22%);
   border-radius: 999px;
   color: #fff;
-  background: rgb(255 255 255 / 10%);
-  font-size: 10px;
-  font-weight: 700;
+  background: rgb(255 255 255 / 9%);
+  font-size: 9px;
   cursor: pointer;
 }
 
-.maker-steps {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  align-content: center;
-  gap: 9px;
-}
-
-.maker-steps article {
-  display: grid;
-  min-height: 92px;
-  align-items: center;
-  gap: 14px;
+.maker-preview {
   padding: 18px;
-  border: 1px solid rgb(255 255 255 / 14%);
-  border-radius: 17px;
-  background: rgb(255 255 255 / 8%);
-  backdrop-filter: blur(8px);
-  grid-template-columns: auto auto minmax(0, 1fr);
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 10%);
+  backdrop-filter: blur(10px);
 }
 
-.maker-steps b {
-  color: rgb(255 255 255 / 34%);
-  font-size: 9px;
+.maker-window-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 18px;
 }
 
-.maker-steps svg {
-  color: #bfe2cb;
+.maker-window-bar i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 32%);
 }
 
-.maker-steps strong {
-  font-size: 12px;
+.maker-preview > span {
+  color: rgb(255 255 255 / 40%);
+  font-size: 7px;
 }
 
-.maker-steps small {
+.maker-preview > strong {
   display: block;
-  margin-top: 4px;
-  color: rgb(255 255 255 / 48%);
-  font-size: 8px;
-}
-
-.home-safety {
-  display: grid;
-  gap: 60px;
-  padding: 20px 0 76px;
-  grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr);
-}
-
-.home-safety h2 {
-  max-width: 420px;
-  margin-top: 12px;
-  font-family: var(--font-serif);
-  font-size: 38px;
-  letter-spacing: -0.045em;
-  line-height: 1.3;
-}
-
-.home-safety ul {
-  display: grid;
-  gap: 1px;
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: var(--line);
-  list-style: none;
-  overflow: hidden;
-}
-
-.home-safety li {
-  display: grid;
-  gap: 16px;
-  padding: 20px;
-  background: #fff;
-  grid-template-columns: auto minmax(0, 1fr);
-}
-
-.home-safety li > b {
-  color: var(--brand-400);
+  margin-top: 6px;
   font-family: var(--font-serif);
   font-size: 20px;
 }
 
-.home-safety li > span {
-  display: flex;
-  flex-direction: column;
+.maker-blocks {
+  display: grid;
+  gap: 5px;
+  margin: 16px 0;
 }
 
-.home-safety li strong {
-  font-size: 12px;
+.maker-blocks i {
+  height: 24px;
+  border-radius: 6px;
+  background: rgb(255 255 255 / 9%);
 }
 
-.home-safety li small {
-  margin-top: 5px;
-  color: var(--ink-400);
-  font-size: 9px;
-  line-height: 1.7;
+.maker-blocks i:nth-child(2) {
+  height: 42px;
 }
 
-.home-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 28px 0 36px;
+.maker-preview > small {
+  color: rgb(255 255 255 / 44%);
+  font-size: 7px;
+}
+
+.safety-section {
+  display: grid;
+  gap: 55px;
+  margin-top: 64px;
+  margin-bottom: 70px;
+  padding-top: 52px;
   border-top: 1px solid var(--line);
+  grid-template-columns: 0.8fr 1.2fr;
+}
+
+.safety-list {
+  display: grid;
+  gap: 1px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.safety-list article {
+  display: grid;
+  gap: 4px 12px;
+  padding: 17px;
+  background: #fff;
+  grid-template-columns: auto 1fr;
+}
+
+.safety-list b {
+  grid-row: 1 / 3;
+  color: var(--brand-400);
+  font-family: var(--font-serif);
+}
+
+.safety-list span {
+  display: contents;
+}
+
+.safety-list strong {
+  font-size: 10px;
+}
+
+.safety-list small {
   color: var(--ink-400);
+  font-size: 8px;
+  line-height: 1.65;
 }
 
-.home-footer p {
-  flex: 1;
-  font-size: 9px;
-}
-
-.footer-stat {
-  font-size: 9px;
-}
-
-@media (max-width: 1080px) {
-  .home-nav nav {
-    display: none;
-  }
-
-  .home-nav {
-    grid-template-columns: 1fr auto;
-  }
-
-  .home-hero {
+@media (max-width: 900px) {
+  .hero {
     grid-template-columns: 1fr;
   }
 
-  .hero-notes {
-    width: min(600px, 100%);
-    margin: 0 auto;
+  .hero-invite {
+    justify-self: start;
+    margin-top: 36px;
   }
 
-  .service-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .intro-points {
+    grid-template-columns: 1fr;
   }
 
-  .home-maker,
-  .home-safety {
+  .activity-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .activity-card--1 {
+    min-height: 360px;
+    grid-row: auto;
+  }
+
+  .nearby-section,
+  .maker-section,
+  .safety-section {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 640px) {
-  .home-nav {
-    padding: 0 18px;
+@media (max-width: 600px) {
+  .hero {
+    min-height: 680px;
+    padding: 56px 18px;
   }
 
-  .home-login {
-    display: none;
-  }
-
-  .home-brand small {
-    display: none;
-  }
-
-  .home-hero {
-    width: calc(100% - 36px);
-    padding: 54px 0;
-  }
-
-  .hero-copy h1 {
-    font-size: 45px;
+  .hero h1 {
+    font-size: 46px;
   }
 
   .hero-actions {
@@ -1154,68 +872,29 @@ onMounted(() => {
   }
 
   .hero-primary,
-  .hero-secondary {
+  .hero-actions button {
     justify-content: center;
   }
 
-  .hero-notes {
-    min-height: 560px;
-  }
-
-  .note-card--today,
-  .note-card--event,
-  .note-card--maker {
-    width: 88%;
-  }
-
-  .note-card--event {
-    right: 0;
-    bottom: 25%;
-  }
-
-  .note-card--maker {
-    bottom: 0;
-  }
-
-  .home-services,
-  .home-activities,
-  .home-maker,
-  .home-safety,
-  .home-footer {
+  .intro-strip,
+  .activities-section,
+  .nearby-section,
+  .maker-section,
+  .safety-section {
     width: calc(100% - 36px);
   }
 
-  .toolkit-more {
-    width: calc(100% - 36px);
+  .intro-strip {
+    padding-top: 50px;
   }
 
-  .service-list {
-    grid-template-columns: 1fr;
-  }
-
-  .activity-row {
-    grid-template-columns: 50px minmax(0, 1fr) auto;
-  }
-
-  .activity-meta {
-    display: none;
-  }
-
-  .home-maker {
-    padding: 30px 22px;
-  }
-
-  .home-safety {
-    gap: 28px;
-  }
-
-  .home-safety h2 {
-    font-size: 31px;
-  }
-
-  .home-footer {
+  .activities-section > header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .maker-section {
+    padding: 26px 20px;
   }
 }
 </style>

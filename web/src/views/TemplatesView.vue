@@ -485,9 +485,9 @@ async function confirmDeleteTemplate(): Promise<void> {
   border-radius: 22px;
   color: #fff;
   background:
-    radial-gradient(circle at 85% 12%, rgb(115 211 184 / 25%), transparent 24%),
-    radial-gradient(circle at 70% 78%, rgb(98 126 255 / 22%), transparent 30%),
-    linear-gradient(135deg, #101a35, #243683 55%, #176f72);
+    radial-gradient(circle at 85% 12%, rgb(214 231 209 / 20%), transparent 24%),
+    radial-gradient(circle at 70% 78%, rgb(190 137 108 / 18%), transparent 30%),
+    linear-gradient(135deg, #1b3528, #365f49 55%, #896b57);
   grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
 }
 
@@ -515,7 +515,7 @@ async function confirmDeleteTemplate(): Promise<void> {
   padding: 6px 9px;
   border: 1px solid rgb(255 255 255 / 16%);
   border-radius: 999px;
-  color: #a5f3df;
+  color: #d1e8d7;
   background: rgb(255 255 255 / 8%);
   font-size: 9px;
   font-weight: 800;
@@ -594,7 +594,7 @@ async function confirmDeleteTemplate(): Promise<void> {
   border: 0;
   border-radius: 14px;
   color: #102239;
-  background: linear-gradient(100deg, #9ef1dc, #d8f5ff);
+  background: linear-gradient(100deg, #d9eadc, #f4e4d7);
   text-align: left;
   cursor: pointer;
   transition:

@@ -85,21 +85,30 @@ function goWorkspace(): void {
 <style scoped>
 .public-shell {
   min-height: 100vh;
-  background: #f6f8f3;
+  padding-top: 94px;
+  background:
+    radial-gradient(circle at 8% 2%, rgb(95 142 110 / 14%), transparent 24%),
+    radial-gradient(circle at 92% 0%, rgb(185 130 102 / 12%), transparent 22%), #f6f3eb;
 }
 
 .public-nav {
-  position: sticky;
+  position: fixed;
   z-index: 50;
-  top: 0;
+  top: 18px;
+  left: 50%;
   display: grid;
-  min-height: 70px;
+  width: min(1280px, calc(100% - 36px));
+  min-height: 62px;
   align-items: center;
   gap: 22px;
-  padding: 0 max(28px, calc((100vw - 1320px) / 2));
-  border-bottom: 1px solid rgb(220 230 221 / 86%);
-  background: rgb(248 250 245 / 92%);
-  backdrop-filter: blur(18px);
+  padding: 0 24px;
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 18px;
+  color: #fff;
+  background: rgb(20 37 29 / 90%);
+  box-shadow: 0 22px 55px -35px rgb(14 31 23 / 72%);
+  backdrop-filter: blur(20px);
+  transform: translateX(-50%);
   grid-template-columns: auto 1fr auto;
 }
 
@@ -115,7 +124,7 @@ function goWorkspace(): void {
   width: 38px;
   height: 38px;
   border-radius: 50% 50% 46% 54%;
-  background: linear-gradient(145deg, #9bc8aa, #2f634b);
+  background: linear-gradient(145deg, #d5e4d2, #6e9b7d);
   place-items: center;
 }
 
@@ -147,7 +156,7 @@ function goWorkspace(): void {
 
 .public-brand small {
   margin-top: 2px;
-  color: var(--ink-400);
+  color: rgb(255 255 255 / 38%);
   font-size: 8px;
 }
 
@@ -163,18 +172,18 @@ function goWorkspace(): void {
   gap: 5px;
   min-height: 34px;
   padding: 0 2px;
-  color: var(--ink-500);
+  color: rgb(255 255 255 / 60%);
   font-size: 10px;
   font-weight: 650;
 }
 
 .public-nav nav a:hover,
 .public-nav nav a.is-active {
-  color: var(--brand-600);
+  color: #fff;
 }
 
 .public-nav nav a.is-active {
-  box-shadow: inset 0 -2px var(--brand-500);
+  box-shadow: inset 0 -2px #b8dac4;
 }
 
 .public-workspace {
@@ -183,10 +192,10 @@ function goWorkspace(): void {
   align-items: center;
   gap: 6px;
   padding: 0 13px;
-  border: 1px solid var(--line);
+  border: 1px solid rgb(255 255 255 / 17%);
   border-radius: 999px;
-  color: var(--brand-600);
-  background: #fff;
+  color: #fff;
+  background: rgb(255 255 255 / 8%);
   font-size: 9px;
   font-weight: 700;
   cursor: pointer;
@@ -194,12 +203,16 @@ function goWorkspace(): void {
 
 .public-footer {
   display: grid;
-  width: min(1320px, calc(100% - 56px));
+  width: 100%;
+  max-width: none;
   gap: 28px;
-  margin: 0 auto;
-  padding: 38px 0 32px;
-  border-top: 1px solid var(--line);
-  color: var(--ink-400);
+  margin-top: 30px;
+  padding: 54px max(34px, calc((100vw - 1320px) / 2)) 38px;
+  border-radius: 30px 30px 0 0;
+  color: rgb(255 255 255 / 46%);
+  background:
+    radial-gradient(circle at 82% 0%, rgb(151 188 164 / 14%), transparent 28%),
+    linear-gradient(145deg, #182e23, #102219 72%);
   grid-template-columns: 1fr auto;
 }
 
@@ -221,7 +234,7 @@ function goWorkspace(): void {
 }
 
 .public-footer-links a {
-  color: var(--ink-500);
+  color: rgb(255 255 255 / 58%);
   font-size: 9px;
 }
 
@@ -231,10 +244,10 @@ function goWorkspace(): void {
   gap: 7px;
   grid-column: 1 / -1;
   padding: 10px 12px;
-  border: 1px solid #eadfcf;
+  border: 1px solid rgb(255 255 255 / 9%);
   border-radius: 10px;
-  color: #8a6b45;
-  background: #fcf8ef;
+  color: rgb(255 255 255 / 54%);
+  background: rgb(255 255 255 / 5%);
   font-size: 9px;
 }
 
@@ -249,7 +262,8 @@ function goWorkspace(): void {
   }
 
   .public-footer {
-    width: calc(100% - 36px);
+    width: 100%;
+    padding-inline: 24px;
     padding-bottom: 96px;
     grid-template-columns: 1fr;
   }
@@ -262,11 +276,11 @@ function goWorkspace(): void {
     left: 12px;
     display: grid;
     padding: 6px;
-    border: 1px solid rgb(215 226 217 / 90%);
+    border: 1px solid rgb(255 255 255 / 9%);
     border-radius: 18px;
-    background: rgb(252 253 250 / 94%);
-    box-shadow: 0 18px 45px -24px rgb(32 63 46 / 42%);
-    backdrop-filter: blur(18px);
+    background: rgb(20 37 29 / 92%);
+    box-shadow: 0 18px 45px -24px rgb(14 31 23 / 60%);
+    backdrop-filter: blur(20px);
     grid-template-columns: repeat(5, 1fr);
   }
 
@@ -277,14 +291,14 @@ function goWorkspace(): void {
     justify-content: center;
     gap: 3px;
     border-radius: 12px;
-    color: var(--ink-400);
+    color: rgb(255 255 255 / 55%);
     font-size: 7px;
     flex-direction: column;
   }
 
   .public-mobile-nav a.is-active {
-    color: var(--brand-600);
-    background: var(--brand-50);
+    color: #fff;
+    background: rgb(255 255 255 / 9%);
   }
 
   .public-footer-links {
