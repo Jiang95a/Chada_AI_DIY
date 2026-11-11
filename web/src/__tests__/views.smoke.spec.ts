@@ -7,6 +7,8 @@ import { appRoutes } from '@/router'
 
 const cases = [
   { path: '/', selector: '.landing-page', text: '把心理活动' },
+  { path: '/forgot-password', selector: '.auth-page', text: '找回密码' },
+  { path: '/reset-password', selector: '.auth-page', text: '设置新密码' },
   { path: '/projects', selector: '.studio-dashboard', text: '运营概览' },
   { path: '/projects/new', selector: '.studio-create', text: '制作一个心晴活动页面' },
   { path: '/published', selector: '.published-page', text: '参与数据' },

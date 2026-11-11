@@ -44,6 +44,7 @@ const activeProjectId = ref('')
 const draftRevision = ref(0)
 const saveConflict = ref(false)
 let syncReady = false
+let suppressNextRemoteSave = false
 let remoteSaveTimer: number | undefined
 let remoteSaveQueue: Promise<boolean> = Promise.resolve(true)
 
@@ -81,6 +82,10 @@ watch(
     // 真正落库由下面的 saveDraftRemote()（900ms 防抖 + 串行队列）负责，
     // 它自己也会回写 draftRevision，所以这里不再另起一次请求。
     projectStore.saveDocument(activeProjectId.value, value)
+    if (suppressNextRemoteSave) {
+      suppressNextRemoteSave = false
+      return
+    }
     if (remoteSaveTimer !== undefined) window.clearTimeout(remoteSaveTimer)
     remoteSaveTimer = window.setTimeout(() => {
       void saveDraftRemote(value)
@@ -148,7 +153,12 @@ function openCreate(tab: CreateTab = 'ai'): void {
   createOpen.value = true
 }
 
-function onApplied(next: Doc): void {
+function onApplied(next: Doc, meta?: { persisted?: boolean; revision?: number }): void {
+  suppressNextRemoteSave = Boolean(meta?.persisted)
+  if (meta?.persisted && meta.revision !== undefined) {
+    draftRevision.value = meta.revision
+    saveConflict.value = false
+  }
   store.applyDoc(next, true)
   createOpen.value = false
   toast.pushToast(`已应用「${next.title}」，可以继续编辑`, 'success')
@@ -339,6 +349,7 @@ onBeforeUnmount(() => {
       :open="createOpen"
       :initial-tab="createTab"
       :project-id="activeProjectId"
+      :base-revision="draftRevision"
       @close="createOpen = false"
       @applied="onApplied"
     />

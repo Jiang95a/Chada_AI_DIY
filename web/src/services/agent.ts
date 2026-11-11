@@ -1,4 +1,6 @@
 import { apiRequest, ApiError, readData } from './http'
+import type { Doc } from '@/types/editor'
+import { normalizeDoc } from '@/utils/doc'
 
 /**
  * 智能体能力统一经业务后端 /ai/**。
@@ -190,6 +192,50 @@ export interface PosterGenerationResult {
   model: string
 }
 
+export interface AiProjectProposal {
+  id: string
+  jobId: string
+  projectId: string
+  baseRevision: number
+  summary: string
+  candidateDocument: Doc | null
+  operations: unknown[]
+  rationale: string[]
+  risk: 'low' | 'medium' | 'high'
+  status: 'proposed' | 'applied' | 'rejected' | 'stale'
+}
+
+export interface AiProposalApplyResult {
+  revision: number
+  document: Doc
+  updatedAt?: string
+}
+
+function mapAiProposal(value: unknown): AiProjectProposal {
+  const record = (value ?? {}) as Record<string, unknown>
+  const candidate = normalizeDoc(record.candidateDocument)
+  const rationale = Array.isArray(record.rationale)
+    ? record.rationale.map(String)
+    : typeof record.rationale === 'string'
+      ? [record.rationale]
+      : []
+  return {
+    id: String(record.id ?? ''),
+    jobId: String(record.jobId ?? ''),
+    projectId: String(record.projectId ?? ''),
+    baseRevision: Number(record.baseRevision) || 0,
+    summary: String(record.summary ?? ''),
+    candidateDocument: candidate,
+    operations: Array.isArray(record.operations) ? record.operations : [],
+    rationale,
+    risk: record.risk === 'low' || record.risk === 'high' ? record.risk : 'medium',
+    status:
+      record.status === 'applied' || record.status === 'rejected' || record.status === 'stale'
+        ? record.status
+        : 'proposed',
+  }
+}
+
 /**
  * 把一张海报（data URL）发给智能体的视觉能力，换回结构化字段。
  *
@@ -275,5 +321,63 @@ export async function generatePosterArtwork(
     url,
     prompt: data.prompt ?? prompt,
     model: data.model ?? '',
+  }
+}
+
+/** 在已有项目中创建正式 AI 提案；不会直接修改服务端草稿。 */
+export async function generateProjectAiProposal(
+  projectId: string,
+  prompt: string,
+  baseRevision: number,
+  timeoutMs = 120000
+): Promise<AiProjectProposal> {
+  try {
+    const raw = await apiRequest(
+      `/ai/projects/${encodeURIComponent(projectId)}/generate`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt,
+          baseRevision,
+          clientRequestId: crypto.randomUUID(),
+        }),
+      },
+      { timeoutMs }
+    )
+    return mapAiProposal(readData<unknown>(raw))
+  } catch (error) {
+    throw toAgentError(error)
+  }
+}
+
+export async function getProjectAiProposal(proposalId: string): Promise<AiProjectProposal> {
+  try {
+    const raw = await apiRequest(`/ai/proposals/${encodeURIComponent(proposalId)}`)
+    return mapAiProposal(readData<unknown>(raw))
+  } catch (error) {
+    throw toAgentError(error)
+  }
+}
+
+export async function applyProjectAiProposal(
+  proposalId: string,
+  baseRevision: number
+): Promise<AiProposalApplyResult> {
+  let raw: unknown
+  try {
+    raw = await apiRequest(`/ai/proposals/${encodeURIComponent(proposalId)}/apply`, {
+      method: 'POST',
+      body: JSON.stringify({ baseRevision }),
+    })
+  } catch (error) {
+    throw toAgentError(error)
+  }
+  const data = readData<Record<string, unknown>>(raw)
+  const document = normalizeDoc(data.document)
+  if (!document) throw new AgentError('FORMAT', '后端采用提案后没有返回有效的 PageDocument')
+  return {
+    revision: Number(data.revision) || baseRevision + 1,
+    document,
+    updatedAt: typeof data.updatedAt === 'string' ? data.updatedAt : undefined,
   }
 }

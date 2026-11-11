@@ -9,8 +9,11 @@ import { buildPlanPrompt, localDoc, normalizePlan, parsePlanFromText, planToDoc 
 import {
   AgentError,
   askAgent,
+  applyProjectAiProposal,
   extractJson,
   extractPoster,
+  getProjectAiProposal,
+  generateProjectAiProposal,
   generatePosterArtwork,
   PLAN_SYSTEM_EXTRA,
   probeAgent,
@@ -27,11 +30,18 @@ import {
 
 type Tab = 'ai' | 'template' | 'poster'
 
-const props = withDefaults(defineProps<{ open: boolean; initialTab?: Tab; projectId?: string }>(), {
+const props = withDefaults(
+  defineProps<{ open: boolean; initialTab?: Tab; projectId?: string; baseRevision?: number }>(),
+  {
   initialTab: 'ai',
   projectId: '',
-})
-const emit = defineEmits<{ close: []; applied: [doc: Doc] }>()
+  baseRevision: 0,
+  }
+)
+const emit = defineEmits<{
+  close: []
+  applied: [doc: Doc, meta?: { persisted?: boolean; revision?: number }]
+}>()
 
 const store = useEditorStore()
 const toast = useToast()
@@ -50,9 +60,13 @@ const visibleTemplates = computed(() =>
 )
 const result = ref<{
   doc: Doc
-  source: 'agent' | 'local'
+  source: 'proposal' | 'agent' | 'local'
   reason: string
   note: string
+  proposalId?: string
+  baseRevision?: number
+  risk?: 'low' | 'medium' | 'high'
+  operationCount?: number
 } | null>(null)
 
 const EXAMPLES = [
@@ -274,6 +288,30 @@ async function generate(): Promise<void> {
   result.value = null
 
   try {
+    if (props.projectId) {
+      step.value = '正在创建正式 AI 提案…'
+      try {
+        const proposal = await generateProjectAiProposal(props.projectId, text, props.baseRevision)
+        if (proposal.candidateDocument) {
+          result.value = {
+            doc: proposal.candidateDocument,
+            source: 'proposal',
+            reason: proposal.summary || proposal.rationale.join('；') || '后端已生成可审核的页面提案。',
+            note: `正式提案 · ${proposal.operations.length} 项操作 · 风险 ${proposal.risk}`,
+            proposalId: proposal.id,
+            baseRevision: proposal.baseRevision,
+            risk: proposal.risk,
+            operationCount: proposal.operations.length,
+          }
+          return
+        }
+        toast.pushToast('正式提案没有返回页面内容，已切换到智能体生成', 'warn')
+      } catch (error) {
+        const message = error instanceof Error ? error.message : '正式提案生成失败'
+        toast.pushToast(`${message}，已切换到智能体生成`, 'warn')
+      }
+    }
+
     step.value = '正在看智能体在不在线…'
     const health = await probeAgent(1400)
     if (health.ok) {
@@ -317,8 +355,29 @@ async function generate(): Promise<void> {
   }
 }
 
-function applyResult(): void {
+async function applyResult(): Promise<void> {
   if (!result.value) return
+  if (result.value.proposalId) {
+    generating.value = true
+    step.value = '正在采用 AI 提案…'
+    try {
+      const proposal = await getProjectAiProposal(result.value.proposalId)
+      if (proposal.status !== 'proposed') {
+        throw new Error('这条提案已经应用、失效或被拒绝，请重新生成')
+      }
+      const applied = await applyProjectAiProposal(
+        proposal.id,
+        proposal.baseRevision
+      )
+      emit('applied', applied.document, { persisted: true, revision: applied.revision })
+    } catch (error) {
+      errorText.value = error instanceof Error ? error.message : '采用提案失败，请刷新后重试'
+    } finally {
+      generating.value = false
+      step.value = ''
+    }
+    return
+  }
   emit('applied', result.value.doc)
 }
 
@@ -429,8 +488,21 @@ const FORM_FIELDS: { key: PosterTextKey; label: string; placeholder: string }[] 
                 个组件
               </p>
             </div>
-            <span class="result__badge" :class="result.source === 'agent' ? 'is-agent' : ''">
-              {{ result.source === 'agent' ? '智能体' : '本地规则' }}
+            <span
+              class="result__badge"
+              :class="{
+                'is-agent': result.source === 'agent',
+                'is-proposal': result.source === 'proposal',
+                'is-risk': result.risk === 'high',
+              }"
+            >
+              {{
+                result.source === 'proposal'
+                  ? '正式 AI 提案'
+                  : result.source === 'agent'
+                    ? '智能体'
+                    : '本地规则'
+              }}
             </span>
           </header>
 
@@ -455,8 +527,14 @@ const FORM_FIELDS: { key: PosterTextKey; label: string; placeholder: string }[] 
             </div>
             <div class="result__buttons">
               <button type="button" class="btn btn--sm" @click="result = null">重新生成</button>
-              <button type="button" class="btn btn--sm btn--primary" @click="applyResult">
-                <Icon name="check" :size="13" /> 应用到画布
+              <button
+                type="button"
+                class="btn btn--sm btn--primary"
+                :disabled="generating"
+                @click="applyResult"
+              >
+                <Icon name="check" :size="13" />
+                {{ generating ? '正在采用…' : result.source === 'proposal' ? '采用正式提案' : '应用到画布' }}
               </button>
             </div>
           </div>
@@ -744,6 +822,16 @@ const FORM_FIELDS: { key: PosterTextKey; label: string; placeholder: string }[] 
 .result__badge.is-agent {
   background: var(--mint-50);
   color: #047857;
+}
+
+.result__badge.is-proposal {
+  background: var(--brand-100);
+  color: var(--brand-800);
+}
+
+.result__badge.is-risk {
+  background: var(--rose-50);
+  color: var(--rose-500);
 }
 
 .result__reason {

@@ -73,6 +73,8 @@ VS Code 用户也可以直接运行任务：
 | `/resources` | 心理资源 |
 | `/about` | 关于心屿 |
 | `/login` | 登录 |
+| `/forgot-password` | 申请密码重置 |
+| `/reset-password?token=...` | 从邮件链接设置新密码 |
 | `/p/:slug` | 公开活动 H5 |
 
 ### 运营后台
@@ -123,6 +125,15 @@ VS Code 用户也可以直接运行任务：
 ### AI 与海报
 
 - AI 对话统一经 `POST /api/v1/ai/chat`。
+- 编辑器内的正式 AI 修改优先使用提案流程：
+
+  ```text
+  POST /api/v1/ai/projects/{projectId}/generate
+  GET  /api/v1/ai/proposals/{proposalId}
+  POST /api/v1/ai/proposals/{proposalId}/apply
+  ```
+
+  提案接口不可用时自动回退到 AI 对话和本地模板。
 - 已有海报识别经 `POST /api/v1/ai/poster/extract`。
 - 页面工坊支持“上传已有海报”和“AI 生成海报底图”两种来源。
 - AI 海报生成的前端接口为 `POST /api/v1/ai/poster/generate`，后端约定见：
@@ -247,6 +258,17 @@ corepack pnpm build
 | 导出 | `src/services/exports.ts` |
 
 浏览器只访问 `VITE_API_BASE_URL`，不直连 `8000` 端口。
+
+密码找回使用：
+
+```text
+POST /api/v1/auth/forgot-password
+POST /api/v1/auth/reset-password
+```
+
+重置令牌只通过邮件链接传递，不会由前端页面展示。后端需要保证令牌一次性、短时有效，并对请求做限流。
+
+认证页左侧的图片位位于 `src/assets/auth-workspace-story.svg`。后续替换活动照片时保持 `16:7` 比例，不需要修改认证页布局。
 
 ## 开发约定
 
