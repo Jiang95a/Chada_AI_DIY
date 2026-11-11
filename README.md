@@ -121,5 +121,13 @@ corepack pnpm dev
 如果你本地还停留在旧结构，**不要硬 pull 合并**，重新 clone 一份更省事：
 
 ```powershell
-git clone https://github.com/Jiang95a/new.git new
+git clone https://github.com/Jiang95a/Chada_AI_DIY.git Chada_AI_DIY
 ```
+
+> 仓库已从 `Jiang95a/new` 改名为 **`Jiang95a/Chada_AI_DIY`**。旧地址 GitHub 仍会重定向，
+> 但提交给评委、写进技术文档、贴到答辩 PPT 的链接**一定要用新地址**。
+> 本地如果还指向旧地址，执行一次：
+>
+> ```powershell
+> git remote set-url origin https://github.com/Jiang95a/Chada_AI_DIY.git
+> ```
