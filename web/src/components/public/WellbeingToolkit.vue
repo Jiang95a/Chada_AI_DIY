@@ -6,7 +6,7 @@ const moods = [
   { id: 'calm', label: '平静', color: '#9fbea8', message: '让这份平静多停留一会儿。' },
   { id: 'warm', label: '开心', color: '#e0b58f', message: '把今天的好心情记在心里。' },
   { id: 'tired', label: '疲惫', color: '#9aaeb8', message: '累了就慢一点，不必马上恢复。' },
-  { id: 'heavy', label: '有点沉', color: '#b59ca6', message: '不用急着解释，先给感受一点空间。' },
+  { id: 'heavy', label: '有点沉', color: '#8d9ba3', message: '可以暂停其他任务，先确认自己当下的状态。' },
   { id: 'unsure', label: '说不清', color: '#b9b39a', message: '说不清也没关系，感受本来就复杂。' },
 ]
 
@@ -69,23 +69,23 @@ onMounted(() => {
   <section id="today" class="toolkit">
     <header>
       <div>
-        <span>TODAY'S GENTLE MOMENT</span>
-        <h2>今天，先照顾一下自己的感受</h2>
+        <span>QUICK TOOLS</span>
+        <h2>快速工具</h2>
       </div>
-      <p>这里的练习只保存在当前浏览器，不提交，也不会生成心理评分。</p>
+      <p>呼吸计时、情绪记录和随机提示均只在当前浏览器中运行。</p>
     </header>
 
     <div class="toolkit-grid">
       <article class="breathing-card">
-        <div class="toolkit-label"><Icon name="clock" :size="16" />一分钟呼吸</div>
+        <div class="toolkit-label"><Icon name="clock" :size="16" />呼吸计时器</div>
         <button class="breathing-circle" :class="{ 'is-running': breathing }" type="button" @click="toggleBreathing">
           <i /><i /><strong>{{ breathing ? phase : '开始' }}</strong>
         </button>
-        <p>{{ breathing ? '跟着圆圈的节奏，不用刻意吸得很深。' : '慢慢吸气四秒，再慢慢呼气。随时可以停下。' }}</p>
+        <p>{{ breathing ? '跟随节奏：吸气 4 秒，呼气 4 秒。' : '点击开始四秒吸气、四秒呼气计时。' }}</p>
       </article>
 
       <article class="mood-card">
-        <div class="toolkit-label"><Icon name="palette" :size="16" />今天的心情颜色</div>
+        <div class="toolkit-label"><Icon name="palette" :size="16" />情绪记录</div>
         <div class="mood-options">
           <button
             v-for="mood in moods"
@@ -97,11 +97,11 @@ onMounted(() => {
             <i :style="{ background: mood.color }" />{{ mood.label }}
           </button>
         </div>
-        <p>{{ moods.find((item) => item.id === selectedMood)?.message || '选一个最接近此刻的颜色，没有标准答案。' }}</p>
+        <p>{{ moods.find((item) => item.id === selectedMood)?.message || '选择一项记录今天的状态，数据只保存在本机。' }}</p>
       </article>
 
       <article class="prompt-card">
-        <div class="toolkit-label"><Icon name="spark" :size="16" />给自己一句话</div>
+        <div class="toolkit-label"><Icon name="spark" :size="16" />随机提示</div>
         <strong>{{ prompts[promptIndex] }}</strong>
         <button type="button" @click="nextPrompt">换一句 <Icon name="refresh" :size="13" /></button>
       </article>
@@ -113,7 +113,7 @@ onMounted(() => {
 .toolkit {
   width: min(1320px, calc(100% - 10vw));
   margin: 0 auto;
-  padding: 16px 0 72px;
+  padding: 10px 0 42px;
 }
 
 .toolkit > header {
@@ -148,16 +148,16 @@ onMounted(() => {
 
 .toolkit-grid {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   grid-template-columns: 0.9fr 1.2fr 0.9fr;
 }
 
 .toolkit-grid article {
-  min-height: 230px;
-  padding: 22px;
+  min-height: 200px;
+  padding: 18px;
   border: 1px solid var(--line);
-  border-radius: 20px;
-  background: rgb(255 255 255 / 78%);
+  border-radius: 0;
+  background: var(--surface);
 }
 
 .toolkit-label {

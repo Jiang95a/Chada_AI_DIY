@@ -11,6 +11,10 @@ import {
   type SubmissionSummary,
 } from '@/services/submissions'
 import { useProjectStore, type ProjectRecord } from '@/stores/projects'
+import coverGarden from '@/assets/activity-cover-garden.svg'
+import coverSelfCare from '@/assets/activity-cover-self-care.svg'
+import coverClub from '@/assets/activity-cover-club.svg'
+import coverQuiet from '@/assets/activity-cover-quiet.svg'
 
 const REMOTE_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
@@ -24,6 +28,12 @@ const submissions = ref<SubmissionRecord[]>([])
 const submissionSummary = ref<SubmissionSummary | null>(null)
 const submissionLoading = ref(false)
 const submissionError = ref('')
+const coverImages: Record<string, string> = {
+  read: coverGarden,
+  photo: coverSelfCare,
+  volunteer: coverClub,
+  music: coverQuiet,
+}
 
 const publishedProjects = computed(() =>
   projectStore.projects
@@ -86,6 +96,10 @@ const participantRows = computed(() =>
 
 function projectSlug(project: ProjectRecord): string {
   return project.publicSlug || project.document.published?.slug || project.document.slug
+}
+
+function coverImageFor(tone: string): string {
+  return coverImages[tone] ?? coverGarden
 }
 
 function formatTime(timestamp: number): string {
@@ -189,10 +203,9 @@ onMounted(async () => {
   <WorkspaceShell>
     <main class="published-page">
       <header class="published-heading">
-        <div>
-          <p class="eyebrow">Participation overview</p>
+        <div class="published-heading-copy">
           <h1>参与数据</h1>
-          <p>集中查看已发布的心晴活动、参与人数和必要的基础信息。</p>
+          <p>看参与如何发生，而不是只盯一张人数排行榜。</p>
         </div>
         <div class="published-heading-actions">
           <button class="app-button app-button--secondary" type="button" :disabled="loading" @click="refresh">
@@ -204,44 +217,29 @@ onMounted(async () => {
         </div>
       </header>
 
-      <section class="published-summary">
-        <article class="summary-primary">
-          <span>累计参与人次</span>
+      <section class="participation-overview">
+        <article class="participation-total">
+          <span>累计参与人数</span>
           <strong>{{ totalParticipants }}</strong>
-          <p>来自 {{ publishedProjects.length }} 个心晴活动</p>
-          <div class="summary-spark" aria-hidden="true">
-            <i
-              v-for="(project, index) in publishedProjects.slice(0, 8)"
-              :key="project.id"
-              :style="{
-                height: `${Math.max(16, (project.submissionCount / maxSubmissions) * 100)}%`,
-                animationDelay: `${index * 60}ms`,
-              }"
-            />
-          </div>
+          <p>来自 {{ publishedProjects.length }} 个已发布活动，只展示活动层面的汇总。</p>
         </article>
-        <article>
-          <span class="summary-icon is-blue"><Icon name="rocket" :size="17" /></span>
+        <dl class="participation-facts">
           <div>
-            <small>已发布活动</small><strong>{{ publishedProjects.length }}</strong
-            ><em>正在公开访问</em>
+            <dt>开放中的活动</dt>
+            <dd>{{ publishedProjects.length }}</dd>
+            <span>正在公开访问</span>
           </div>
-        </article>
-        <article>
-          <span class="summary-icon is-green"><Icon name="users" :size="17" /></span>
           <div>
-            <small>收到参与</small><strong>{{ withParticipants }}</strong
-            ><em>个活动有参与记录</em>
+            <dt>产生参与的活动</dt>
+            <dd>{{ withParticipants }}</dd>
+            <span>已有真实参与记录</span>
           </div>
-        </article>
-        <article>
-          <span class="summary-icon is-amber"><Icon name="clock" :size="17" /></span>
           <div>
-            <small>最近发布</small>
-            <strong>{{ latestPublished ? formatTime(latestPublished.document.updatedAt) : '—' }}</strong>
-            <em>{{ latestPublished?.document.title || '暂无发布记录' }}</em>
+            <dt>最近发布</dt>
+            <dd>{{ latestPublished ? formatTime(latestPublished.document.updatedAt) : '—' }}</dd>
+            <span>{{ latestPublished?.document.title || '暂无发布记录' }}</span>
           </div>
-        </article>
+        </dl>
       </section>
 
       <section v-if="publishedProjects.length" class="published-workspace">
@@ -265,7 +263,7 @@ onMounted(async () => {
               :class="{ 'is-active': project.id === selectedProject?.id }"
               @click="selectProject(project)"
             >
-              <span class="app-cover" :class="`cover--${project.coverTone}`">{{ project.coverCode || 'APP' }}</span>
+              <img class="app-cover-image" :src="coverImageFor(project.coverTone)" alt="" loading="lazy" />
               <span class="app-list-copy">
                 <strong>{{ project.document.title }}</strong>
                 <small>{{ project.type }} · {{ formatTime(project.document.updatedAt) }}更新</small>
@@ -406,34 +404,28 @@ onMounted(async () => {
 .published-page {
   width: min(1440px, 100%);
   margin: 0 auto;
-  padding: 28px 34px 60px;
+  padding: 24px 30px 54px;
 }
 
 .published-heading {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
 }
 
 .published-heading h1 {
-  margin: 3px 0 7px;
-  color: var(--ink-900, #101828);
-  font-size: 25px;
-  letter-spacing: -0.035em;
+  margin: 0;
+  color: var(--brand-900);
+  font-family: var(--font-serif);
+  font-size: 34px;
+  letter-spacing: -0.04em;
 }
 
-.published-heading > div > p:last-child {
-  color: var(--ink-500, #667085);
-  font-size: 12px;
-}
-
-.eyebrow {
-  color: var(--ink-400, #98a2b3);
-  font-size: 9px;
-  font-weight: 750;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.published-heading-copy > p:last-child {
+  margin-top: 7px;
+  color: var(--ink-500);
+  font-size: 13px;
 }
 
 .published-heading-actions {
@@ -441,150 +433,115 @@ onMounted(async () => {
   gap: 8px;
 }
 
-.published-summary {
+.participation-overview {
   display: grid;
-  gap: 12px;
-  margin-top: 22px;
-  grid-template-columns: minmax(260px, 1.4fr) repeat(3, minmax(160px, 0.7fr));
+  margin-top: 20px;
+  border-block: 1px solid var(--line);
+  background: var(--surface-warm);
+  grid-template-columns: minmax(300px, 1.15fr) minmax(360px, 1fr);
 }
 
-.published-summary > article {
+.participation-total {
   display: flex;
-  min-height: 128px;
-  align-items: center;
-  gap: 12px;
-  padding: 20px;
-  border: 1px solid var(--line, #e9ecf3);
-  border-radius: 17px;
-  background: #fff;
-  box-shadow: 0 14px 35px -34px rgb(15 23 42 / 35%);
-}
-
-.published-summary > article:not(.summary-primary) > div {
-  display: flex;
-  min-width: 0;
+  min-height: 190px;
+  justify-content: center;
+  padding: 26px 30px;
+  border-right: 1px solid var(--line);
   flex-direction: column;
 }
 
-.published-summary small {
-  color: var(--ink-500, #667085);
-  font-size: 9px;
-  font-weight: 650;
-}
-
-.published-summary em {
-  overflow: hidden;
-  margin-top: 4px;
-  color: var(--ink-400, #98a2b3);
-  font-size: 8px;
-  font-style: normal;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.published-summary article > div > strong {
-  margin-top: 6px;
-  color: var(--ink-900, #101828);
-  font-size: 23px;
-  letter-spacing: -0.04em;
-}
-
-.summary-primary {
-  position: relative;
-  overflow: hidden;
-  align-items: flex-start !important;
-  flex-direction: column;
-  color: #fff;
-  background:
-    radial-gradient(circle at 90% 10%, rgb(255 255 255 / 24%), transparent 28%),
-    linear-gradient(135deg, #172554, #3556bf 63%, #24a17b) !important;
-}
-
-.summary-primary > span {
-  color: rgb(255 255 255 / 62%);
-  font-size: 9px;
-  font-weight: 650;
-}
-
-.summary-primary > strong {
-  margin-top: 4px;
-  font-size: 38px;
-  letter-spacing: -0.06em;
-}
-
-.summary-primary > p {
-  color: rgb(255 255 255 / 58%);
-  font-size: 9px;
-}
-
-.summary-spark {
-  position: absolute;
-  right: 20px;
-  bottom: 17px;
-  display: flex;
-  height: 56px;
-  align-items: flex-end;
-  gap: 4px;
-}
-
-.summary-spark i {
-  width: 5px;
-  border-radius: 99px;
-  background: rgb(255 255 255 / 38%);
-  animation: bar-in 0.55s ease both;
-}
-
-.summary-icon {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  flex: 0 0 auto;
-  border-radius: 11px;
-  place-items: center;
-}
-
-.summary-icon.is-blue {
-  color: var(--brand-600);
-  background: var(--brand-100);
-}
-
-.summary-icon.is-green {
-  color: var(--mint-500);
-  background: var(--mint-50);
-}
-
-.summary-icon.is-amber {
+.participation-total > span {
   color: var(--accent-700);
-  background: var(--accent-100);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+
+.participation-total > strong {
+  margin-top: 4px;
+  color: var(--brand-900);
+  font-family: var(--font-serif);
+  font-size: clamp(64px, 7vw, 96px);
+  font-weight: 600;
+  letter-spacing: -0.07em;
+  line-height: 0.9;
+}
+
+.participation-total > p {
+  max-width: 360px;
+  margin-top: 16px;
+  color: var(--ink-600);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.participation-facts {
+  display: grid;
+  margin: 0;
+  padding: 0 26px;
+}
+
+.participation-facts > div {
+  display: grid;
+  min-height: 63px;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  gap: 14px;
+  grid-template-columns: minmax(120px, 0.8fr) auto minmax(150px, 1fr);
+}
+
+.participation-facts > div:last-child {
+  border-bottom: 0;
+}
+
+.participation-facts dt {
+  color: var(--ink-700);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.participation-facts dd {
+  color: var(--brand-900);
+  font-family: var(--font-serif);
+  font-size: 25px;
+  font-weight: 600;
+}
+
+.participation-facts span {
+  color: var(--ink-500);
+  font-size: 10px;
+  text-align: right;
 }
 
 .published-workspace {
   display: grid;
   align-items: start;
-  gap: 16px;
-  margin-top: 18px;
-  grid-template-columns: 330px minmax(0, 1fr);
+  gap: 28px;
+  margin-top: 26px;
+  grid-template-columns: 290px minmax(0, 1fr);
 }
 
 .published-apps,
 .published-detail,
 .participant-card,
 .published-empty {
-  border: 1px solid var(--line, #e9ecf3);
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: 0 16px 40px -38px rgb(15 23 42 / 34%);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .published-apps {
   overflow: hidden;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
 }
 
 .published-apps > header {
   display: flex;
   gap: 12px;
   padding: 17px;
-  border-bottom: 1px solid var(--line, #e9ecf3);
+  border-bottom: 1px solid var(--line);
   flex-direction: column;
 }
 
@@ -596,13 +553,13 @@ onMounted(async () => {
 
 .published-apps > header span {
   color: var(--ink-800, #1e293b);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 750;
 }
 
 .published-apps > header strong {
   color: var(--ink-400, #98a2b3);
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .published-apps label {
@@ -612,7 +569,7 @@ onMounted(async () => {
   gap: 7px;
   padding: 0 10px;
   border: 1px solid var(--line, #e9ecf3);
-  border-radius: 9px;
+  border-radius: 2px;
   color: var(--ink-400, #98a2b3);
   background: var(--ink-50, #f8fafc);
 }
@@ -628,7 +585,7 @@ onMounted(async () => {
 .published-app-list {
   display: grid;
   max-height: 590px;
-  padding: 7px;
+  padding: 4px 0;
   overflow-y: auto;
   gap: 4px;
 }
@@ -640,7 +597,7 @@ onMounted(async () => {
   gap: 10px;
   padding: 10px;
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: 2px;
   color: var(--ink-800, #1e293b);
   background: transparent;
   text-align: left;
@@ -649,45 +606,20 @@ onMounted(async () => {
 }
 
 .published-app-list > button:hover {
-  background: var(--ink-50, #f8fafc);
+  background: var(--surface-soft);
 }
 
 .published-app-list > button.is-active {
-  border-color: var(--brand-100, #e0e7ff);
-  background: #f7f7ff;
-  box-shadow: inset 3px 0 var(--brand-500);
+  border-color: var(--brand-100);
+  background: var(--surface-warm);
+  box-shadow: none;
 }
 
-.app-cover {
-  display: grid;
+.app-cover-image {
   width: 42px;
-  height: 48px;
-  padding: 6px;
-  border-radius: 8px;
-  color: #fff;
-  font-size: 6px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  place-items: end start;
-}
-
-.app-cover.cover--photo {
-  background: linear-gradient(145deg, #88ad94, #365746);
-}
-
-.app-cover.cover--music,
-.app-cover.cover--vote {
-  background: linear-gradient(145deg, #617d84, #b8cbc8);
-}
-
-.app-cover.cover--read,
-.app-cover.cover--checkin {
-  background: linear-gradient(145deg, #3f6b50, #b7c99e);
-}
-
-.app-cover.cover--volunteer,
-.app-cover.cover--event {
-  background: linear-gradient(145deg, #547a73, #d2b5a3);
+  height: 52px;
+  border-radius: 0;
+  object-fit: cover;
 }
 
 .app-list-copy {
@@ -721,7 +653,7 @@ onMounted(async () => {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--brand-500), var(--accent-400));
+  background: var(--accent-500);
 }
 
 .app-count {
@@ -751,6 +683,7 @@ onMounted(async () => {
 .published-detail {
   min-width: 0;
   overflow: hidden;
+  border-top: 1px solid var(--line);
 }
 
 .selected-app-head {
@@ -759,8 +692,7 @@ onMounted(async () => {
   justify-content: space-between;
   gap: 16px;
   padding: 22px;
-  background:
-    radial-gradient(circle at 90% 0%, rgb(99 102 241 / 9%), transparent 28%), linear-gradient(180deg, #fbfcff, #fff);
+  background: var(--surface-warm);
 }
 
 .selected-status {
@@ -783,7 +715,7 @@ onMounted(async () => {
 .selected-app-head h2 {
   margin: 8px 0 4px;
   color: var(--ink-900, #101828);
-  font-size: 20px;
+  font-size: 26px;
   letter-spacing: -0.035em;
 }
 
@@ -804,7 +736,7 @@ onMounted(async () => {
   gap: 5px;
   padding: 0 10px;
   border: 1px solid var(--line, #e9ecf3);
-  border-radius: 8px;
+  border-radius: 2px;
   color: var(--ink-600, #475467);
   background: #fff;
   font-size: 8px;
@@ -818,20 +750,20 @@ onMounted(async () => {
 .selected-metrics {
   display: grid;
   align-items: center;
-  gap: 8px;
-  padding: 0 22px 18px;
+  gap: 0;
+  padding: 16px 22px 10px;
+  border-bottom: 1px solid var(--line);
   grid-template-columns: repeat(3, minmax(120px, 1fr)) auto;
 }
 
 .selected-metrics article {
   display: flex;
-  min-height: 65px;
+  min-height: 61px;
   align-items: center;
   gap: 9px;
-  padding: 11px;
-  border: 1px solid var(--line, #e9ecf3);
-  border-radius: 11px;
-  background: #fff;
+  padding: 0 14px;
+  border-right: 1px solid var(--line);
+  background: transparent;
 }
 
 .selected-metrics article > span {
@@ -839,7 +771,7 @@ onMounted(async () => {
   width: 30px;
   height: 30px;
   flex: 0 0 auto;
-  border-radius: 9px;
+  border-radius: 2px;
   color: var(--brand-600);
   background: var(--brand-50);
   place-items: center;
@@ -858,7 +790,7 @@ onMounted(async () => {
 .selected-metrics strong {
   margin-top: 2px;
   color: var(--ink-800, #1e293b);
-  font-size: 14px;
+  font-size: 19px;
 }
 
 .selected-metrics > a {
@@ -875,6 +807,7 @@ onMounted(async () => {
 
 .participant-card {
   margin: 0 22px 22px;
+  border-top: 1px solid var(--line);
   box-shadow: none;
 }
 
@@ -1111,21 +1044,15 @@ onMounted(async () => {
   margin-top: 7px;
 }
 
-@keyframes bar-in {
-  from {
-    opacity: 0;
-    transform: scaleY(0);
-    transform-origin: bottom;
-  }
-}
-
 @media (max-width: 1180px) {
-  .published-summary {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .participation-overview {
+    grid-template-columns: 1fr;
   }
 
-  .summary-primary {
-    grid-column: 1 / -1;
+  .participation-total {
+    min-height: 170px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
   }
 
   .published-workspace {
@@ -1144,7 +1071,7 @@ onMounted(async () => {
 
 @media (max-width: 860px) {
   .published-page {
-    padding: 20px;
+    padding: 20px 16px 42px;
   }
 
   .published-heading {
@@ -1152,9 +1079,22 @@ onMounted(async () => {
     flex-direction: column;
   }
 
-  .published-summary,
   .published-workspace {
     grid-template-columns: 1fr;
+  }
+
+  .participation-facts {
+    padding: 0 18px;
+  }
+
+  .participation-facts > div {
+    grid-template-columns: 1fr auto;
+  }
+
+  .participation-facts span {
+    grid-column: 1 / -1;
+    padding-bottom: 10px;
+    text-align: left;
   }
 
   .published-app-list {

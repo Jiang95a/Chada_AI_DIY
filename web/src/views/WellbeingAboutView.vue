@@ -1,89 +1,96 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
 import Icon from '@/components/ui/Icon.vue'
 
-const principles = [
+const capabilities = [
   {
-    title: '先倾听，再行动',
-    text: '心理活动不是完成任务，也不是要求参与者立刻变好。我们更在意每个人能否按自己的节奏参与。',
-    icon: 'users',
+    title: '活动组织',
+    text: '发起团辅、讲座、游园会和朋辈交流，统一管理报名、签到与反馈。',
+    icon: 'calendar',
   },
   {
-    title: '不评判，不诊断',
-    text: '心屿组织的是校园心理活动，不提供心理测量、诊断或治疗建议。',
-    icon: 'check-circle',
+    title: '内容制作',
+    text: '用模板、页面工坊和海报生成准备 H5 活动页与传播物料。',
+    icon: 'layout',
   },
   {
-    title: '保留边界和选择',
-    text: '可以匿名，可以不发言，可以中途离开。拒绝参与不需要解释理由。',
-    icon: 'lock',
+    title: '参与数据',
+    text: '按活动查看参与汇总、匿名比例和反馈结果，不展示个体敏感信息。',
+    icon: 'chart',
   },
 ]
 
-const activities = [
-  { title: '心晴游园会', text: '用低压力互动让同学在考试周获得短暂放松。', icon: 'spark' },
-  { title: '朋辈分享与团辅', text: '围绕适应、关系、睡眠与自我照顾开展主题活动。', icon: 'users' },
-  { title: '心理知识科普', text: '用知识问答和内容分享减少误解，不做个体判断。', icon: 'file' },
-  { title: '自我关怀行动', text: '用轻量练习和打卡提醒，把照顾自己放进日常。', icon: 'clock' },
+const boundaries = [
+  '不提供心理诊断、心理治疗或风险判定。',
+  '匿名编号只用于单场活动内部关联，不用于识别参与者。',
+  '活动反馈和报名信息仅用于本次活动组织与复盘。',
+  '危机情况通过校内心理资源与紧急电话转介。',
 ]
 </script>
 
 <template>
   <main class="about-page">
     <section class="about-hero">
-      <div class="about-mark"><i /><b /><span>心</span></div>
-      <div>
-        <span>CAMPUS WELLBEING COLLECTIVE</span>
+      <div class="about-title">
+        <span>CAMPUS PSYCHOLOGY CLUB</span>
         <h1>关于心屿</h1>
-        <p>心屿同行是面向校园心理社团的活动服务平台，希望让心理关怀发生在日常，而不是只在出现问题之后。</p>
+        <p>面向校园心理社团的活动组织与内容制作平台，覆盖从发起活动到参与复盘的完整流程。</p>
       </div>
+      <dl class="about-facts">
+        <div>
+          <dt>主要使用者</dt>
+          <dd>心理社团负责人、干事、班级心理委员</dd>
+        </div>
+        <div>
+          <dt>核心场景</dt>
+          <dd>心理活动发布、报名参与、匿名反馈</dd>
+        </div>
+        <div>
+          <dt>平台边界</dt>
+          <dd>活动组织工具，不替代心理咨询与医疗支持</dd>
+        </div>
+      </dl>
     </section>
 
-    <section class="about-manifesto">
-      <span>我们在做的事</span>
-      <h2>把“你要积极一点”，<br />换成“你可以按自己的节奏来”。</h2>
+    <section class="about-purpose">
+      <span>PLATFORM SCOPE</span>
+      <h2>把活动发布、页面制作和参与数据放在同一套流程里。</h2>
       <p>
-        我们组织心理社团活动、朋辈分享、自我关怀练习和心理知识科普。平台帮助组织者更清楚地说明活动边界，也让参与者更容易判断一场活动是否适合自己。
+        心屿不是心理测评网站，也不是咨询预约平台。它解决的是心理社团日常运营中最重复的部分：活动信息整理、页面和海报制作、报名收集以及活动后的数据汇总。
       </p>
     </section>
 
-    <section class="about-principles">
-      <article v-for="(item, index) in principles" :key="item.title">
+    <section class="about-capabilities">
+      <article v-for="(item, index) in capabilities" :key="item.title">
         <span>0{{ index + 1 }}</span>
-        <i><Icon :name="item.icon" :size="21" /></i>
+        <Icon :name="item.icon" :size="20" />
         <h3>{{ item.title }}</h3>
         <p>{{ item.text }}</p>
       </article>
     </section>
 
-    <section class="about-work">
+    <section class="about-process">
       <div>
-        <span>心屿的日常</span>
-        <h2>不是一场大型活动，<br />而是持续发生的连接。</h2>
+        <span>WORKFLOW</span>
+        <h2>从想法到复盘</h2>
+        <p>每个步骤都可以由社团成员协作完成，不需要掌握前后端技术。</p>
       </div>
-      <div class="about-work-list">
-        <article v-for="item in activities" :key="item.title">
-          <Icon :name="item.icon" :size="18" />
-          <div>
-            <strong>{{ item.title }}</strong>
-            <p>{{ item.text }}</p>
-          </div>
-        </article>
-      </div>
+      <ol>
+        <li><b>01</b><span><strong>发起活动</strong><small>填写时间、地点、参与方式和隐私说明</small></span></li>
+        <li><b>02</b><span><strong>制作页面与海报</strong><small>选择模板、上传图片或生成视觉底图</small></span></li>
+        <li><b>03</b><span><strong>发布并查看数据</strong><small>分享 H5，查看报名、签到和匿名反馈汇总</small></span></li>
+      </ol>
     </section>
 
     <section class="about-boundary">
       <div>
-        <span>需要说清楚的事</span>
-        <h2>心屿不是心理咨询机构</h2>
+        <span>BOUNDARIES</span>
+        <h2>使用边界</h2>
+        <RouterLink to="/resources">查看心理资源 <Icon name="arrow-right" :size="14" /></RouterLink>
       </div>
-      <div>
-        <p>平台用于校园心理活动的组织与参与，不提供心理诊断、心理治疗或危机干预。</p>
-        <p>
-          如果困扰持续影响生活，请联系学校心理健康中心或专业机构。如果存在立即危险，请联系身边可信任的人，并拨打 120 /
-          110。
-        </p>
-        <RouterLink to="/resources">查看心理资源与求助方向 <Icon name="arrow-right" :size="14" /></RouterLink>
-      </div>
+      <ul>
+        <li v-for="item in boundaries" :key="item"><Icon name="check" :size="14" />{{ item }}</li>
+      </ul>
     </section>
   </main>
 </template>
@@ -92,240 +99,256 @@ const activities = [
 .about-page {
   width: min(1200px, calc(100% - 56px));
   margin: 0 auto;
-  padding: 60px 0 84px;
+  padding: 44px 0 60px;
 }
 
 .about-hero {
   display: grid;
-  align-items: center;
-  gap: 52px;
-  grid-template-columns: 230px minmax(0, 1fr);
+  align-items: end;
+  gap: 40px;
+  padding-bottom: 34px;
+  border-bottom: 1px solid var(--line);
+  grid-template-columns: minmax(0, 0.95fr) minmax(420px, 1.05fr);
 }
 
-.about-mark {
-  position: relative;
-  display: grid;
-  width: 220px;
-  height: 220px;
-  overflow: hidden;
-  border-radius: 48% 52% 45% 55%;
-  color: #fff;
-  background:
-    radial-gradient(circle at 30% 25%, rgb(255 255 255 / 22%), transparent 22%),
-    linear-gradient(145deg, #a2c9af, #37634c);
-  box-shadow: 0 28px 60px -35px rgb(47 99 75 / 55%);
-  place-items: center;
-}
-
-.about-mark i,
-.about-mark b {
-  position: absolute;
-  width: 100px;
-  height: 42px;
-  border: 1px solid rgb(255 255 255 / 30%);
-  border-radius: 50%;
-}
-
-.about-mark i {
-  transform: translate(-30px, -18px) rotate(-18deg);
-}
-
-.about-mark b {
-  transform: translate(32px, 22px) rotate(-18deg);
-}
-
-.about-mark span {
-  position: relative;
-  z-index: 1;
-  font-family: var(--font-serif);
-  font-size: 54px;
-}
-
-.about-hero > div:last-child > span,
-.about-manifesto > span,
-.about-work > div > span,
+.about-title > span,
+.about-purpose > span,
+.about-process > div > span,
 .about-boundary > div > span {
   color: var(--brand-500);
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.12em;
 }
 
-.about-hero h1 {
-  margin-top: 10px;
-  font-family: var(--font-serif);
-  font-size: clamp(48px, 7vw, 80px);
-  letter-spacing: -0.07em;
-}
-
-.about-hero p {
-  max-width: 650px;
-  margin-top: 15px;
-  color: var(--ink-500);
-  font-size: 12px;
-  line-height: 1.9;
-}
-
-.about-manifesto {
-  margin-top: 72px;
-  padding: 42px;
-  border-radius: 28px;
-  background: linear-gradient(145deg, #f9fbf7, #f4ede5);
-}
-
-.about-manifesto h2 {
-  max-width: 850px;
-  margin-top: 12px;
-  font-family: var(--font-serif);
-  font-size: clamp(30px, 4vw, 48px);
-  letter-spacing: -0.05em;
-  line-height: 1.35;
-}
-
-.about-manifesto p {
-  max-width: 760px;
-  margin-top: 18px;
-  color: var(--ink-500);
-  font-size: 10px;
-  line-height: 1.9;
-}
-
-.about-principles {
-  display: grid;
-  gap: 10px;
-  margin-top: 18px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.about-principles article {
-  position: relative;
-  min-height: 230px;
-  padding: 22px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: #fff;
-}
-
-.about-principles article > span {
-  color: var(--ink-300);
-  font-family: var(--font-serif);
-  font-size: 24px;
-}
-
-.about-principles article > i {
-  display: grid;
-  width: 40px;
-  height: 40px;
-  margin-top: 32px;
-  border-radius: 12px;
-  color: var(--brand-600);
-  background: var(--brand-50);
-  place-items: center;
-}
-
-.about-principles h3 {
-  margin-top: 17px;
-  font-size: 14px;
-}
-
-.about-principles p {
+.about-title h1 {
   margin-top: 8px;
-  color: var(--ink-400);
-  font-size: 9px;
-  line-height: 1.8;
-}
-
-.about-work {
-  display: grid;
-  gap: 50px;
-  margin-top: 70px;
-  padding-top: 42px;
-  border-top: 1px solid var(--line);
-  grid-template-columns: 0.85fr 1.15fr;
-}
-
-.about-work h2,
-.about-boundary h2 {
-  margin-top: 10px;
   font-family: var(--font-serif);
-  font-size: 36px;
-  letter-spacing: -0.045em;
-  line-height: 1.35;
+  font-size: 58px;
+  letter-spacing: -0.055em;
 }
 
-.about-work-list {
+.about-title p {
+  max-width: 580px;
+  margin-top: 12px;
+  color: var(--ink-500);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.about-facts {
   display: grid;
-  gap: 1px;
-  border: 1px solid var(--line);
-  border-radius: 17px;
-  background: var(--line);
-  overflow: hidden;
+  margin: 0;
+  border-top: 1px solid var(--line);
 }
 
-.about-work-list article {
-  display: flex;
-  align-items: flex-start;
-  gap: 11px;
-  padding: 17px;
-  background: #fff;
+.about-facts > div {
+  display: grid;
+  align-items: baseline;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+  gap: 16px;
+  grid-template-columns: 100px minmax(0, 1fr);
 }
 
-.about-work-list svg {
-  flex: 0 0 auto;
-  color: var(--brand-500);
-}
-
-.about-work-list strong {
+.about-facts dt {
+  color: var(--ink-500);
   font-size: 11px;
 }
 
-.about-work-list p {
-  margin-top: 4px;
-  color: var(--ink-400);
-  font-size: 9px;
-  line-height: 1.65;
+.about-facts dd {
+  margin: 0;
+  color: var(--brand-900);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.about-purpose {
+  display: grid;
+  align-items: start;
+  gap: 24px;
+  padding: 38px 0 32px;
+  grid-template-columns: 180px minmax(0, 1fr);
+}
+
+.about-purpose h2 {
+  max-width: 880px;
+  font-family: var(--font-serif);
+  font-size: 34px;
+  letter-spacing: -0.04em;
+  line-height: 1.35;
+}
+
+.about-purpose p {
+  max-width: 820px;
+  grid-column: 2;
+  color: var(--ink-500);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.about-capabilities {
+  display: grid;
+  gap: 1px;
+  border: 1px solid var(--line);
+  background: var(--line);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.about-capabilities article {
+  min-height: 190px;
+  padding: 22px;
+  background: var(--surface);
+}
+
+.about-capabilities article > span {
+  color: var(--ink-300);
+  font-family: var(--font-serif);
+  font-size: 20px;
+}
+
+.about-capabilities svg {
+  display: block;
+  margin-top: 25px;
+  color: var(--brand-500);
+}
+
+.about-capabilities h3 {
+  margin-top: 14px;
+  font-size: 16px;
+}
+
+.about-capabilities p {
+  margin-top: 7px;
+  color: var(--ink-500);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.about-process {
+  display: grid;
+  gap: 44px;
+  padding: 38px 0;
+  border-bottom: 1px solid var(--line);
+  grid-template-columns: 0.8fr 1.2fr;
+}
+
+.about-process h2,
+.about-boundary h2 {
+  margin-top: 7px;
+  font-family: var(--font-serif);
+  font-size: 32px;
+  letter-spacing: -0.04em;
+}
+
+.about-process > div > p {
+  max-width: 420px;
+  margin-top: 10px;
+  color: var(--ink-500);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.about-process ol {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.about-process li {
+  display: grid;
+  min-height: 74px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  gap: 16px;
+  grid-template-columns: 42px minmax(0, 1fr);
+}
+
+.about-process li:last-child {
+  border-bottom: 1px solid var(--line);
+}
+
+.about-process li > b {
+  color: var(--brand-400);
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.about-process li > span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.about-process strong {
+  font-size: 14px;
+}
+
+.about-process small {
+  color: var(--ink-500);
+  font-size: 11px;
 }
 
 .about-boundary {
   display: grid;
-  gap: 50px;
-  margin-top: 70px;
-  padding: 34px;
-  border: 1px solid #e6d9c9;
-  border-radius: 22px;
-  background: #fcf8f1;
-  grid-template-columns: 0.85fr 1.15fr;
-}
-
-.about-boundary > div:last-child {
-  display: grid;
-  gap: 11px;
-  color: #75624d;
-  font-size: 9px;
-  line-height: 1.8;
+  gap: 44px;
+  padding-top: 34px;
+  grid-template-columns: 0.8fr 1.2fr;
 }
 
 .about-boundary a {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: #8b623d;
+  margin-top: 12px;
+  color: var(--brand-600);
+  font-size: 11px;
   font-weight: 700;
+}
+
+.about-boundary ul {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.about-boundary li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-600);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.about-boundary li svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--brand-500);
 }
 
 @media (max-width: 820px) {
   .about-hero,
-  .about-work,
+  .about-process,
   .about-boundary {
     grid-template-columns: 1fr;
   }
 
-  .about-mark {
-    width: 160px;
-    height: 160px;
+  .about-purpose {
+    grid-template-columns: 1fr;
   }
 
-  .about-principles {
+  .about-purpose p {
+    grid-column: auto;
+  }
+
+  .about-capabilities {
     grid-template-columns: 1fr;
   }
 }
@@ -333,11 +356,16 @@ const activities = [
 @media (max-width: 600px) {
   .about-page {
     width: calc(100% - 36px);
-    padding-top: 36px;
+    padding-top: 30px;
   }
 
-  .about-manifesto {
-    padding: 26px 20px;
+  .about-title h1 {
+    font-size: 44px;
+  }
+
+  .about-facts > div {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }
 </style>

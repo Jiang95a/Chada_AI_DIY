@@ -3,13 +3,34 @@ import { computed } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import Icon from '@/components/ui/Icon.vue'
 import { getAccessToken } from '@/services/http'
+import { usePreferences, type ThemePreference } from '@/composables/usePreferences'
+import { useToast } from '@/composables/useToast'
 
 const route = useRoute()
 const router = useRouter()
+const toast = useToast()
 const authenticated = computed(() => Boolean(getAccessToken()))
+const { theme, setTheme } = usePreferences()
+const themeOptions: Array<{ value: ThemePreference; label: string }> = [
+  { value: 'sage', label: '鼠尾草绿' },
+  { value: 'oat', label: '燕麦米黄' },
+  { value: 'mist', label: '雾青' },
+  { value: 'slate', label: '雾蓝石板' },
+]
+const themeLabel = computed(
+  () => themeOptions.find((item) => item.value === theme.value)?.label ?? '鼠尾草绿'
+)
 
 function goWorkspace(): void {
   void router.push(authenticated.value ? '/projects' : { path: '/login', query: { redirect: '/projects' } })
+}
+
+function cycleTheme(): void {
+  const index = themeOptions.findIndex((item) => item.value === theme.value)
+  const next = themeOptions[(index + 1) % themeOptions.length]
+  if (!next) return
+  setTheme(next.value)
+  toast.pushToast(`已切换为${next.label}`, 'success')
 }
 </script>
 
@@ -35,10 +56,21 @@ function goWorkspace(): void {
           <Icon name="users" :size="14" />关于心屿
         </RouterLink>
       </nav>
-      <button class="public-workspace" type="button" @click="goWorkspace">
-        {{ authenticated ? '进入运营台' : '登录' }}
-        <Icon name="arrow-right" :size="14" />
-      </button>
+      <div class="public-nav-actions">
+        <button
+          class="public-theme"
+          type="button"
+          :aria-label="`切换配色，当前为${themeLabel}`"
+          :title="`切换配色：${themeLabel}`"
+          @click="cycleTheme"
+        >
+          <span :class="`is-${theme}`" />
+        </button>
+        <button class="public-workspace" type="button" @click="goWorkspace">
+          {{ authenticated ? '进入运营台' : '登录' }}
+          <Icon name="arrow-right" :size="14" />
+        </button>
+      </div>
     </header>
 
     <slot />
@@ -103,7 +135,7 @@ function goWorkspace(): void {
   border: 1px solid rgb(255 255 255 / 9%);
   border-radius: 18px;
   color: #fff;
-  background: rgb(20 37 29 / 90%);
+  background: var(--brand-900);
   box-shadow: 0 22px 55px -35px rgb(14 31 23 / 72%);
   backdrop-filter: blur(20px);
   transform: translateX(-50%);
@@ -199,6 +231,43 @@ function goWorkspace(): void {
   cursor: pointer;
 }
 
+.public-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.public-theme {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 17%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 8%);
+  cursor: pointer;
+  place-items: center;
+}
+
+.public-theme > span {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #8fb49a;
+}
+
+.public-theme > span.is-oat {
+  background: #d8b88c;
+}
+
+.public-theme > span.is-mist {
+  background: #79a5a1;
+}
+
+.public-theme > span.is-slate {
+  background: #6c8391;
+}
+
 .public-footer {
   display: grid;
   width: 100%;
@@ -274,7 +343,7 @@ function goWorkspace(): void {
     padding: 6px;
     border: 1px solid rgb(255 255 255 / 9%);
     border-radius: 18px;
-    background: rgb(20 37 29 / 92%);
+    background: var(--brand-900);
     box-shadow: 0 18px 45px -24px rgb(14 31 23 / 60%);
     backdrop-filter: blur(20px);
     grid-template-columns: repeat(5, 1fr);

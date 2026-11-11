@@ -8,12 +8,13 @@ import {
   type DensityPreference,
   type LandingPreference,
   type MotionPreference,
+  type ThemePreference,
 } from '@/composables/usePreferences'
 import { useWorkspace } from '@/composables/useWorkspace'
 import { API_BASE } from '@/services/http'
 
 const toast = useToast()
-const { density, motion, landing, setDensity, setMotion, setLanding, reset } = usePreferences()
+const { density, motion, landing, theme, setDensity, setMotion, setLanding, setTheme, reset } = usePreferences()
 const { selected } = useWorkspace()
 
 function chooseDensity(value: DensityPreference): void {
@@ -31,6 +32,11 @@ function chooseLanding(value: LandingPreference): void {
   toast.pushToast('默认打开页面已更新', 'success')
 }
 
+function chooseTheme(value: ThemePreference): void {
+  setTheme(value)
+  toast.pushToast('界面配色已更新', 'success')
+}
+
 function resetAll(): void {
   reset()
   toast.pushToast('偏好设置已恢复默认', 'info')
@@ -42,7 +48,6 @@ function resetAll(): void {
     <main class="settings-page">
       <header class="settings-heading">
         <div>
-          <p class="eyebrow">Preferences</p>
           <h1>偏好设置</h1>
           <p>设置只保存在当前设备，不会影响团队其他成员。</p>
         </div>
@@ -121,6 +126,28 @@ function resetAll(): void {
                 </button>
               </div>
             </div>
+            <div class="setting-row">
+              <div>
+                <strong>页面配色</strong>
+                <p>配色只保存在当前设备，适合不同社团的视觉气质。</p>
+              </div>
+              <div class="theme-choice" role="group" aria-label="页面配色">
+                <button
+                  v-for="item in [
+                    { value: 'sage' as const, label: '鼠尾草' },
+                    { value: 'oat' as const, label: '燕麦米黄' },
+                    { value: 'mist' as const, label: '雾青' },
+                    { value: 'slate' as const, label: '雾蓝' },
+                  ]"
+                  :key="item.value"
+                  type="button"
+                  :class="{ 'is-active': theme === item.value }"
+                  @click="chooseTheme(item.value)"
+                >
+                  <i :class="`is-${item.value}`" />{{ item.label }}
+                </button>
+              </div>
+            </div>
           </section>
 
           <section id="startup" class="settings-card">
@@ -144,7 +171,7 @@ function resetAll(): void {
                 :class="{ 'is-active': landing === '/templates' }"
                 @click="chooseLanding('/templates')"
               >
-                <Icon name="grid" :size="16" /><span><strong>心晴模板</strong><small>从心理活动模板开始</small></span>
+                <Icon name="grid" :size="16" /><span><strong>模板库</strong><small>从心理活动模板开始</small></span>
               </button>
             </div>
           </section>
@@ -397,6 +424,52 @@ function resetAll(): void {
   color: var(--primary);
   background: #fff;
   box-shadow: var(--shadow-sm);
+}
+
+.theme-choice {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.theme-choice button {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--ink-600);
+  background: var(--surface);
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.theme-choice button.is-active {
+  border-color: var(--brand-400);
+  color: var(--brand-800);
+  background: var(--surface-warm);
+}
+
+.theme-choice i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #6d937f;
+}
+
+.theme-choice i.is-oat {
+  background: #c18b62;
+}
+
+.theme-choice i.is-mist {
+  background: #527d78;
+}
+
+.theme-choice i.is-slate {
+  background: #546b7a;
 }
 .diagnostic-list {
   display: grid;

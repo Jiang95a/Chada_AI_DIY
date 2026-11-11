@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 export type DensityPreference = 'comfortable' | 'compact'
 export type MotionPreference = 'full' | 'reduced'
 export type LandingPreference = '/projects' | '/templates'
+export type ThemePreference = 'sage' | 'oat' | 'mist' | 'slate'
 
 const STORAGE_KEY = 'diy-campus:preferences:v1'
 
@@ -26,14 +27,16 @@ function write(key: string, value: string): void {
 const density = ref<DensityPreference>(read('density', 'comfortable', ['comfortable', 'compact']))
 const motion = ref<MotionPreference>(read('motion', 'full', ['full', 'reduced']))
 const landing = ref<LandingPreference>(read('landing', '/projects', ['/projects', '/templates']))
+const theme = ref<ThemePreference>(read('theme', 'sage', ['sage', 'oat', 'mist', 'slate']))
 
 function apply(): void {
   if (typeof document === 'undefined') return
   document.documentElement.dataset.density = density.value
   document.documentElement.dataset.motion = motion.value
+  document.documentElement.dataset.theme = theme.value
 }
 
-watch([density, motion], apply, { immediate: true })
+watch([density, motion, theme], apply, { immediate: true })
 
 export function usePreferences() {
   function setDensity(value: DensityPreference): void {
@@ -51,13 +54,19 @@ export function usePreferences() {
     write('landing', value)
   }
 
+  function setTheme(value: ThemePreference): void {
+    theme.value = value
+    write('theme', value)
+  }
+
   function reset(): void {
     setDensity('comfortable')
     setMotion('full')
     setLanding('/projects')
+    setTheme('sage')
   }
 
-  return { density, motion, landing, setDensity, setMotion, setLanding, reset }
+  return { density, motion, landing, theme, setDensity, setMotion, setLanding, setTheme, reset }
 }
 
 export function getLandingPath(): LandingPreference {

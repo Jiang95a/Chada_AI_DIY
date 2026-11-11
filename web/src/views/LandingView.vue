@@ -5,6 +5,10 @@ import Icon from '@/components/ui/Icon.vue'
 import { getAccessToken } from '@/services/http'
 import { listPublicActivities, type PublicActivitySummary } from '@/services/public'
 import { useProjectStore } from '@/stores/projects'
+import coverGarden from '@/assets/activity-cover-garden.svg'
+import coverSelfCare from '@/assets/activity-cover-self-care.svg'
+import coverClub from '@/assets/activity-cover-club.svg'
+import coverQuiet from '@/assets/activity-cover-quiet.svg'
 
 const router = useRouter()
 const projectStore = useProjectStore()
@@ -46,6 +50,16 @@ const demoActivities: PublicActivitySummary[] = [
 
 const visibleActivities = computed(() => activities.value.slice(0, 3))
 const featuredActivity = computed(() => visibleActivities.value[0])
+const coverImages: Record<string, string> = {
+  read: coverGarden,
+  photo: coverSelfCare,
+  volunteer: coverClub,
+  music: coverQuiet,
+}
+
+function coverImageFor(tone: string | undefined): string {
+  return coverImages[tone ?? ''] ?? coverGarden
+}
 
 async function loadActivities(): Promise<void> {
   try {
@@ -94,9 +108,9 @@ onMounted(() => {
       <div class="hero-visual" aria-hidden="true" />
       <div class="hero-shade" />
       <div class="hero-copy">
-        <span class="hero-kicker"><i />A QUIET PLACE FOR CAMPUS</span>
-        <h1>让每一份心事，<br />都有<span>温柔的回响</span>。</h1>
-        <p>心屿同行服务校园心理社团和心理委员。发起一场活动，留出一块可以倾听、表达和休息的空间。</p>
+        <span class="hero-kicker"><i />CAMPUS ACTIVITY WORKFLOW</span>
+        <h1>把心理活动，<br />组织得<span>更清楚一点</span>。</h1>
+        <p>心屿同行帮助心理社团和班级心理委员发起活动、制作页面与海报，并统一管理报名和参与数据。</p>
         <div class="hero-actions">
           <RouterLink class="hero-primary" to="/campus">
             发现近期活动 <Icon name="arrow-right" :size="17" />
@@ -106,9 +120,9 @@ onMounted(() => {
           </button>
         </div>
         <div class="hero-trust">
-          <span><Icon name="lock" :size="13" />隐私优先</span>
-          <span><Icon name="check" :size="13" />不做心理诊断</span>
-          <span><Icon name="users" :size="13" />支持匿名参与</span>
+          <span><Icon name="layout" :size="13" />页面与海报</span>
+          <span><Icon name="users" :size="13" />匿名参与</span>
+          <span><Icon name="chart" :size="13" />参与数据</span>
         </div>
       </div>
 
@@ -124,20 +138,20 @@ onMounted(() => {
     </section>
 
     <section class="intro-strip">
-      <span>心屿的方式</span>
-      <h2>不急着给答案，先把参与和表达变得更容易。</h2>
+      <span>社团日常运营</span>
+      <h2>把重复的活动组织工作，收进一套流程里。</h2>
       <div class="intro-points">
         <article>
           <i><Icon name="calendar" :size="19" /></i>
-          <div><strong>活动更容易被看见</strong><small>近期可报名活动集中展示，减少寻找和犹豫。</small></div>
+          <div><strong>活动发布</strong><small>统一填写时间、地点、名额、报名与隐私说明。</small></div>
         </article>
         <article>
-          <i><Icon name="lock" :size="19" /></i>
-          <div><strong>参与边界更清楚</strong><small>匿名、同意、隐私与退出说明随活动一起出现。</small></div>
+          <i><Icon name="layout" :size="19" /></i>
+          <div><strong>页面与海报</strong><small>从模板或页面工坊快速生成活动页面和传播素材。</small></div>
         </article>
         <article>
-          <i><Icon name="users" :size="19" /></i>
-          <div><strong>组织者更容易上手</strong><small>从活动信息到页面和海报，都能在页面工坊完成。</small></div>
+          <i><Icon name="chart" :size="19" /></i>
+          <div><strong>参与数据</strong><small>按活动查看报名、签到、匿名比例与反馈汇总。</small></div>
         </article>
       </div>
     </section>
@@ -146,8 +160,8 @@ onMounted(() => {
       <header>
         <div>
           <span>UPCOMING TOGETHER</span>
-          <h2>最近可以参与的心晴活动</h2>
-          <p>按自己的节奏来，不需要发言，也不需要完成任务。</p>
+          <h2>近期心理活动</h2>
+          <p>查看活动时间、参与方式和剩余报名信息。</p>
         </div>
         <RouterLink to="/campus">查看全部 <Icon name="arrow-right" :size="15" /></RouterLink>
       </header>
@@ -160,6 +174,7 @@ onMounted(() => {
           class="activity-card"
           :class="[`activity-card--${index + 1}`, `tone-${activity.coverTone || 'read'}`]"
         >
+          <img class="activity-cover" :src="coverImageFor(activity.coverTone)" alt="" loading="lazy" />
           <span class="activity-type">{{ activity.activityType || '心晴活动' }}</span>
           <div>
             <small>0{{ index + 1 }}</small>
@@ -173,24 +188,24 @@ onMounted(() => {
 
     <section class="nearby-section">
       <div class="nearby-copy">
-        <span>你在心屿可以做什么</span>
-        <h2>不只找活动，也可以停一下。</h2>
-        <p>心晴工具、心理资源和心屿社团介绍，都在同一个安静的空间里。</p>
+        <span>常用入口</span>
+        <h2>工具、资源与社团信息。</h2>
+        <p>直接进入需要使用的模块，不再用额外说明包住每个入口。</p>
       </div>
       <div class="nearby-links">
         <RouterLink to="/tools">
           <i><Icon name="spark" :size="20" /></i>
-          <div><strong>心晴工具</strong><small>呼吸、感受和片刻自我照顾</small></div>
+          <div><strong>心晴工具</strong><small>呼吸计时、情绪记录与本地便签</small></div>
           <Icon name="arrow-right" :size="16" />
         </RouterLink>
         <RouterLink to="/resources">
           <i><Icon name="help" :size="20" /></i>
-          <div><strong>心理资源</strong><small>科普、校内支持与求助方向</small></div>
+          <div><strong>心理资源</strong><small>校内咨询、危机电话与科普内容</small></div>
           <Icon name="arrow-right" :size="16" />
         </RouterLink>
         <RouterLink to="/about">
           <i><Icon name="users" :size="20" /></i>
-          <div><strong>关于心屿</strong><small>社团理念、活动方式和边界</small></div>
+          <div><strong>关于心屿</strong><small>平台功能、使用流程与服务边界</small></div>
           <Icon name="arrow-right" :size="16" />
         </RouterLink>
       </div>
@@ -199,8 +214,8 @@ onMounted(() => {
     <section class="maker-section">
       <div>
         <span>FOR ORGANIZERS</span>
-        <h2>一场活动，从想法到分享。</h2>
-        <p>组织者只需要填写活动信息。页面工坊会帮助生成 H5 和分享海报，隐私说明也随内容一起准备。</p>
+        <h2>一场活动，从创建到发布。</h2>
+        <p>填写基础信息后，在页面工坊完成 H5、海报、报名表单和隐私说明。</p>
         <button type="button" @click="goProtected('/projects/new')">
           打开页面工坊 <Icon name="arrow-right" :size="16" />
         </button>
@@ -216,15 +231,15 @@ onMounted(() => {
 
     <section class="safety-section">
       <div>
-        <span>WELLBEING IS NOT A SCORE</span>
-        <h2>关注参与，不评判内心。</h2>
+        <span>PLATFORM BOUNDARY</span>
+        <h2>平台边界。</h2>
       </div>
       <div class="safety-list">
         <article>
           <b>01</b><span><strong>不做心理诊断</strong><small>平台只支持活动组织，不提供诊断或治疗结论。</small></span>
         </article>
         <article><b>02</b><strong>只收集必要信息</strong><small>活动开始前就能看到信息用途和查看范围。</small></article>
-        <article><b>03</b><strong>匿名不等于失联</strong><small>参与者可以主动选择“希望有人联系我”。</small></article>
+        <article><b>03</b><strong>匿名只用于单场活动</strong><small>不建立跨活动身份关联，也不用于个体追踪。</small></article>
       </div>
     </section>
   </main>
@@ -233,7 +248,7 @@ onMounted(() => {
 <style scoped>
 .landing-page {
   color: var(--ink-900);
-  background: #f7f5f0;
+  background: var(--bg);
 }
 
 .hero {
@@ -279,7 +294,7 @@ onMounted(() => {
 .hero-kicker i {
   width: 26px;
   height: 1px;
-  background: #9ac8aa;
+  background: var(--brand-300);
 }
 
 .hero h1 {
@@ -322,7 +337,7 @@ onMounted(() => {
 
 .hero-primary {
   color: #173429;
-  background: #d7eadc;
+  background: var(--brand-100);
 }
 
 .hero-actions button {
@@ -410,7 +425,9 @@ onMounted(() => {
 }
 
 .intro-strip {
-  padding: 74px 0 62px;
+  width: 100%;
+  padding: 54px max(5vw, calc((100vw - 1220px) / 2)) 46px;
+  background: var(--surface-warm);
   text-align: center;
 }
 
@@ -450,7 +467,7 @@ onMounted(() => {
   align-items: flex-start;
   gap: 12px;
   padding: 22px;
-  background: #fbfaf6;
+  background: var(--surface);
   text-align: left;
 }
 
@@ -479,7 +496,7 @@ onMounted(() => {
 }
 
 .activities-section {
-  padding: 56px 0 74px;
+  padding: 44px 0 56px;
   border-top: 1px solid var(--line);
 }
 
@@ -515,45 +532,62 @@ onMounted(() => {
   display: grid;
   gap: 12px;
   margin-top: 24px;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-auto-rows: 190px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
 .activity-grid.is-compact {
-  grid-template-rows: minmax(390px, auto);
+  grid-template-rows: repeat(2, 190px);
 }
 
 .activity-grid.is-compact .activity-card--1 {
-  min-height: 390px;
-  grid-row: auto;
+  grid-row: span 2;
+}
+
+.activity-grid.is-compact .activity-card--2 {
+  grid-row: span 2;
 }
 
 .activity-card {
   position: relative;
   display: flex;
-  min-height: 270px;
+  min-height: 0;
   justify-content: space-between;
   overflow: hidden;
   padding: 22px;
-  border-radius: 21px;
+  border-radius: 0;
   color: #fff;
   flex-direction: column;
 }
 
 .activity-card--1 {
-  min-height: 554px;
+  grid-column: span 7;
   grid-row: span 2;
 }
 
-.activity-card.tone-read {
-  background: #547d63;
+.activity-card--2,
+.activity-card--3 {
+  grid-column: span 5;
 }
 
-.activity-card.tone-photo {
-  background: #967965;
+.activity-card--2,
+.activity-card--3 {
+  grid-row: span 1;
 }
 
-.activity-card.tone-volunteer {
-  background: #527d78;
+.activity-cover {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.activity-card::before {
+  position: absolute;
+  inset: 0;
+  background: rgb(20 42 33 / 28%);
+  content: '';
 }
 
 .activity-card::after {
@@ -562,7 +596,7 @@ onMounted(() => {
   bottom: -100px;
   width: 250px;
   height: 250px;
-  border: 1px solid rgb(255 255 255 / 24%);
+  border: 1px solid rgb(255 255 255 / 18%);
   border-radius: 50%;
   content: '';
 }
@@ -585,10 +619,13 @@ onMounted(() => {
 
 .activity-card > div {
   max-width: 500px;
+  padding: 13px 15px;
+  color: var(--brand-900);
+  background: rgb(255 253 249 / 90%);
 }
 
 .activity-card > div > small {
-  color: rgb(255 255 255 / 38%);
+  color: var(--ink-400);
   font-family: var(--font-serif);
   font-size: 22px;
 }
@@ -597,7 +634,7 @@ onMounted(() => {
   display: block;
   margin-top: 10px;
   font-family: var(--font-serif);
-  font-size: 27px;
+  font-size: 20px;
   letter-spacing: -0.045em;
   line-height: 1.22;
 }
@@ -609,9 +646,13 @@ onMounted(() => {
 .activity-card > div > p {
   max-width: 420px;
   margin-top: 10px;
-  color: rgb(255 255 255 / 62%);
+  color: var(--ink-600);
   font-size: 12px;
   line-height: 1.75;
+}
+
+.activity-card:not(.activity-card--1) > div > p {
+  display: none;
 }
 
 .activity-open {
@@ -620,14 +661,16 @@ onMounted(() => {
   gap: 5px;
   align-self: flex-start;
   margin-top: 18px;
-  color: rgb(255 255 255 / 72%);
+  padding: 5px 8px;
+  color: #fff;
+  background: rgb(20 42 33 / 76%);
   font-size: 10px;
 }
 
 .nearby-section {
   display: grid;
   gap: 50px;
-  padding: 66px 0;
+  padding: 48px 0;
   border-top: 1px solid var(--line);
   grid-template-columns: 0.8fr 1.2fr;
 }
@@ -654,7 +697,7 @@ onMounted(() => {
   display: grid;
   gap: 1px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 0;
   background: var(--line);
   overflow: hidden;
 }
@@ -664,7 +707,7 @@ onMounted(() => {
   align-items: center;
   gap: 13px;
   padding: 18px;
-  background: #fff;
+  background: var(--surface);
   grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
@@ -672,7 +715,7 @@ onMounted(() => {
   display: grid;
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: 0;
   color: var(--brand-600);
   background: var(--brand-50);
   place-items: center;
@@ -702,10 +745,10 @@ onMounted(() => {
   display: grid;
   align-items: center;
   gap: 45px;
-  padding: 44px;
-  border-radius: 28px;
+  padding: 34px;
+  border-radius: 0;
   color: #fff;
-  background: #294b3d;
+  background: var(--brand-800);
   grid-template-columns: 1fr 0.9fr;
 }
 
@@ -789,9 +832,9 @@ onMounted(() => {
 .safety-section {
   display: grid;
   gap: 55px;
-  margin-top: 64px;
-  margin-bottom: 70px;
-  padding-top: 52px;
+  margin-top: 46px;
+  margin-bottom: 54px;
+  padding-top: 40px;
   border-top: 1px solid var(--line);
   grid-template-columns: 0.8fr 1.2fr;
 }
@@ -809,7 +852,7 @@ onMounted(() => {
   display: grid;
   gap: 4px 12px;
   padding: 17px;
-  background: #fff;
+  background: var(--surface);
   grid-template-columns: auto 1fr;
 }
 
@@ -848,11 +891,29 @@ onMounted(() => {
   }
 
   .activity-grid {
+    grid-auto-rows: auto;
     grid-template-columns: 1fr;
   }
 
   .activity-card--1 {
     min-height: 360px;
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .activity-card--2,
+  .activity-card--3 {
+    min-height: 250px;
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .activity-grid.is-compact {
+    grid-template-rows: none;
+  }
+
+  .activity-grid.is-compact .activity-card--1,
+  .activity-grid.is-compact .activity-card--2 {
     grid-row: auto;
   }
 
@@ -892,7 +953,7 @@ onMounted(() => {
   }
 
   .intro-strip {
-    padding-top: 50px;
+    padding: 42px 18px 36px;
   }
 
   .activities-section > header {

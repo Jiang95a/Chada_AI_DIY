@@ -29,7 +29,7 @@ describe('参与数据总览', () => {
     const apps = wrapper.findAll('.published-app-list > button')
 
     expect(apps.length).toBe(2)
-    expect(wrapper.find('.summary-primary').text()).toContain('364')
+    expect(wrapper.find('.participation-total').text()).toContain('364')
     const care = apps.find((app) => app.text().includes('21 天自我关怀打卡'))
     await care!.trigger('click')
     expect(wrapper.find('.selected-app-head').text()).toContain('21 天自我关怀打卡')

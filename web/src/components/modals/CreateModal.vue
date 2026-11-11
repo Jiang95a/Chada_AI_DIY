@@ -6,7 +6,15 @@ import Icon from '@/components/ui/Icon.vue'
 import { metaOf } from '@/data/blockCatalog'
 import { buildQuickDoc, newDocFromBuild } from '@/data/templates'
 import { buildPlanPrompt, localDoc, normalizePlan, parsePlanFromText, planToDoc } from '@/services/planner'
-import { AgentError, askAgent, extractJson, extractPoster, PLAN_SYSTEM_EXTRA, probeAgent } from '@/services/agent'
+import {
+  AgentError,
+  askAgent,
+  extractJson,
+  extractPoster,
+  generatePosterArtwork,
+  PLAN_SYSTEM_EXTRA,
+  probeAgent,
+} from '@/services/agent'
 import { useEditorStore } from '@/stores/editor'
 import { useToast } from '@/composables/useToast'
 import { uploadAsset } from '@/services/assets'
@@ -75,6 +83,9 @@ onMounted(async () => {
 const posterFile = ref<string>('')
 const posterName = ref('')
 const posterParsing = ref(false)
+const posterSource = ref<'upload' | 'ai'>('upload')
+const posterPrompt = ref('')
+const posterGenerating = ref(false)
 /** 视觉能力没开（503）时不再反复重试，直接转手动填写 */
 const posterVisionOff = ref(false)
 const posterNotes = ref<string[]>([])
@@ -89,6 +100,9 @@ const posterForm = ref({
   capacity: 0,
   contact: '',
 })
+
+const posterPromptPlaceholder =
+  '例如：考试周心晴游园会，傍晚的校园草坪、暖米色背景、低饱和绿色植物和手写感标题，留出活动信息区域'
 
 const EVIDENCE_LABEL: Record<string, string> = {
   title: '活动名称',
@@ -219,6 +233,30 @@ async function onPosterPick(event: Event): Promise<void> {
   posterForm.value.title = store.doc.title
   posterForm.value.org = store.doc.meta.org
   void recognizePoster()
+}
+
+async function generatePoster(): Promise<void> {
+  const prompt = posterPrompt.value.trim()
+  if (!prompt) {
+    toast.pushToast('先描述想要的海报画面', 'warn')
+    return
+  }
+  posterGenerating.value = true
+  try {
+    const result = await generatePosterArtwork(prompt, {
+      aspectRatio: '3:4',
+      style: 'warm-editorial-campus',
+    })
+    posterSource.value = 'ai'
+    posterFile.value = result.url
+    posterName.value = result.model ? `AI 生成 · ${result.model}` : 'AI 生成海报'
+    toast.pushToast('海报底图已生成，请核对活动字段', 'success')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '海报生成失败'
+    toast.pushToast(`${message}，也可以上传已有海报`, 'warn')
+  } finally {
+    posterGenerating.value = false
+  }
 }
 
 /* ------------------------------- AI 生成 ------------------------------- */
@@ -454,7 +492,7 @@ const FORM_FIELDS: { key: PosterTextKey; label: string; placeholder: string }[] 
           <div
             class="tpl-card__cover"
             :style="{
-              background: `linear-gradient(135deg, ${template.gradient[0]}, ${template.gradient[1]})`,
+              background: template.gradient[0],
             }"
           >
             <Icon :name="template.icon" :size="20" />
@@ -470,14 +508,49 @@ const FORM_FIELDS: { key: PosterTextKey; label: string; placeholder: string }[] 
 
       <!-- 海报 -->
       <section v-else class="poster-tab">
-        <div class="poster-tab__upload" :class="{ 'has-image': posterFile }">
-          <img v-if="posterFile" :src="posterFile" alt="活动海报预览" class="poster-tab__img" />
-          <div v-else class="poster-tab__empty">
-            <Icon name="image" :size="24" />
-            <p>把活动海报拖进来 / 点这里选择</p>
-            <span>支持 PNG · JPG，5MB 以内</span>
+        <div class="poster-tab__visual">
+          <div class="poster-source-switch" role="group" aria-label="海报来源">
+            <button
+              type="button"
+              :class="{ 'is-active': posterSource === 'upload' }"
+              @click="posterSource = 'upload'"
+            >
+              上传已有图片
+            </button>
+            <button type="button" :class="{ 'is-active': posterSource === 'ai' }" @click="posterSource = 'ai'">
+              AI 生成海报
+            </button>
           </div>
-          <input type="file" accept="image/*" class="poster-tab__input" @change="onPosterPick" />
+          <div class="poster-tab__upload" :class="{ 'has-image': posterFile }">
+            <img v-if="posterFile" :src="posterFile" alt="活动海报预览" class="poster-tab__img" />
+            <div v-else-if="posterSource === 'upload'" class="poster-tab__empty">
+              <Icon name="image" :size="24" />
+              <p>把活动海报拖进来 / 点这里选择</p>
+              <span>支持 PNG · JPG，5MB 以内</span>
+            </div>
+            <div v-else class="poster-tab__empty">
+              <Icon name="spark" :size="24" />
+              <p>描述画面后生成一张海报底图</p>
+              <span>生成后仍可替换文字和活动信息</span>
+            </div>
+            <input
+              v-if="posterSource === 'upload'"
+              type="file"
+              accept="image/*"
+              class="poster-tab__input"
+              @change="onPosterPick"
+            />
+          </div>
+          <div v-if="posterSource === 'ai'" class="poster-ai-controls">
+            <label class="field">
+              <span class="field__label">海报画面描述</span>
+              <textarea v-model="posterPrompt" class="textarea" rows="4" :placeholder="posterPromptPlaceholder" />
+            </label>
+            <button type="button" class="btn btn--primary btn--block" :disabled="posterGenerating" @click="generatePoster">
+              <Icon name="spark" :size="14" />{{ posterGenerating ? '正在生成海报…' : '生成海报底图' }}
+            </button>
+            <p class="hint">AI 只生成视觉底图，活动名称、时间、地点和隐私说明仍由你核对。</p>
+          </div>
         </div>
 
         <div class="poster-tab__form">
@@ -635,8 +708,8 @@ const FORM_FIELDS: { key: PosterTextKey; label: string; placeholder: string }[] 
 .result {
   padding: 14px;
   border: 1px solid var(--brand-100);
-  border-radius: 14px;
-  background: linear-gradient(180deg, #fbfaff, #fff);
+  border-radius: 0;
+  background: var(--surface-warm);
 }
 
 .result__head {
@@ -779,7 +852,7 @@ const FORM_FIELDS: { key: PosterTextKey; label: string; placeholder: string }[] 
 .tpl-card {
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 13px;
+  border-radius: 0;
   background: #fff;
 }
 
@@ -822,13 +895,43 @@ const FORM_FIELDS: { key: PosterTextKey; label: string; placeholder: string }[] 
   gap: 16px;
 }
 
+.poster-tab__visual {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.poster-source-switch {
+  display: grid;
+  border: 1px solid var(--line);
+  background: var(--surface-soft);
+  grid-template-columns: 1fr 1fr;
+}
+
+.poster-source-switch button {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 0;
+  color: var(--ink-500);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.poster-source-switch button.is-active {
+  color: var(--brand-800);
+  background: var(--surface-warm);
+  box-shadow: inset 0 -2px var(--accent-500);
+}
+
 .poster-tab__upload {
   position: relative;
   display: grid;
   place-items: center;
   min-height: 220px;
   border: 1.5px dashed var(--line-strong);
-  border-radius: 13px;
+  border-radius: 2px;
   background: var(--ink-50);
   overflow: hidden;
   cursor: pointer;
@@ -872,6 +975,11 @@ const FORM_FIELDS: { key: PosterTextKey; label: string; placeholder: string }[] 
   display: flex;
   flex-direction: column;
   gap: 9px;
+}
+
+.poster-ai-controls {
+  display: grid;
+  gap: 8px;
 }
 
 .poster-tab__note {

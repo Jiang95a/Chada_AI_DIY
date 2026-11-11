@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import WellbeingToolkit from '@/components/public/WellbeingToolkit.vue'
 import Icon from '@/components/ui/Icon.vue'
 
@@ -21,25 +21,6 @@ const selfCareItems = [
   { id: 'pause', label: '允许自己什么都不做一会儿' },
 ]
 const completedCare = ref<string[]>([])
-
-const needs = [
-  { id: 'stress', label: '压力有点大', tool: '先试试 5-4-3-2-1 感官落地，让注意力回到当下。', target: 'grounding' },
-  { id: 'sleep', label: '最近睡不好', tool: '可以先把睡前目标缩小：离开屏幕、调暗灯光、放松五分钟。', target: 'care' },
-  {
-    id: 'people',
-    label: '和别人的关系让我难受',
-    tool: '不需要马上解决关系。先写下一句此刻最想表达的话，留在本机。',
-    target: 'note',
-  },
-  {
-    id: 'quiet',
-    label: '我只想安静一下',
-    tool: '不用完成任何任务。可以做一个缓慢呼吸练习后离开页面。',
-    target: 'breathing',
-  },
-]
-const selectedNeed = ref('')
-const selectedNeedInfo = computed(() => needs.find((item) => item.id === selectedNeed.value))
 
 const privateNote = ref('')
 const noteSaved = ref(false)
@@ -94,47 +75,22 @@ onMounted(() => {
 <template>
   <main class="tools-page">
     <section class="tools-hero">
-      <span>GENTLE SELF-CARE TOOLS</span>
-      <h1>心晴工具箱</h1>
-      <p>这些工具用于短时间的自我照顾和活动参与，不做心理测评，也不会把你的内容发送到服务器。</p>
+      <span>WELLBEING TOOLS</span>
+      <h1>心晴工具</h1>
+      <p>呼吸计时、情绪记录、感官定位和本地便签。内容仅保存在当前浏览器，不做心理测评。</p>
       <div>
         <span><Icon name="check" :size="13" />只保存在本机</span>
-        <span><Icon name="check" :size="13" />随时可以停止</span>
-        <span><Icon name="check" :size="13" />没有正确完成方式</span>
+        <span><Icon name="check" :size="13" />随时停止</span>
+        <span><Icon name="check" :size="13" />不提交服务器</span>
       </div>
     </section>
 
     <WellbeingToolkit />
 
-    <section class="tools-section">
-      <header>
-        <span>从眼前的感受开始</span>
-        <h2>选择最接近此刻的需要</h2>
-      </header>
-      <div class="need-layout">
-        <div class="need-options">
-          <button
-            v-for="need in needs"
-            :key="need.id"
-            type="button"
-            :class="{ 'is-active': selectedNeed === need.id }"
-            @click="selectedNeed = need.id"
-          >
-            {{ need.label }}<Icon name="arrow-right" :size="14" />
-          </button>
-        </div>
-        <article class="need-result">
-          <span><Icon name="spark" :size="18" />一个可以尝试的方向</span>
-          <strong>{{ selectedNeedInfo?.tool || '不需要马上给感受一个答案，可以先选最接近的一项。' }}</strong>
-          <p v-if="selectedNeedInfo">如果它不合适，可以随时换一个工具或离开页面。</p>
-        </article>
-      </div>
-    </section>
-
     <section id="grounding" class="tools-section">
       <header>
         <span>5-4-3-2-1 感官落地</span>
-        <h2>把注意力慢慢带回此刻</h2>
+        <h2>感官定位练习</h2>
       </header>
       <div class="grounding-card">
         <div class="grounding-progress">
@@ -157,8 +113,8 @@ onMounted(() => {
     <section class="tools-two-column">
       <article id="care" class="simple-tool-card">
         <header>
-          <span>今天的小小照顾</span>
-          <h2>完成一件就够了</h2>
+          <span>今日清单</span>
+          <h2>自我照料清单</h2>
         </header>
         <div class="self-care-list">
           <button
@@ -172,19 +128,19 @@ onMounted(() => {
             {{ item.label }}
           </button>
         </div>
-        <p>提示：这不是任务清单，没有全部完成的要求。</p>
+        <p>勾选今天完成的事项，不需要全部完成。</p>
       </article>
 
       <article id="note" class="simple-tool-card note-tool">
         <header>
-          <span>只给自己看的便签</span>
-          <h2>把此刻想说的话放在这里</h2>
+          <span>浏览器本地存储</span>
+          <h2>临时便签</h2>
         </header>
         <textarea
           v-model="privateNote"
           rows="6"
           maxlength="500"
-          placeholder="不想发出去的话，也可以只写给自己。内容只保存在当前浏览器。"
+          placeholder="记录需要暂时放下的信息。内容只保存在当前浏览器。"
         />
         <div>
           <button type="button" @click="clearNote">清空</button>
@@ -199,8 +155,8 @@ onMounted(() => {
       <div>
         <Icon name="help" :size="21" />
         <div>
-          <strong>工具不能替代真实支持</strong>
-          <p>如果困扰持续影响生活，或你正在经历立即危险，请联系学校心理健康中心、信任的老师，或拨打 120 / 110。</p>
+          <strong>需要人工支持时</strong>
+          <p>如需专业帮助，请查看心理资源；如存在立即危险，请拨打 120 / 110。</p>
         </div>
       </div>
       <RouterLink to="/resources">查看心理资源与求助方向 <Icon name="arrow-right" :size="14" /></RouterLink>
@@ -212,11 +168,11 @@ onMounted(() => {
 .tools-page {
   width: min(1240px, calc(100% - 56px));
   margin: 0 auto;
-  padding-bottom: 80px;
+  padding-bottom: 56px;
 }
 
 .tools-hero {
-  padding: 56px 0 32px;
+  padding: 34px 0 22px;
 }
 
 .tools-hero > span,
@@ -231,13 +187,13 @@ onMounted(() => {
 .tools-hero h1 {
   margin-top: 11px;
   font-family: var(--font-serif);
-  font-size: clamp(42px, 6vw, 68px);
+  font-size: 48px;
   letter-spacing: -0.06em;
 }
 
 .tools-hero > p {
   max-width: 680px;
-  margin-top: 13px;
+  margin-top: 10px;
   color: var(--ink-500);
   font-size: 11px;
   line-height: 1.8;
@@ -247,7 +203,7 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  margin-top: 20px;
+  margin-top: 14px;
 }
 
 .tools-hero > div span {
@@ -263,8 +219,8 @@ onMounted(() => {
 }
 
 .tools-section {
-  margin-top: 44px;
-  padding-top: 30px;
+  margin-top: 26px;
+  padding-top: 20px;
   border-top: 1px solid var(--line);
 }
 
@@ -272,7 +228,7 @@ onMounted(() => {
 .simple-tool-card h2 {
   margin-top: 8px;
   font-family: var(--font-serif);
-  font-size: 30px;
+  font-size: 26px;
   letter-spacing: -0.04em;
 }
 
@@ -349,8 +305,8 @@ onMounted(() => {
   margin: 22px auto 0;
   padding: 27px;
   border: 1px solid var(--line);
-  border-radius: 22px;
-  background: #fff;
+  border-radius: 0;
+  background: var(--surface);
   flex-direction: column;
   text-align: center;
 }
@@ -421,15 +377,15 @@ onMounted(() => {
 .tools-two-column {
   display: grid;
   gap: 13px;
-  margin-top: 44px;
+  margin-top: 26px;
   grid-template-columns: 1fr 1fr;
 }
 
 .simple-tool-card {
   padding: 24px;
   border: 1px solid var(--line);
-  border-radius: 20px;
-  background: #fff;
+  border-radius: 0;
+  background: var(--surface);
 }
 
 .self-care-list {
@@ -528,10 +484,10 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-top: 44px;
+  margin-top: 26px;
   padding: 20px;
   border: 1px solid #eadfcf;
-  border-radius: 17px;
+  border-radius: 0;
   color: #816447;
   background: #fcf8ef;
 }

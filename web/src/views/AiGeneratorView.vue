@@ -377,9 +377,9 @@ onMounted(async () => {
 .ai-guide-note,
 .ai-result {
   border: 1px solid var(--line);
-  border-radius: var(--radius-card);
+  border-radius: 0;
   background: var(--surface);
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
 }
 
 .ai-builder-card {
@@ -401,7 +401,7 @@ onMounted(async () => {
   flex: 0 0 auto;
   border-radius: 13px;
   color: var(--brand-600);
-  background: linear-gradient(135deg, var(--brand-100), var(--accent-100));
+  background: var(--surface-warm);
   place-items: center;
 }
 
@@ -459,7 +459,7 @@ onMounted(async () => {
   gap: 10px;
   padding: 11px 12px;
   border: 1px solid var(--line, #e9ecf3);
-  border-radius: 13px;
+  border-radius: 0;
   color: var(--ink-800, #1e293b);
   background: #fff;
   text-align: left;
@@ -474,7 +474,6 @@ onMounted(async () => {
 .ai-scene-grid button:hover {
   border-color: var(--brand-200);
   background: var(--brand-50);
-  transform: translateY(-1px);
 }
 
 .ai-scene-grid button > span {
@@ -513,9 +512,9 @@ onMounted(async () => {
 .ai-composer {
   overflow: hidden;
   border: 1px solid var(--line-strong, #dfe3ee);
-  border-radius: var(--radius-card);
+  border-radius: 0;
   background: var(--surface-raised);
-  box-shadow: 0 12px 35px -30px rgb(45 80 70 / 30%);
+  box-shadow: none;
   transition:
     border-color 0.16s ease,
     box-shadow 0.16s ease;
@@ -707,7 +706,7 @@ onMounted(async () => {
   gap: 10px;
   padding: 17px;
   color: #087f5b;
-  background: linear-gradient(135deg, #f0fdf8, #f7fffc);
+  background: var(--mint-50);
 }
 
 .ai-guide-note > svg {

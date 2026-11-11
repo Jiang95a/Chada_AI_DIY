@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { askAgent, extractPoster } from '@/services/agent'
+import { askAgent, extractPoster, generatePosterArtwork } from '@/services/agent'
 import { loadTemplateCatalog } from '@/services/templates'
 
 function jsonResponse(data: unknown, status = 200): Response {
@@ -99,6 +99,24 @@ describe('前端后端服务契约', () => {
     const result = await extractPoster('data:image/png;base64,AAAA')
     expect(result.info.title).toBe('校园活动')
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain('/api/v1/ai/poster/extract')
+    expect(String(fetchMock.mock.calls[0]?.[0])).not.toContain(':8000')
+  })
+
+  it('AI 海报生成只请求业务后端 /ai/poster/generate', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({
+        data: {
+          url: 'https://assets.example/poster.webp',
+          prompt: '考试周游园会',
+          model: 'image-test',
+        },
+      })
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const result = await generatePosterArtwork('考试周游园会海报')
+    expect(result.url).toContain('poster.webp')
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('/api/v1/ai/poster/generate')
     expect(String(fetchMock.mock.calls[0]?.[0])).not.toContain(':8000')
   })
 })

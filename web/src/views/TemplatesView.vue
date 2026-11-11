@@ -353,19 +353,14 @@ async function confirmDeleteTemplate(): Promise<void> {
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: var(--radius-card);
+  border-radius: 0;
   background: var(--surface);
-  box-shadow: var(--shadow-card);
-  transition:
-    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 200ms ease,
-    border-color 200ms ease;
+  box-shadow: none;
+  transition: border-color 200ms ease;
 }
 
 .template-card:hover {
-  transform: translateY(-4px);
   border-color: var(--brand-200);
-  box-shadow: 0 18px 34px -26px rgb(37 55 45 / 42%);
 }
 
 .template-card__art {
@@ -386,11 +381,10 @@ async function confirmDeleteTemplate(): Promise<void> {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .template-card:hover .template-card__image {
-  transform: scale(1.025);
+  transform: none;
 }
 
 .template-card__art::before {
@@ -604,7 +598,7 @@ async function confirmDeleteTemplate(): Promise<void> {
   gap: 30px;
   overflow: hidden;
   padding: 30px;
-  border-radius: 22px;
+  border-radius: 0;
   color: #fff;
   background: #24483a;
   grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
@@ -716,14 +710,10 @@ async function confirmDeleteTemplate(): Promise<void> {
   background: #e7eadb;
   text-align: left;
   cursor: pointer;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease;
 }
 
 .templates-ai-submit:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 32px -18px rgb(158 241 220 / 70%);
+  background: #f0eddf;
 }
 
 .templates-ai-submit > span {

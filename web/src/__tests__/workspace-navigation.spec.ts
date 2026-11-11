@@ -109,6 +109,17 @@ describe('工作台外框入口', () => {
     wrapper.unmount()
   })
 
+  it('工作台能切换页面配色并写入 html 主题标记', async () => {
+    const wrapper = await mountAt('/projects')
+    const button = wrapper.find('.workspace-theme-button')
+    expect(button.exists()).toBe(true)
+    const before = document.documentElement.dataset.theme
+    await button.trigger('click')
+    await flushPromises()
+    expect(document.documentElement.dataset.theme).not.toBe(before)
+    wrapper.unmount()
+  })
+
   it('心晴工具箱无需登录也能使用', async () => {
     localStorage.clear()
     const wrapper = await mountAt('/tools')

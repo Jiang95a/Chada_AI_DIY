@@ -6,6 +6,7 @@ import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useProjectStore } from '@/stores/projects'
 import { useWorkspace } from '@/composables/useWorkspace'
+import { usePreferences, type ThemePreference } from '@/composables/usePreferences'
 import {
   listNotifications,
   markAllNotificationsRead as markAllNotificationsReadApi,
@@ -19,6 +20,7 @@ const auth = useAuthStore()
 const projectStore = useProjectStore()
 const toast = useToast()
 const { selected: currentWorkspace } = useWorkspace()
+const { theme, setTheme } = usePreferences()
 const rootRef = ref<HTMLElement | null>(null)
 const searchRef = ref<HTMLInputElement | null>(null)
 const searchText = ref('')
@@ -32,6 +34,16 @@ const workspaceAvatar = computed(() => currentWorkspace.value.avatar)
 
 const notifications = ref<NotificationRecord[]>([])
 const unreadNotificationCount = ref(0)
+
+const themeOptions: Array<{ value: ThemePreference; label: string }> = [
+  { value: 'sage', label: '鼠尾草绿' },
+  { value: 'oat', label: '燕麦米黄' },
+  { value: 'mist', label: '雾青' },
+  { value: 'slate', label: '雾蓝石板' },
+]
+const themeLabel = computed(
+  () => themeOptions.find((item) => item.value === theme.value)?.label ?? '鼠尾草绿'
+)
 
 const operationNavItems = [
   { href: '/projects', label: '运营概览', icon: 'home' },
@@ -176,6 +188,14 @@ function onKeydown(event: KeyboardEvent): void {
     event.preventDefault()
     void nextTick(() => searchRef.value?.focus())
   }
+}
+
+function cycleTheme(): void {
+  const index = themeOptions.findIndex((item) => item.value === theme.value)
+  const next = themeOptions[(index + 1) % themeOptions.length]
+  if (!next) return
+  setTheme(next.value)
+  toast.pushToast(`已切换为${next.label}`, 'success')
 }
 
 onMounted(() => {
@@ -330,6 +350,15 @@ onBeforeUnmount(() => {
             </button>
             <kbd>Ctrl K</kbd>
           </label>
+          <button
+            class="app-icon-button workspace-theme-button"
+            type="button"
+            :aria-label="`切换配色，当前为${themeLabel}`"
+            :title="`切换配色：${themeLabel}`"
+            @click="cycleTheme"
+          >
+            <span class="workspace-theme-swatch" :class="`is-${theme}`" />
+          </button>
           <div class="workspace-popover-anchor">
             <button
               class="app-icon-button workspace-notification-button"
@@ -427,6 +456,31 @@ onBeforeUnmount(() => {
 .workspace-notification-menu .workspace-menu-footer:disabled {
   opacity: 0.48;
   cursor: default;
+}
+
+.workspace-theme-button {
+  background: var(--surface);
+}
+
+.workspace-theme-swatch {
+  width: 17px;
+  height: 17px;
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+  background: var(--brand-600);
+  box-shadow: 0 0 0 1px var(--line-strong);
+}
+
+.workspace-theme-swatch.is-oat {
+  background: #b88c72;
+}
+
+.workspace-theme-swatch.is-mist {
+  background: #527d78;
+}
+
+.workspace-theme-swatch.is-slate {
+  background: #546b7a;
 }
 
 .workspace-identity {

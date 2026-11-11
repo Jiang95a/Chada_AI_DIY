@@ -184,6 +184,12 @@ export interface PosterExtractResult {
   latencyMs: number
 }
 
+export interface PosterGenerationResult {
+  url: string
+  prompt: string
+  model: string
+}
+
 /**
  * 把一张海报（data URL）发给智能体的视觉能力，换回结构化字段。
  *
@@ -231,5 +237,43 @@ export async function extractPoster(dataUrl: string, timeoutMs = 90000): Promise
     warnings: Array.isArray(body?.warnings) ? body.warnings : [],
     model: String(body?.model ?? ''),
     latencyMs: Number(body?.latencyMs ?? 0),
+  }
+}
+
+/**
+ * 生成活动海报底图。
+ *
+ * 前端只向后端提交文案和版式，不直接持有图像模型 Key。后端未配置图像模型时
+ * 应返回 503，页面继续保留“上传已有海报”和本地排版能力。
+ */
+export async function generatePosterArtwork(
+  prompt: string,
+  options: { aspectRatio?: string; style?: string; timeoutMs?: number } = {}
+): Promise<PosterGenerationResult> {
+  let raw: unknown
+  try {
+    raw = await apiRequest(
+      '/ai/poster/generate',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt,
+          aspectRatio: options.aspectRatio ?? '3:4',
+          style: options.style ?? 'warm-editorial',
+        }),
+      },
+      { timeoutMs: options.timeoutMs ?? 120000 }
+    )
+  } catch (error) {
+    throw toAgentError(error)
+  }
+
+  const data = readData<{ url?: string; dataUrl?: string; prompt?: string; model?: string }>(raw)
+  const url = data.url || data.dataUrl || ''
+  if (!url) throw new AgentError('FORMAT', 'AI 没有返回可用的海报图片')
+  return {
+    url,
+    prompt: data.prompt ?? prompt,
+    model: data.model ?? '',
   }
 }

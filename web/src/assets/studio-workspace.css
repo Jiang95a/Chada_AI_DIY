@@ -743,10 +743,7 @@ html[data-motion='reduced'] *::after {
 .workspace-sidebar {
   color: #f3f4ed;
   border-right-color: rgb(255 255 255 / 7%);
-  background:
-    radial-gradient(circle at 22% 0%, rgb(149 177 146 / 18%), transparent 29%),
-    radial-gradient(circle at 88% 76%, rgb(184 140 114 / 12%), transparent 30%),
-    linear-gradient(180deg, #203c30, #172d24 68%, #10221a);
+  background: var(--brand-800);
 }
 
 .workspace-brand {
@@ -754,8 +751,8 @@ html[data-motion='reduced'] *::after {
 }
 
 .workspace-brand-mark {
-  background: linear-gradient(145deg, #d3ddc4, #6d9a79);
-  box-shadow: 0 10px 24px rgb(0 0 0 / 20%);
+  background: var(--brand-500);
+  box-shadow: none;
 }
 
 .workspace-brand-copy strong {
@@ -779,8 +776,8 @@ html[data-motion='reduced'] *::after {
 }
 
 .workspace-org-avatar {
-  color: #243d2f;
-  background: #d8e4d4;
+  color: var(--brand-900);
+  background: var(--surface);
 }
 
 .workspace-org-card small {
@@ -805,11 +802,9 @@ html[data-motion='reduced'] *::after {
 }
 
 .workspace-nav-item.is-active {
-  color: #173127;
-  background: linear-gradient(105deg, #f0f1e6, #e8e9da);
-  box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 34%),
-    0 8px 20px -16px rgb(0 0 0 / 40%);
+  color: var(--brand-900);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 22%);
 }
 
 .workspace-nav-item.is-active::before {
@@ -823,7 +818,7 @@ html[data-motion='reduced'] *::after {
 }
 
 .workspace-nav-item.is-active svg {
-  color: #315b43;
+  color: var(--brand-600);
 }
 
 .workspace-help-trigger {
@@ -852,5 +847,5 @@ html[data-motion='reduced'] *::after {
 
 .workspace-topbar .workspace-top-avatar {
   color: #fff;
-  background: linear-gradient(145deg, #5c876e, #2d513c);
+  background: var(--brand-600);
 }

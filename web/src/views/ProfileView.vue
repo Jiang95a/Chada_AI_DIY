@@ -16,16 +16,12 @@ const saving = ref(false)
 const portfolio = ref<Portfolio | null>(null)
 const portfolioLoading = ref(false)
 const portfolioError = ref('')
+const profileTags = ref<string[]>([])
+const newTag = ref('')
 
 const initials = computed(() => (auth.user?.displayName || 'U').slice(0, 1).toUpperCase())
 const publishedCount = computed(() => projectStore.projects.filter((project) => project.status === 'published').length)
 const submissionCount = computed(() => projectStore.projects.reduce((sum, project) => sum + project.submissionCount, 0))
-const completion = computed(() => {
-  const nameReady = Boolean(auth.user?.displayName?.trim())
-  const emailReady = Boolean(auth.user?.email)
-  return nameReady && emailReady ? 100 : emailReady ? 70 : 40
-})
-
 watch(
   () => auth.user?.displayName,
   (value) => {
@@ -33,6 +29,35 @@ watch(
   },
   { immediate: true }
 )
+
+function persistTags(): void {
+  try {
+    localStorage.setItem('diy-campus:profile-tags', JSON.stringify(profileTags.value))
+  } catch {
+    // 本地存储不可用时只保留当前页面状态。
+  }
+}
+
+function addTag(): void {
+  const value = newTag.value.trim().replace(/^#/, '').slice(0, 12)
+  if (!value) return
+  if (profileTags.value.includes(value)) {
+    toast.pushToast('这个标签已经存在', 'warn')
+    return
+  }
+  if (profileTags.value.length >= 6) {
+    toast.pushToast('最多设置 6 个个人标签', 'warn')
+    return
+  }
+  profileTags.value.push(value)
+  newTag.value = ''
+  persistTags()
+}
+
+function removeTag(value: string): void {
+  profileTags.value = profileTags.value.filter((item) => item !== value)
+  persistTags()
+}
 
 async function saveProfile(): Promise<void> {
   const value = displayName.value.trim()
@@ -78,6 +103,14 @@ function monthLabel(value: string): string {
 }
 
 onMounted(async () => {
+  try {
+    const storedTags = JSON.parse(localStorage.getItem('diy-campus:profile-tags') ?? '[]') as unknown
+    if (Array.isArray(storedTags)) {
+      profileTags.value = storedTags.filter((item): item is string => typeof item === 'string').slice(0, 6)
+    }
+  } catch {
+    profileTags.value = []
+  }
   await auth.fetchMe()
   await projectStore.loadProjects()
   portfolioLoading.value = true
@@ -96,9 +129,7 @@ onMounted(async () => {
     <main class="account-page">
       <header class="account-heading">
         <div>
-          <p class="eyebrow">Your place in Xinyu</p>
           <h1>个人资料</h1>
-          <p>管理账号信息，也回看你与心屿一起发生过的连接。</p>
         </div>
         <div class="account-heading-actions">
           <RouterLink to="/settings"><Icon name="sliders" :size="15" />偏好设置</RouterLink>
@@ -107,29 +138,26 @@ onMounted(async () => {
       </header>
 
       <section class="profile-hero">
-        <div class="profile-orbit">
-          <span class="profile-avatar">{{ initials }}</span>
-          <i /><i /><i />
+        <div class="profile-monogram">
+          <strong>{{ initials }}</strong>
+          <small>心屿成员</small>
         </div>
         <div class="profile-identity">
           <span class="profile-status"><i />{{ auth.user?.status === 'active' ? '账号正常' : '账号受限' }}</span>
           <h2>{{ auth.user?.displayName || '未命名用户' }}</h2>
           <p>{{ auth.user?.email || '正在加载账号信息…' }}</p>
-          <blockquote>“在这里，不需要急着成为一个更好的人。”</blockquote>
-        </div>
-        <div class="profile-progress">
-          <span>资料完整度</span>
-          <strong>{{ completion }}<small>%</small></strong>
-          <i><b :style="{ width: `${completion}%` }" /></i>
+          <div v-if="profileTags.length" class="profile-tag-list">
+            <span v-for="tag in profileTags" :key="tag"># {{ tag }}</span>
+          </div>
+          <p v-else class="profile-tag-empty">还没有个人标签，可以在下方补充。</p>
         </div>
       </section>
 
       <div class="account-grid">
         <section class="account-card identity-card">
           <header>
-            <span>ACCOUNT</span>
             <h2>基本信息</h2>
-            <p>昵称会显示在活动组织与团队协作中。</p>
+            <p>昵称用于活动组织与团队协作。</p>
           </header>
           <form class="profile-form" @submit.prevent="saveProfile">
             <label>
@@ -139,7 +167,6 @@ onMounted(async () => {
             <label>
               <span>邮箱</span>
               <input :value="auth.user?.email || ''" readonly />
-              <small>邮箱是登录账号，目前不支持直接修改。</small>
             </label>
             <label>
               <span>用户 ID</span>
@@ -148,6 +175,23 @@ onMounted(async () => {
                 <button type="button" @click="copyId"><Icon name="copy" :size="13" />复制</button>
               </div>
             </label>
+            <div class="profile-tag-editor">
+              <span>个人标签</span>
+              <div class="profile-tag-list profile-tag-list--editable">
+                <button v-for="tag in profileTags" :key="tag" type="button" @click="removeTag(tag)">
+                  # {{ tag }} <Icon name="close" :size="10" />
+                </button>
+              </div>
+              <div class="profile-tag-add">
+                <input
+                  v-model="newTag"
+                  maxlength="12"
+                  placeholder="例如：活动策划、视觉设计"
+                  @keydown.enter.prevent="addTag"
+                />
+                <button type="button" @click="addTag"><Icon name="plus" :size="13" />添加</button>
+              </div>
+            </div>
             <button class="profile-save" type="submit" :disabled="saving">
               <Icon name="check" :size="15" />{{ saving ? '保存中…' : '保存资料' }}
             </button>
@@ -172,8 +216,8 @@ onMounted(async () => {
           <section class="account-tip">
             <Icon name="lock" :size="18" />
             <div>
-              <strong>隐私提示</strong>
-              <p>活动页面只应收集必要信息。匿名参与不会在成长档案中暴露活动回答。</p>
+              <strong>数据边界</strong>
+              <p>匿名参与不会在这里展示活动回答。</p>
             </div>
           </section>
         </aside>
@@ -182,7 +226,6 @@ onMounted(async () => {
       <section class="journey-section">
         <header>
           <div>
-            <span>MY JOURNEY</span>
             <h2>我的参与轨迹</h2>
             <p>只展示你本人参与或组织过的已发布活动。</p>
           </div>
@@ -239,7 +282,7 @@ onMounted(async () => {
 .account-page {
   width: min(1220px, 100%);
   margin: 0 auto;
-  padding: 32px 34px 64px;
+  padding: 24px 28px 48px;
 }
 
 .account-heading {
@@ -258,10 +301,10 @@ onMounted(async () => {
 }
 
 .account-heading h1 {
-  margin: 6px 0 7px;
+  margin: 0 0 6px;
   font-family: var(--font-serif);
-  font-size: clamp(32px, 4.2vw, 48px);
-  letter-spacing: -0.055em;
+  font-size: 38px;
+  letter-spacing: -0.045em;
 }
 
 .account-heading > div > p:last-child {
@@ -283,151 +326,101 @@ onMounted(async () => {
 }
 
 .profile-hero {
-  position: relative;
   display: grid;
-  min-height: 245px;
-  align-items: center;
-  gap: 28px;
-  overflow: hidden;
+  min-height: 228px;
+  align-items: stretch;
+  gap: 0;
   margin-top: 24px;
-  padding: 34px;
-  border-radius: 26px;
-  color: #fff;
-  background:
-    radial-gradient(circle at 90% 10%, rgb(255 255 255 / 16%), transparent 25%),
-    linear-gradient(130deg, #1e382b, #406d54 62%, #98765f);
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  border-block: 1px solid var(--line);
+  background: var(--surface-warm);
+  grid-template-columns: 190px minmax(0, 1fr);
 }
 
-.profile-hero::after {
-  position: absolute;
-  right: -90px;
-  bottom: -170px;
-  width: 420px;
-  height: 420px;
-  border: 1px solid rgb(255 255 255 / 13%);
-  border-radius: 50%;
-  content: '';
-}
-
-.profile-orbit {
-  position: relative;
+.profile-monogram {
   display: grid;
-  width: 118px;
-  height: 118px;
-  place-items: center;
+  align-content: space-between;
+  padding: 24px;
+  border-right: 1px solid var(--line);
 }
 
-.profile-avatar {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  width: 82px;
-  height: 82px;
-  border-radius: 50%;
-  color: #264331;
-  background: #eef0df;
+.profile-monogram > span,
+.profile-monogram > small {
+  color: var(--accent-700);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.1em;
+}
+
+.profile-monogram > strong {
+  color: var(--brand-900);
   font-family: var(--font-serif);
-  font-size: 34px;
-  place-items: center;
-}
-
-.profile-orbit i {
-  position: absolute;
-  border: 1px solid rgb(255 255 255 / 16%);
-  border-radius: 50%;
-}
-
-.profile-orbit i:nth-child(2) {
-  inset: 4px;
-}
-
-.profile-orbit i:nth-child(3) {
-  inset: -8px;
-  animation: orbitPulse 5s ease-in-out infinite;
-}
-
-.profile-orbit i:nth-child(4) {
-  inset: -22px;
+  font-size: 92px;
+  font-weight: 600;
+  letter-spacing: -0.08em;
+  line-height: 0.9;
 }
 
 .profile-identity {
-  position: relative;
-  z-index: 1;
+  display: flex;
   min-width: 0;
+  justify-content: center;
+  padding: 30px 34px;
+  flex-direction: column;
 }
 
 .profile-status {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: #cbe8d6;
-  font-size: 8px;
+  color: var(--brand-600);
+  font-size: 10px;
 }
 
 .profile-status i {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #8ee0b2;
+  background: var(--mint-500);
 }
 
 .profile-identity h2 {
   margin-top: 9px;
+  color: var(--brand-900);
   font-family: var(--font-serif);
-  font-size: 30px;
+  font-size: 36px;
   letter-spacing: -0.04em;
 }
 
 .profile-identity > p {
   margin-top: 4px;
-  color: rgb(255 255 255 / 55%);
-  font-size: 9px;
-}
-
-.profile-identity blockquote {
-  margin: 20px 0 0;
-  color: rgb(255 255 255 / 70%);
-  font-family: var(--font-serif);
-  font-size: 15px;
-}
-
-.profile-progress {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  width: 180px;
-  flex-direction: column;
-}
-
-.profile-progress > span {
-  color: rgb(255 255 255 / 44%);
-  font-size: 8px;
-}
-
-.profile-progress > strong {
-  margin-top: 6px;
-  font-family: var(--font-serif);
-  font-size: 33px;
-}
-
-.profile-progress > strong small {
-  font-family: var(--font);
+  color: var(--ink-500);
   font-size: 12px;
 }
 
-.profile-progress > i {
-  height: 4px;
-  overflow: hidden;
-  margin-top: 7px;
-  border-radius: 99px;
-  background: rgb(255 255 255 / 14%);
+.profile-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 18px;
 }
 
-.profile-progress > i b {
-  display: block;
-  height: 100%;
-  background: #cfe3d4;
+.profile-tag-list > span,
+.profile-tag-list > button {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 9px;
+  border: 1px solid var(--line-strong);
+  color: var(--brand-700);
+  background: var(--surface);
+  font-size: 10px;
+}
+
+.profile-tag-empty {
+  margin-top: 18px !important;
+  color: var(--ink-500) !important;
+  font-size: 11px !important;
 }
 
 .account-grid {
@@ -442,8 +435,8 @@ onMounted(async () => {
 .overview-card,
 .journey-section {
   border: 1px solid var(--line);
-  border-radius: 19px;
-  background: #fff;
+  border-radius: 0;
+  background: var(--surface);
 }
 
 .account-card {
@@ -512,6 +505,48 @@ onMounted(async () => {
   font-size: 7px;
 }
 
+.profile-tag-editor {
+  display: grid;
+  gap: 7px;
+}
+
+.profile-tag-editor > span {
+  color: var(--ink-600);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.profile-tag-list--editable {
+  margin-top: 0;
+}
+
+.profile-tag-list--editable > button {
+  cursor: pointer;
+}
+
+.profile-tag-add {
+  display: flex;
+  gap: 7px;
+}
+
+.profile-tag-add input {
+  flex: 1;
+}
+
+.profile-tag-add button {
+  display: inline-flex;
+  min-width: 72px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: var(--brand-700);
+  background: var(--surface-warm);
+  font-size: 10px;
+  cursor: pointer;
+}
+
 .profile-id {
   display: flex;
   gap: 7px;
@@ -558,7 +593,7 @@ onMounted(async () => {
 
 .overview-card {
   display: grid;
-  border-radius: 19px;
+  border-radius: 0;
   overflow: hidden;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -592,7 +627,7 @@ onMounted(async () => {
   align-items: flex-start;
   gap: 10px;
   padding: 18px;
-  border-radius: 17px;
+  border-radius: 0;
   color: #6f5137;
   background: #f5eee1;
 }
@@ -645,7 +680,7 @@ onMounted(async () => {
   justify-content: center;
   padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 0;
   background: #fbfbf7;
   flex-direction: column;
 }
@@ -762,13 +797,6 @@ onMounted(async () => {
   color: #a14b3f;
 }
 
-@keyframes orbitPulse {
-  50% {
-    opacity: 0.45;
-    transform: scale(1.05);
-  }
-}
-
 @media (max-width: 900px) {
   .account-heading {
     align-items: flex-start;
@@ -781,12 +809,7 @@ onMounted(async () => {
   }
 
   .profile-hero {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .profile-progress {
-    grid-column: 1 / -1;
-    width: 100%;
+    grid-template-columns: 160px minmax(0, 1fr);
   }
 }
 
@@ -796,13 +819,22 @@ onMounted(async () => {
   }
 
   .profile-hero {
-    padding: 24px 18px;
     grid-template-columns: 1fr;
   }
 
-  .profile-orbit {
-    width: 96px;
-    height: 96px;
+  .profile-monogram {
+    min-height: 155px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .profile-identity {
+    padding: 24px 18px;
+    border-right: 0;
+  }
+
+  .profile-identity h2 {
+    font-size: 31px;
   }
 
   .account-heading-actions {

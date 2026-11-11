@@ -52,6 +52,8 @@
   --panel: #fffdf9;
   --surface: #fffdf9;
   --surface-soft: #f4f0e9;
+  --surface-warm: #f3ead6;
+  --surface-mist: #edf3f1;
   --surface-raised: #ffffff;
   --line: #e5ded5;
   --line-strong: #d5cdc2;
@@ -98,6 +100,80 @@
     'Inter', 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
   --font-sans: var(--font);
   --font-serif: 'Songti SC', 'Noto Serif SC', 'Source Han Serif SC', Georgia, serif;
+}
+
+:root[data-theme='oat'] {
+  --bg: #f5efe2;
+  --surface: #fffaf0;
+  --surface-soft: #eee5d4;
+  --surface-warm: #ecdfbf;
+  --surface-mist: #eef1e7;
+  --line: #dfd3bd;
+  --line-strong: #cdbda2;
+  --brand-50: #f4f0e5;
+  --brand-100: #e8dfcd;
+  --brand-200: #d3c4a7;
+  --brand-300: #b7a485;
+  --brand-400: #927c5f;
+  --brand-500: #735f4c;
+  --brand-600: #5f5a43;
+  --brand-700: #494534;
+  --brand-800: #383528;
+  --brand-900: #27251d;
+  --primary: #5f5a43;
+  --primary-strong: #494534;
+  --primary-soft: #eee5d4;
+  --accent-500: #c18b62;
+  --accent-600: #9e6d4c;
+}
+
+:root[data-theme='mist'] {
+  --bg: #eef3f2;
+  --surface: #fbfdfc;
+  --surface-soft: #e5eeeb;
+  --surface-warm: #f0eadb;
+  --surface-mist: #ddeae7;
+  --line: #d4dfdc;
+  --line-strong: #bdceca;
+  --brand-50: #eef5f3;
+  --brand-100: #deebe8;
+  --brand-200: #c4d9d5;
+  --brand-300: #a1c1bb;
+  --brand-400: #76a09b;
+  --brand-500: #5a8580;
+  --brand-600: #416a67;
+  --brand-700: #315552;
+  --brand-800: #25413f;
+  --brand-900: #19302e;
+  --primary: #416a67;
+  --primary-strong: #315552;
+  --primary-soft: #deebe8;
+  --accent-500: #c08f76;
+}
+
+:root[data-theme='slate'] {
+  --bg: #eef1f4;
+  --surface: #fbfcfe;
+  --surface-soft: #e5eaf0;
+  --surface-warm: #ece9df;
+  --surface-mist: #dfe9ef;
+  --line: #d6dde5;
+  --line-strong: #bdc9d4;
+  --brand-50: #eff3f6;
+  --brand-100: #dfe7ec;
+  --brand-200: #c7d4dd;
+  --brand-300: #a9bdc9;
+  --brand-400: #829dab;
+  --brand-500: #637e8d;
+  --brand-600: #4f6775;
+  --brand-700: #40535f;
+  --brand-800: #32414a;
+  --brand-900: #26323a;
+  --primary: #4f6775;
+  --primary-strong: #40535f;
+  --primary-soft: #dfe7ec;
+  --accent-500: #c1987f;
+  --accent-600: #9f765f;
 }
 
 *,

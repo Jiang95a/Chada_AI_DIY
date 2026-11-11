@@ -6,7 +6,7 @@ import App from '@/App.vue'
 import { appRoutes } from '@/router'
 
 const cases = [
-  { path: '/', selector: '.landing-page', text: '让每一份心事' },
+  { path: '/', selector: '.landing-page', text: '把心理活动' },
   { path: '/projects', selector: '.studio-dashboard', text: '运营概览' },
   { path: '/projects/new', selector: '.studio-create', text: '制作一个心晴活动页面' },
   { path: '/published', selector: '.published-page', text: '参与数据' },
@@ -14,7 +14,7 @@ const cases = [
   { path: '/ai', selector: '.ai-page', text: '让 AI 一起构思心晴活动' },
   { path: '/campus', selector: '.campus-page', text: '发现一场' },
   { path: '/resources', selector: '.resources-page', text: '不知道从哪里开始时' },
-  { path: '/tools', selector: '.tools-page', text: '心晴工具箱' },
+  { path: '/tools', selector: '.tools-page', text: '心晴工具' },
   { path: '/about', selector: '.about-page', text: '关于心屿' },
   { path: '/profile', selector: '.account-page', text: '个人资料' },
   { path: '/settings', selector: '.settings-page', text: '偏好设置' },

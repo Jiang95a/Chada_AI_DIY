@@ -163,8 +163,8 @@ function templateTone(id: string): string {
           </label>
           <button class="poster-upload" type="button" @click="openCreate('poster')">
             <span class="poster-upload-icon"><Icon name="upload" :size="19" /></span>
-            <span><strong>上传活动海报</strong><small>AI 会提取活动名称、时间、地点和参与信息</small></span>
-            <span class="poster-upload-action">选择图片</span>
+            <span><strong>制作活动海报</strong><small>上传已有图片，或让 AI 生成新的视觉底图</small></span>
+            <span class="poster-upload-action">开始制作</span>
           </button>
 
           <div class="create-form-actions">
