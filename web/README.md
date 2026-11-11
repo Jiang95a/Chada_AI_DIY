@@ -1,144 +1,259 @@
-# DIY-campus · 校园轻活动 AI DIY 工坊（前端）
+# 心屿同行前端
 
-面向社团 / 班团活动负责人的移动端活动页制作工具。当前版本已接入 Spring Boot 与
-MySQL：登录、项目草稿、发布、报名、统计和导出走真实接口；后端不可用时仍保留本地模板和本地草稿降级能力。
+校园心理社团活动组织与内容制作平台。前端使用 Vue 3，覆盖用户前台、运营后台和创作工具三个区域。
 
-## 页面路由
+当前版本已接入 Spring Boot 与 MySQL：
 
-- `/projects`：项目工作台
-- `/projects/new`：新建活动
-- `/templates`：后端模板目录
-- `/projects/:projectId/analytics`：分析统计
-- `/projects/:projectId/submissions`：报名数据
-- `/projects/:projectId/exports`：CSV 导出
-- `/editor/:projectId`：三栏 DIY 编辑器
-- `/p/:slug`：移动端公开活动页
+- 登录、活动项目、发布、参与数据和转介使用真实接口。
+- 后端不可用时，部分演示数据和本地草稿可以降级使用。
+- AI 对话、海报识别统一经业务后端转发，浏览器不直连智能体服务。
 
-项目工作台、新建活动和公开活动页沿用团队原有视觉；编辑器底部复用
-PageDocument、组件库、属性面板、AI 建议、预览、二维码和分享海报能力。
+## 技术栈
 
-## 跑起来
+- Vue 3.5 + TypeScript
+- Vite 8
+- Vue Router 5
+- Pinia
+- Vitest + Vue Test Utils
+- CSS 变量设计令牌，无第三方 UI 框架
 
-```bash
-corepack pnpm install
-corepack pnpm dev          # http://localhost:5173
-corepack pnpm build        # 类型检查 + 生产构建
-corepack pnpm test:unit    # vitest
+Node 版本要求：
+
+```text
+^22.18.0 || >=24.12.0
 ```
 
-Node 版本按 `package.json` 的 engines：`^22.18 || >=24.12`。
+## 启动
 
-## 这一版做了什么
+```powershell
+cd web
+corepack pnpm install
+corepack pnpm dev
+```
 
-### 1. 手动选组件建页面
+默认地址：
 
-- 13 种受控组件：导航栏、Banner、标题、文本、图片、信息卡片、按钮、表单、单选框、多选框、二维码、分割线、倒计时
-- 组件库支持**拖进画布任意位置**，也支持点一下加到末尾
-- 画布内拖拽排序、上移 / 下移、复制、隐藏、删除
-- 属性面板按组件类型动态生成（`data/blockCatalog.ts` 的 `fieldsFor`），样式面板管主题色 / 圆角 / 字号 / 间距 / 按钮风格
-- 多页面：首页 / 内容页 / 表单页 / 成功页，按钮可以跳页、提交、开链接
+```text
+http://127.0.0.1:5173
+```
 
-### 2. AI 生成（没后端也能用）
+后端默认地址：
 
-两条路，前端会自动选：
+```text
+http://127.0.0.1:8080/api/v1
+```
 
-| 情况                                  | 走哪条                                        | 结果                                      |
-| ------------------------------------- | --------------------------------------------- | ----------------------------------------- |
-| 智能体在线（`agent/` 起在 8000）      | `POST /chat`，要求它输出结构化 JSON           | 解析成受控组件，标注「智能体」            |
-| 智能体没起 / 没配 Key / 输出不是 JSON | 读它的「页面名：组件列表」文本结构            | 解析成受控组件，标注「智能体 · 文本结构」 |
-| 以上都失败                            | 本地规则：关键词匹配模板 + 抽取时间/地点/人数 | 标注「本地规则」                          |
+如需修改，复制 `web/.env.example` 为本地环境文件并设置：
 
-本地规则不是玩具：能从「摄影社招新，10月26日晚7点在阶梯教室面试，招60人」里抽出活动名、时间、地点、人数，
-填进信息卡片，并按场景（招新 / 报名 / 投票 / 打卡）选模板、配主题色。模板里的日期按「今天 + N 天」算，不会过两天就显示「已截止」。
+```dotenv
+VITE_API_BASE_URL=http://127.0.0.1:8080/api/v1
+```
 
-### 3. 编辑 Copilot 与质量检查
+VS Code 用户也可以直接运行任务：
 
-- 选中组件后，AI 面板给出 1~4 条**可执行建议**：每条带原因、修改前后对比，点「应用」才写入，写入后可撤销
-- 建议 id 是稳定 key（页面 + 组件 + 标题），重算不会重复冒出来
-- 质量检查是纯前端规则引擎（`services/quality.ts`）：表单必填/重复字段/缺联系方式、按钮文案、标题长度、文本长度、
-  主色对比度（WCAG）、截止时间格式、空页面、缺成功页、长英文串溢出风险……每条都能「定位」到具体组件
+```text
+全栈: 启动前后端
+前端: 启动（本地依赖）
+后端: 启动
+```
 
-### 4. 预览 / 发布 / 导出
+## 页面与路由
 
-- 预览：390 宽真机尺寸，可切页面、填表单、提交后跳到成功页，必填校验会飘红
-- 发布：生成 `#preview=<slug>` 链接 + 二维码（`uqr` 纯前端算，不联网），带「已发布」状态；改内容链接不变
-- 分享海报：Canvas 画 750×1000 PNG，含标题、时间/地点/主办、简介、二维码
-- 导出：项目 JSON（可再导入）、当前页静态 HTML（复用运行中的样式，双击就能看）
+路由按三种使用场景拆分。
 
-### 5. 编辑器体验
+### 用户前台
 
-撤销 / 重做（Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y，合并输入，最多 80 步）、自动保存到 localStorage（刷新接着改）、
-Ctrl+S 手动保存、Ctrl+D 复制、Delete 删除、Esc 取消选中、设备宽度 375/390/430、缩放自适应、窄屏抽屉面板。
+源码：`src/router/public.routes.ts`
+
+| 路由 | 页面 |
+| --- | --- |
+| `/` | 首页 |
+| `/campus` | 心理活动 |
+| `/tools` | 心晴工具 |
+| `/resources` | 心理资源 |
+| `/about` | 关于心屿 |
+| `/login` | 登录 |
+| `/p/:slug` | 公开活动 H5 |
+
+### 运营后台
+
+源码：`src/router/operations.routes.ts`
+
+| 路由 | 页面 |
+| --- | --- |
+| `/projects` | 运营概览与活动列表 |
+| `/published` | 参与数据 |
+| `/referrals` | 转介待办 |
+| `/profile` | 个人资料 |
+| `/settings` | 偏好设置 |
+| `/help` | 帮助与反馈 |
+| `/projects/:projectId/analytics` | 单活动分析 |
+| `/projects/:projectId/submissions` | 参与记录 |
+| `/projects/:projectId/exports` | 导出 |
+
+`/activities` 已合并到 `/projects`，旧地址会重定向。
+
+### 创作工具
+
+源码：`src/router/studio.routes.ts`
+
+| 路由 | 页面 |
+| --- | --- |
+| `/projects/new` | 页面工坊创建入口 |
+| `/templates` | 模板库 |
+| `/ai` | AI 助手 |
+| `/editor/:projectId` | PageDocument 编辑器 |
+
+## 主要功能
+
+### 活动运营
+
+- 运营概览统计与活动筛选。
+- 活动编辑、预览、复制、删除和状态管理。
+- 参与人数、匿名比例、反馈与转介汇总。
+- 负责人、干事和心理委员相关操作入口。
+
+### 页面工坊
+
+- 13 种受控组件：导航、Banner、标题、文本、图片、信息卡片、按钮、表单、单选、多选、二维码、分割线、倒计时。
+- 多页面 `PageDocument`：首页、内容页、表单页、成功页。
+- 拖拽添加和排序、属性编辑、撤销重做、自动保存。
+- 手机画布预览、页面发布、二维码和 Canvas 分享海报。
+
+### AI 与海报
+
+- AI 对话统一经 `POST /api/v1/ai/chat`。
+- 已有海报识别经 `POST /api/v1/ai/poster/extract`。
+- 页面工坊支持“上传已有海报”和“AI 生成海报底图”两种来源。
+- AI 海报生成的前端接口为 `POST /api/v1/ai/poster/generate`，后端约定见：
+
+  `docs/poster-generation-api.md`
+
+- AI 只处理活动公开文案与视觉，不接收报名者隐私和匿名反馈原文。
+
+### 设计主题
+
+全局令牌位于 `src/assets/main.css`。
+
+当前提供四套本机主题：
+
+| 主题 | 气质 |
+| --- | --- |
+| 鼠尾草绿 | 默认，克制安静 |
+| 燕麦米黄 | 暖色浅底 |
+| 雾青 | 冷色、清爽 |
+| 雾蓝石板 | 冷色、适合数据页面 |
+
+主题状态由 `src/composables/usePreferences.ts` 管理，并应用到：
+
+```html
+<html data-theme="sage">
+```
+
+选择结果保存在浏览器本地存储，不影响其他成员。
 
 ## 目录结构
 
-```
-src/
-├─ views/WorkshopView.vue          唯一页面：头部 + 左中右三栏 + 状态栏 + 弹窗
-├─ components/
-│  ├─ editor/                      编辑器 UI
-│  │  ├─ WorkshopHeader.vue        顶部：项目名、撤销重做、质量检查、预览、发布、更多菜单
-│  │  ├─ PalettePanel.vue          组件库（可拖拽）
-│  │  ├─ TemplatePanel.vue         场景模板
-│  │  ├─ PagesPanel.vue            页面列表 + 活动信息
-│  │  ├─ PhoneScreen.vue           手机画布：选中框、拖拽排序、拖放插入、表单校验上下文
-│  │  ├─ BlockView.vue             13 种组件的纯渲染（编辑器与预览共用）
-│  │  ├─ InspectorPanel.vue        属性 / 样式
-│  │  ├─ AiPanel.vue               AI 对话 + 建议卡片
-│  │  └─ fields/                   表单字段、信息行、按钮动作的子编辑器
-│  ├─ modals/                      创建 / 预览 / 发布 / 质量检查
-│  └─ ui/                          Icon、BaseModal、QrCode、ToastHost
-├─ stores/editor.ts                Pinia：文档、页面、撤销栈、自动保存、发布
-├─ services/
-│  ├─ agent.ts                     智能体 HTTP 客户端（/health、/chat、超时、错误码）
-│  ├─ planner.ts                   方案 schema 校验、文本结构解析、本地规则生成
-│  ├─ copilot.ts                   本地建议引擎 + 兜底回复
-│  ├─ quality.ts                   质量检查规则
-│  ├─ exporters.ts                 JSON / 静态 HTML 导出
-│  └─ poster.ts                    Canvas 分享海报
-├─ data/                          组件目录（含属性 schema）、模板、SVG 占位图
-├─ types/editor.ts                数据模型（Doc / Page / Block / Theme / DocPlan …）
-└─ utils/                         主题变量、日期、id、slug
+```text
+web/
+├─ src/
+│  ├─ assets/                全局 CSS、设计令牌和本地活动封面
+│  ├─ components/
+│  │  ├─ editor/             PageDocument 编辑器组件
+│  │  ├─ modals/             创建、预览、发布等弹窗
+│  │  ├─ public/             公共端导航和工具组件
+│  │  ├─ studio/             运营/创作工作台外框
+│  │  └─ ui/                 图标、弹窗、二维码、Toast
+│  ├─ composables/           偏好、隐私、Toast、工作空间
+│  ├─ data/                  组件目录、模板、占位图
+│  ├─ layouts/               公共端布局
+│  ├─ router/                前台、运营、工具三组路由
+│  ├─ services/              API、AI、海报、数据、导出
+│  ├─ stores/                auth、projects、editor
+│  ├─ types/                 PageDocument 等类型
+│  ├─ utils/                 文档、主题、ID 工具
+│  └─ views/                 页面视图
+├─ public/
+├─ package.json
+├─ vite.config.ts
+└─ vitest.config.ts
 ```
 
-## 和后端 / 智能体怎么对接
+## PageDocument
 
-当前只依赖一个约定：**智能体返回结构化 JSON**，前端负责校验和落地。
+编辑器使用受控组件结构，不允许 AI 直接生成可执行 HTML、CSS 或 JavaScript。
 
-```jsonc
-// POST /chat 的回复里（或整段回复）是这个结构即可
-{
-  "title": "光影摄影社招新",
-  "reason": "为什么这样排页面",
-  "theme": { "primary": "#4f46e5", "accent": "#8b5cf6", "bg": "#f7f8fc", "text": "#111827" },
-  "meta": { "org": "光影摄影社", "startAt": "10月26日 19:00", "place": "三教 402" },
-  "pages": [
-    {
-      "name": "首页",
-      "role": "home",
-      "blocks": [
-        { "type": "nav", "props": { "title": "光影摄影社" } },
-        { "type": "button", "props": { "text": "立即报名", "action": { "type": "page", "targetRole": "form" } } },
-      ],
-    },
-  ],
+```ts
+interface Doc {
+  id: string
+  title: string
+  slug: string
+  theme: Theme
+  pages: Page[]
+  meta: DocMeta
+  createdAt: number
+  updatedAt: number
 }
 ```
 
-- `type` 只认 13 种受控组件，未知类型会被丢掉，不会执行任何 HTML/JS（`normalizePlan` 里做白名单校验）
-- `role` 只用 `home / content / form / success`，按钮 `action.targetRole` 用它找目标页
-- 浏览器只访问 `VITE_API_BASE_URL`；AI 对话和海报解析统一经 `8080/api/v1/ai/**` 转发到 agent
-- 项目、草稿、发布、报名、统计和导出已接真实后端，离线时保留模板与本地草稿降级
+安全边界：
 
-## 还没做的（下一版）
+- 只接受 `src/data/blockCatalog.ts` 白名单中的组件。
+- 用户和 AI 文本使用 Vue 插值，不使用 `v-html` 渲染。
+- 模板、AI 方案和删除操作支持撤销。
+- 时间类数据按当前日期动态生成，不写死年份。
 
-- 多人实时协作与成员权限
-- 微信小程序原生能力、自定义域名、在线支付
-- 生产环境对象存储与邮件/短信通知
+## 本地持久化
 
-## 约定
+前端使用以下本地数据作为离线降级：
 
-- **不生成可执行 HTML/CSS/JS**：AI 只输出组件结构，渲染层只有 `BlockView.vue`
-- 所有用户/模型文本都走文本插值，没有 `v-html` 渲染用户内容（Icon 里的 `v-html` 是内置静态图标）
-- 破坏性操作（套模板、应用 AI 方案、删组件）都能撤销
-- 时间类数据一律动态计算，别写死年份
+- 项目演示数据：`diy-campus:projects:v1`
+- 个人偏好：`diy-campus:preferences:v1:*`
+- 个人标签：`diy-campus:profile-tags`
+- 工具页本地便签与情绪记录
+
+真实用户、活动和参与数据仍以业务后端与 MySQL 为准。
+
+## 测试与构建
+
+```powershell
+corepack pnpm typecheck
+corepack pnpm test:unit
+corepack pnpm build
+```
+
+当前测试覆盖：
+
+- 公共端、运营端和编辑器路由冒烟测试
+- 项目操作、参与数据与发布数据
+- AI 对话、海报识别与海报生成接口约定
+- PageDocument、隐私与知情同意
+- 自定义模板和工作空间导航
+
+## 后端接口
+
+常用前端服务：
+
+| 服务 | 文件 |
+| --- | --- |
+| HTTP 与 JWT | `src/services/http.ts` |
+| 登录注册 | `src/services/auth.ts` |
+| 项目与草稿 | `src/services/projects.ts`、`draft.ts` |
+| AI 与海报 | `src/services/agent.ts` |
+| 公开活动 | `src/services/public.ts` |
+| 参与数据 | `src/services/submissions.ts` |
+| 通知 | `src/services/notifications.ts` |
+| 转介 | `src/services/referrals.ts` |
+| 导出 | `src/services/exports.ts` |
+
+浏览器只访问 `VITE_API_BASE_URL`，不直连 `8000` 端口。
+
+## 开发约定
+
+- 颜色、间距、圆角和字号优先使用 `src/assets/main.css` 的设计令牌。
+- 新增页面时先判断属于前台、运营还是创作工具，并放入对应路由模块。
+- 新组件优先复用 `.app-button`、`.app-card`、`.field` 等公共样式。
+- 卡片避免同时堆叠边框、阴影和悬停位移。
+- 图片优先使用真实活动照片；没有照片时使用本地多色占位资产。
+- 涉及参与者的照片必须取得本人同意。
+- 不把模型密钥写入前端，环境变量只保留 API 基础地址。
