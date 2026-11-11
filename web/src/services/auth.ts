@@ -13,6 +13,11 @@ interface AuthPayload {
   user: AuthUser
 }
 
+export interface PasswordResetRequestResult {
+  message: string
+  expiresInMinutes?: number
+}
+
 export async function login(email: string, password: string): Promise<AuthPayload> {
   const payload = readData<AuthPayload>(
     await apiRequest(
@@ -53,6 +58,40 @@ export async function updateMe(displayName: string): Promise<AuthUser> {
       method: 'PUT',
       body: JSON.stringify({ displayName }),
     })
+  )
+}
+
+/**
+ * 请求发送密码重置邮件。
+ *
+ * 后端必须对“邮箱存在”和“邮箱不存在”返回同样的成功文案，避免账号枚举。
+ * 令牌只出现在邮件链接中，不会返回给前端页面。
+ */
+export async function requestPasswordReset(email: string): Promise<PasswordResetRequestResult> {
+  const data = readData<Partial<PasswordResetRequestResult>>(
+    await apiRequest(
+      '/auth/forgot-password',
+      {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      },
+      { auth: false }
+    )
+  )
+  return {
+    message: data?.message || '如果该邮箱已注册，我们会发送密码重置方式。',
+    expiresInMinutes: data?.expiresInMinutes,
+  }
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  await apiRequest(
+    '/auth/reset-password',
+    {
+      method: 'POST',
+      body: JSON.stringify({ token, newPassword }),
+    },
+    { auth: false }
   )
 }
 

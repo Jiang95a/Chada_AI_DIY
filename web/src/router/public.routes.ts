@@ -7,6 +7,8 @@ import WellbeingToolsView from '@/views/WellbeingToolsView.vue'
 import WellbeingAboutView from '@/views/WellbeingAboutView.vue'
 import PublicActivityView from '@/views/PublicActivityView.vue'
 import LoginView from '@/views/LoginView.vue'
+import ForgotPasswordView from '@/views/ForgotPasswordView.vue'
+import ResetPasswordView from '@/views/ResetPasswordView.vue'
 
 export const publicRoutes: RouteRecordRaw[] = [
   {
@@ -45,6 +47,18 @@ export const publicRoutes: RouteRecordRaw[] = [
     path: '/login',
     name: 'login',
     component: LoginView,
+    meta: { public: true, surface: 'public' },
+  },
+  {
+    path: '/forgot-password',
+    name: 'forgot-password',
+    component: ForgotPasswordView,
+    meta: { public: true, surface: 'public' },
+  },
+  {
+    path: '/reset-password',
+    name: 'reset-password',
+    component: ResetPasswordView,
     meta: { public: true, surface: 'public' },
   },
   {
