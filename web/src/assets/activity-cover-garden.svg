@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 520" role="img" aria-label="校园心晴游园会插画">
+  <rect width="760" height="520" fill="#dfe9dc"/>
+  <circle cx="620" cy="104" r="62" fill="#e8b963"/>
+  <path d="M0 322c116-76 211-72 316-18 108 56 222 58 444-16v232H0Z" fill="#789b7f"/>
+  <path d="M0 376c126-54 226-42 332 2 118 48 263 40 428-18v160H0Z" fill="#4f735d"/>
+  <path d="M120 384V238h310v146" fill="#f6efe2" stroke="#284b3d" stroke-width="10"/>
+  <path d="m94 244 176-94 176 94Z" fill="#b86e56" stroke="#284b3d" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M134 246h272" stroke="#f5d8b1" stroke-width="20"/>
+  <g stroke="#284b3d" stroke-width="9" stroke-linecap="round">
+    <path d="M278 384V270h78v114"/>
+    <path d="M168 286h54M168 322h54"/>
+  </g>
+  <rect x="337" y="282" width="48" height="66" rx="4" fill="#abc8b2" stroke="#284b3d" stroke-width="8"/>
+  <g fill="#f2c98a">
+    <circle cx="538" cy="345" r="24"/>
+    <circle cx="618" cy="372" r="29"/>
+  </g>
+  <g fill="#2e5544">
+    <path d="M506 419c3-51 14-74 36-74 25 0 36 27 38 74Z"/>
+    <path d="M581 445c4-58 17-86 42-86 29 0 42 31 44 86Z"/>
+  </g>
+  <g fill="#f7f2e6" opacity=".85">
+    <circle cx="104" cy="96" r="7"/>
+    <circle cx="320" cy="72" r="5"/>
+    <circle cx="692" cy="210" r="6"/>
+  </g>
+</svg>

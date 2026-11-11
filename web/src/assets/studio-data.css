@@ -110,10 +110,10 @@
 }
 
 .data-tab.is-active {
-  border-color: #cbd8fa;
+  border-color: var(--brand-200);
   color: var(--primary);
-  background: linear-gradient(135deg, #f7f9ff, #fff);
-  box-shadow: 0 12px 30px -24px rgb(36 87 214 / 55%);
+  background: linear-gradient(135deg, var(--brand-50), var(--surface));
+  box-shadow: 0 12px 30px -24px rgb(45 80 70 / 45%);
 }
 
 .data-tab.is-active > span:first-child {
@@ -329,7 +329,7 @@
 
 .trend-line--views {
   stroke: var(--primary);
-  filter: drop-shadow(0 6px 5px rgb(36 87 214 / 15%));
+  filter: drop-shadow(0 6px 5px rgb(45 80 70 / 15%));
 }
 
 .trend-line--submissions {
@@ -694,7 +694,7 @@
   border-radius: 16px;
   color: var(--primary);
   background: #fff;
-  box-shadow: 0 12px 30px -20px rgb(36 87 214 / 60%);
+  box-shadow: 0 12px 30px -20px rgb(45 80 70 / 50%);
   place-items: center;
 }
 

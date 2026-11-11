@@ -6,6 +6,10 @@ import BaseModal from '@/components/ui/BaseModal.vue'
 import Icon from '@/components/ui/Icon.vue'
 import { useToast } from '@/composables/useToast'
 import { useProjectStore, type ProjectRecord, type ProjectStatus } from '@/stores/projects'
+import coverGarden from '@/assets/activity-cover-garden.svg'
+import coverSelfCare from '@/assets/activity-cover-self-care.svg'
+import coverClub from '@/assets/activity-cover-club.svg'
+import coverQuiet from '@/assets/activity-cover-quiet.svg'
 
 const projectStore = useProjectStore()
 const route = useRoute()
@@ -16,6 +20,12 @@ const sortMode = ref<'updated' | 'created' | 'title'>('updated')
 const openMenuId = ref('')
 const actionProjectId = ref('')
 const deleteTarget = ref<ProjectRecord | null>(null)
+const coverImages: Record<string, string> = {
+  read: coverGarden,
+  photo: coverSelfCare,
+  volunteer: coverClub,
+  music: coverQuiet,
+}
 
 onMounted(() => {
   document.addEventListener('click', closeProjectMenu)
@@ -51,32 +61,40 @@ const projects = computed(() =>
       : project.status === 'published'
         ? '暂无提交'
         : '尚未发布',
+    coverImage: coverImages[project.coverTone] ?? coverGarden,
     updatedAt: formatProjectDate(project.document.updatedAt),
     slug: project.document.slug,
   }))
 )
 
+const focusProject = computed(
+  () => projects.value.find((project) => project.status === 'published') ?? projects.value[0] ?? null
+)
+
 const stats = computed(() => [
+  {
+    label: '正在开放参与',
+    value: String(projectStore.publishedCount),
+    hint: '已发布的心晴活动',
+    icon: 'eye',
+    tone: 'primary',
+    featured: true,
+  },
   {
     label: '全部心晴活动',
     value: String(projectStore.projectCount),
-    hint: `${projectStore.draftCount} 个正在编辑`,
+    hint: `${projectStore.draftCount} 个仍在筹备`,
     icon: 'layers',
-    tone: 'blue',
-  },
-  {
-    label: '已发布活动',
-    value: String(projectStore.publishedCount),
-    hint: '正在开放参与',
-    icon: 'eye',
-    tone: 'green',
+    tone: 'sage',
+    featured: false,
   },
   {
     label: '累计参与',
     value: String(projectStore.projects.reduce((sum, project) => sum + project.submissionCount, 0)),
     hint: '全部活动合计',
     icon: 'users',
-    tone: 'violet',
+    tone: 'clay',
+    featured: false,
   },
   {
     label: '本周新增',
@@ -85,7 +103,8 @@ const stats = computed(() => [
     ),
     hint: '最近 7 天创建',
     icon: 'chart',
-    tone: 'amber',
+    tone: 'paper',
+    featured: false,
   },
 ])
 
@@ -185,31 +204,66 @@ async function confirmDelete(): Promise<void> {
 
 <template>
   <WorkspaceShell>
-    <main class="dashboard-page studio-dashboard">
+    <main id="overview" class="dashboard-page studio-dashboard">
       <section class="dashboard-heading">
-        <div>
-          <p class="eyebrow">Wellbeing operations</p>
-          <h1>心晴运营台</h1>
-          <p>组织心理社团活动，查看参与状态，用更清晰的方式陪伴同学。</p>
+        <div class="dashboard-heading__copy">
+          <h1>运营概览</h1>
+          <p>把活动安排、参与状态与转介待办放在同一张安静的工作桌上。</p>
+          <div class="dashboard-heading__actions">
+            <span class="dashboard-period">
+              <Icon name="calendar" :size="15" />
+              本周运营节奏
+            </span>
+            <RouterLink class="app-button app-button--primary" to="/projects/new">
+              <Icon name="plus" :size="16" />
+              发起心晴活动
+            </RouterLink>
+          </div>
         </div>
-        <RouterLink class="app-button app-button--primary" to="/projects/new">
-          <Icon name="plus" :size="16" />
-          发起心晴活动
+        <RouterLink
+          v-if="focusProject"
+          class="dashboard-focus"
+          :to="`/projects/${focusProject.id}/analytics`"
+          aria-label="查看本周重点活动数据"
+        >
+          <img :src="focusProject.coverImage" alt="" decoding="async" />
+          <span class="dashboard-focus__shade" />
+          <div class="dashboard-focus__copy">
+            <span>本周重点活动</span>
+            <strong>{{ focusProject.title }}</strong>
+            <small>{{ focusProject.submissions }}<Icon name="arrow-right" :size="14" /></small>
+          </div>
         </RouterLink>
       </section>
 
-      <section class="stats-grid" id="overview">
-        <article v-for="stat in stats" :key="stat.label" class="stat-card">
-          <span class="stat-icon" :class="`stat-icon--${stat.tone}`"><Icon :name="stat.icon" :size="17" /></span>
-          <div>
+      <section class="stats-grid" aria-label="运营数据概览">
+        <article
+          v-for="stat in stats"
+          :key="stat.label"
+          class="stat-card"
+          :class="[`stat-card--${stat.tone}`, { 'stat-card--feature': stat.featured }]"
+        >
+          <div class="stat-card__top">
+            <span class="stat-icon" :class="`stat-icon--${stat.tone}`">
+              <Icon :name="stat.icon" :size="17" />
+            </span>
             <span class="stat-label">{{ stat.label }}</span>
+          </div>
+          <div class="stat-card__copy">
             <strong>{{ stat.value }}</strong>
             <small>{{ stat.hint }}</small>
           </div>
         </article>
       </section>
 
-      <section class="projects-section">
+      <section id="activities" class="projects-section">
+        <header class="projects-section-heading">
+          <div>
+            <h2>活动项目</h2>
+            <p>按状态筛选、继续编辑，或查看每场活动沉淀下的参与数据。</p>
+          </div>
+          <span>{{ statusCounts.all }} 个项目</span>
+        </header>
         <div class="projects-toolbar">
           <div class="project-view-tabs">
             <button :class="{ 'is-active': statusFilter === 'all' }" type="button" @click="statusFilter = 'all'">
@@ -253,15 +307,17 @@ async function confirmDelete(): Promise<void> {
 
         <div v-else class="project-grid">
           <article
-            v-for="project in filteredProjects"
+            v-for="(project, index) in filteredProjects"
             :key="project.id"
             class="project-card"
-            :class="{ 'has-open-menu': openMenuId === project.id }"
+            :class="{ 'has-open-menu': openMenuId === project.id, 'project-card--lead': index === 0 }"
           >
             <div class="project-cover" :class="`project-cover--${project.coverTone}`">
-              <div class="project-cover-pattern" />
-              <span class="project-cover-code">{{ project.coverCode }}</span>
-              <strong>{{ project.coverTitle }}</strong>
+              <img class="project-cover-image" :src="project.coverImage" alt="" loading="lazy" decoding="async" />
+              <div class="project-cover-panel">
+                <span class="project-cover-code">{{ project.coverCode }}</span>
+                <strong>{{ project.coverTitle }}</strong>
+              </div>
               <span class="project-cover-dot" />
             </div>
             <div class="project-card-body">

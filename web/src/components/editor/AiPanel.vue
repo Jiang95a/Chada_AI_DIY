@@ -323,7 +323,7 @@ function dismissSuggestion(id: string): void {
   padding: 9px 10px;
   border: 1px solid var(--brand-100);
   border-radius: 11px;
-  background: linear-gradient(135deg, #f7f5ff, #eef2ff);
+  background: linear-gradient(135deg, var(--brand-50), var(--accent-50));
   text-align: left;
   cursor: pointer;
   transition:

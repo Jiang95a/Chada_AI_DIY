@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 520" role="img" aria-label="安心表达与安静空间插画">
+  <rect width="760" height="520" fill="#24483a"/>
+  <circle cx="630" cy="96" r="54" fill="#eadbb8"/>
+  <path d="M0 390c150-45 264-27 378 18 121 48 245 44 382-10v122H0Z" fill="#18362b"/>
+  <rect x="92" y="116" width="164" height="116" rx="14" fill="#f2eadb" transform="rotate(-5 92 116)"/>
+  <rect x="286" y="92" width="178" height="126" rx="14" fill="#d9b69e" transform="rotate(4 286 92)"/>
+  <rect x="484" y="132" width="152" height="104" rx="14" fill="#c7d7c9" transform="rotate(-4 484 132)"/>
+  <g stroke="#5a7566" stroke-width="8" stroke-linecap="round">
+    <path d="M123 158h96M123 184h68"/>
+    <path d="M320 134h108M320 162h83"/>
+    <path d="M511 169h91M511 195h62"/>
+  </g>
+  <g fill="#b88469">
+    <circle cx="309" cy="384" r="33"/>
+    <circle cx="425" cy="367" r="39"/>
+  </g>
+  <g fill="#eadbbf">
+    <path d="M263 492c5-78 21-115 49-115 32 0 48 39 51 115Z"/>
+    <path d="M378 488c5-86 22-123 51-123 34 0 51 41 54 123Z"/>
+  </g>
+  <path d="M101 305c87-36 166-31 236 12" fill="none" stroke="#789583" stroke-width="7" stroke-linecap="round"/>
+  <g fill="#f2eadb" opacity=".6">
+    <circle cx="95" cy="75" r="5"/>
+    <circle cx="372" cy="49" r="4"/>
+    <circle cx="694" cy="250" r="6"/>
+  </g>
+</svg>

@@ -33,16 +33,16 @@ const workspaceAvatar = computed(() => currentWorkspace.value.avatar)
 const notifications = ref<NotificationRecord[]>([])
 const unreadNotificationCount = ref(0)
 
-const serviceNavItems = [
+const operationNavItems = [
   { href: '/projects', label: '运营概览', icon: 'home' },
-  { href: '/campus', label: '心理活动', icon: 'pin' },
   { href: '/published', label: '参与数据', icon: 'chart' },
   { href: '/referrals', label: '转介待办', icon: 'phone' },
 ]
 
 const toolNavItems = [
   { href: '/projects/new', label: '页面工坊', icon: 'plus' },
-  { href: '/templates', label: '心晴模板', icon: 'grid' },
+  { href: '/templates', label: '模板库', icon: 'grid' },
+  { href: '/ai', label: 'AI 助手', icon: 'wand' },
 ]
 
 const isActive = computed(() => (href: string) => {
@@ -70,11 +70,6 @@ const pageTitle = computed(() => {
   if (route.path.startsWith('/p/')) return '心理活动预览'
   return '心屿工作台'
 })
-
-/** 左侧栏的「AI 生成」：进入独立的全屏创作页 */
-function openAiComposer(): void {
-  void router.push('/ai')
-}
 
 const displayName = computed(() => auth.user?.displayName || 'Huiyi')
 const avatarText = computed(() => displayName.value.slice(0, 1).toUpperCase())
@@ -242,9 +237,9 @@ onBeforeUnmount(() => {
       </div>
 
       <nav class="workspace-nav" aria-label="心屿工作台导航">
-        <span class="workspace-nav-label">心理服务</span>
+        <span class="workspace-nav-label">运营空间</span>
         <RouterLink
-          v-for="item in serviceNavItems"
+          v-for="item in operationNavItems"
           :key="item.href"
           class="workspace-nav-item"
           :class="{ 'is-active': isActive(item.href) }"
@@ -258,22 +253,17 @@ onBeforeUnmount(() => {
           v-for="item in toolNavItems"
           :key="item.href"
           class="workspace-nav-item"
-          :class="{ 'is-active': isActive(item.href) }"
+          :class="{ 'is-active': isActive(item.href), 'is-ai': item.href === '/ai' }"
           :to="item.href"
         >
           <Icon :name="item.icon" :size="17" />
           <span>{{ item.label }}</span>
         </RouterLink>
-        <button
-          class="workspace-nav-item workspace-nav-item--button is-ai"
-          :class="{ 'is-active': route.path === '/ai' }"
-          type="button"
-          @click="openAiComposer"
-        >
-          <Icon name="wand" :size="17" />
-          <span>AI 心情助手</span>
-          <em class="workspace-nav-badge">AI</em>
-        </button>
+        <RouterLink class="workspace-nav-item workspace-nav-item--visitor" to="/">
+          <Icon name="external" :size="17" />
+          <span>访问用户前台</span>
+          <Icon name="arrow-right" :size="14" />
+        </RouterLink>
       </nav>
 
       <div class="workspace-sidebar-bottom">
@@ -325,7 +315,7 @@ onBeforeUnmount(() => {
               ref="searchRef"
               v-model="searchText"
               aria-label="搜索项目"
-              placeholder="搜索心理活动..."
+              placeholder="搜索心晴活动..."
               @input="syncSearch"
               @keydown.enter.prevent="submitSearch"
             />
@@ -419,37 +409,8 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-/* .workspace-nav-item 原本只服务 <a>，套到 <button> 上会带出浏览器默认的灰底和边框 */
-.workspace-nav-item--button {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.workspace-nav-item--button:hover {
-  background: var(--ink-50, #f6f7f9);
-}
-
-.workspace-nav-item--button.is-ai {
-  color: var(--brand-600, #4f46e5);
-}
-
-.workspace-nav-badge {
-  margin-left: auto;
-  padding: 1px 6px;
-  border-radius: 999px;
-  background: var(--brand-50, #eef2ff);
-  color: var(--brand-600, #4f46e5);
-  font-size: 9px;
-  font-style: normal;
-  letter-spacing: 0.04em;
-}
-
 .workspace-notification-menu > button.is-unread {
-  background: #faf9ff;
+  background: var(--brand-50);
 }
 
 .workspace-notification-menu > button.is-unread strong::after {
@@ -458,7 +419,7 @@ onBeforeUnmount(() => {
   height: 5px;
   margin-left: 6px;
   border-radius: 50%;
-  background: var(--brand-500, #6366f1);
+  background: var(--brand-500);
   content: '';
   vertical-align: middle;
 }

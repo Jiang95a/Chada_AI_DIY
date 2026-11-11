@@ -544,18 +544,18 @@ onMounted(async () => {
 }
 
 .summary-icon.is-blue {
-  color: #3158df;
-  background: #eef2ff;
+  color: var(--brand-600);
+  background: var(--brand-100);
 }
 
 .summary-icon.is-green {
-  color: #07845f;
-  background: #ecfdf5;
+  color: var(--mint-500);
+  background: var(--mint-50);
 }
 
 .summary-icon.is-amber {
-  color: #b45309;
-  background: #fffaeb;
+  color: var(--accent-700);
+  background: var(--accent-100);
 }
 
 .published-workspace {
@@ -721,7 +721,7 @@ onMounted(async () => {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--brand-500, #6366f1), #55c7ad);
+  background: linear-gradient(90deg, var(--brand-500), var(--accent-400));
 }
 
 .app-count {

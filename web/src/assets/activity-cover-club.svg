@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 520" role="img" aria-label="心理社团成员交流插画">
+  <rect width="760" height="520" fill="#bfd6cf"/>
+  <circle cx="136" cy="106" r="68" fill="#e7b96e"/>
+  <path d="M0 412c115-56 229-58 344-6 116 52 256 48 416-22v136H0Z" fill="#6f8f7d"/>
+  <rect x="198" y="246" width="364" height="54" rx="27" fill="#f4ead9" stroke="#284d3d" stroke-width="10"/>
+  <path d="M264 300v112M496 300v112" stroke="#284d3d" stroke-width="14" stroke-linecap="round"/>
+  <g fill="#bd785d">
+    <circle cx="214" cy="252" r="43"/>
+    <circle cx="570" cy="266" r="48"/>
+    <circle cx="385" cy="203" r="39"/>
+  </g>
+  <g fill="#294f40">
+    <path d="M157 408c3-88 22-128 59-128 41 0 61 46 63 128Z"/>
+    <path d="M506 424c4-101 26-148 68-148 47 0 69 53 71 148Z"/>
+  </g>
+  <rect x="310" y="85" width="150" height="100" rx="10" fill="#f7f0e3" stroke="#294f40" stroke-width="8"/>
+  <path d="M339 118h91M339 145h67" stroke="#b8755d" stroke-width="10" stroke-linecap="round"/>
+  <g fill="#f6f1e5" opacity=".88">
+    <circle cx="662" cy="106" r="8"/>
+    <circle cx="675" cy="180" r="5"/>
+    <circle cx="84" cy="238" r="6"/>
+  </g>
+</svg>

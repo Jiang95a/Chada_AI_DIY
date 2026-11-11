@@ -3,52 +3,102 @@
    ========================================================================== */
 
 :root {
-  --brand-50: #edf3ee;
-  --brand-100: #dce9df;
-  --brand-200: #bdd4c4;
-  --brand-300: #8eaf99;
-  --brand-400: #668b73;
-  --brand-500: #456f57;
-  --brand-600: #31543f;
-  --brand-700: #243f31;
-  --violet-500: #bd836c;
+  /* 心屿潮汐 · 品牌色 */
+  --brand-50: #edf4f0;
+  --brand-100: #dce9e1;
+  --brand-200: #bfd5c8;
+  --brand-300: #94b6a1;
+  --brand-400: #6d937f;
+  --brand-500: #486f5e;
+  --brand-600: #2d5046;
+  --brand-700: #213e36;
+  --brand-800: #193129;
+  --brand-900: #10241d;
 
-  --ink-900: #1e2d25;
-  --ink-800: #2c3d33;
-  --ink-700: #405248;
-  --ink-600: #56695e;
-  --ink-500: #708078;
-  --ink-400: #94a098;
+  /* 暖棕与辅助色 */
+  --accent-50: #f9f0eb;
+  --accent-100: #f2dfd4;
+  --accent-200: #e5c1ae;
+  --accent-300: #d3a087;
+  --accent-400: #c5967d;
+  --accent-500: #b88c72;
+  --accent-600: #9a705a;
+  --accent-700: #795645;
+  --violet-500: #9a705a;
+  --violet-soft: #f4e9e2;
+  --mint-500: #5f8a73;
+  --mint-50: #edf5ef;
+  --amber-500: #b88c72;
+  --amber-50: #f8eee8;
+  --rose-500: #b45e55;
+  --rose-50: #fbefed;
+  --sky-500: #6d8f91;
+  --sky-50: #edf4f4;
+
+  /* 中性色与纸面 */
+  --ink-900: #1f3129;
+  --ink-800: #2b4036;
+  --ink-700: #3f554a;
+  --ink-600: #556a60;
+  --ink-500: #6f8078;
+  --ink-400: #98a49d;
   --ink-300: #bec8c1;
   --ink-200: #dae2dc;
-  --ink-100: #ebf0ec;
-  --ink-50: #f7f7f2;
+  --ink-100: #e9efeb;
+  --ink-50: #f4f1eb;
+  --ink: var(--ink-900);
+  --ink-soft: var(--ink-600);
+  --muted: #78867f;
 
-  --bg: #f3f1ea;
-  --panel: #ffffff;
-  --line: #e2e3db;
-  --line-strong: #d1d6ce;
+  --bg: #faf8f5;
+  --panel: #fffdf9;
+  --surface: #fffdf9;
+  --surface-soft: #f4f0e9;
+  --surface-raised: #ffffff;
+  --line: #e5ded5;
+  --line-strong: #d5cdc2;
+  --primary: #2d5046;
+  --primary-strong: #213e36;
+  --primary-soft: #e8f0ea;
+  --danger: #b45e55;
+  --danger-soft: #fbefed;
 
-  --mint-500: #5e9074;
-  --mint-50: #edf5ef;
-  --amber-500: #c89458;
-  --amber-50: #fbf4e8;
-  --rose-500: #ef4444;
-  --rose-50: #fef2f2;
-  --sky-500: #6c95a1;
-  --sky-50: #edf5f6;
+  --shadow-sm: 0 1px 2px rgb(42 55 47 / 4%);
+  --shadow-card: 0 4px 12px rgb(0 0 0 / 5%);
+  --shadow-md: 0 12px 30px -20px rgb(37 55 45 / 22%);
+  --shadow-lg: 0 28px 68px -38px rgb(37 55 45 / 30%);
 
-  --shadow-sm: 0 1px 2px rgba(31, 45, 37, 0.05);
-  --shadow-md: 0 18px 40px -24px rgba(31, 45, 37, 0.22);
-  --shadow-lg: 0 36px 80px -40px rgba(31, 45, 37, 0.34);
-
-  --radius-sm: 8px;
+  /* 圆角、间距与文字层级 */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --radius-xl: 22px;
+  --radius-xl: 24px;
+  --radius-card: 16px;
+  --radius-button: 12px;
+  --radius-input: 10px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-body: 15px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-3xl: 36px;
+  --leading-tight: 1.2;
+  --leading-body: 1.7;
 
   --font:
     'Inter', 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font);
   --font-serif: 'Songti SC', 'Noto Serif SC', 'Source Han Serif SC', Georgia, serif;
 }
 
@@ -105,12 +155,13 @@ svg {
 }
 
 ::selection {
-  background: var(--brand-100);
+  color: var(--brand-900);
+  background: var(--brand-200);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #d5dae7 transparent;
+  scrollbar-color: var(--brand-200) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -123,14 +174,14 @@ svg {
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #d5dae7;
+  background: var(--brand-200);
   border-radius: 999px;
   border: 2px solid transparent;
   background-clip: content-box;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: #c2c9da;
+  background: var(--brand-300);
   background-clip: content-box;
 }
 
@@ -148,7 +199,7 @@ svg {
   gap: 6px;
   height: 34px;
   padding: 0 13px;
-  border-radius: 10px;
+  border-radius: var(--radius-button);
   border: 1px solid var(--line);
   background: #fff;
   color: var(--ink-700);
@@ -185,15 +236,15 @@ svg {
 .btn--primary {
   border-color: transparent;
   color: #fff;
-  background: linear-gradient(135deg, var(--brand-600), var(--violet-500));
-  box-shadow: 0 8px 18px -10px rgba(47, 99, 75, 0.65);
+  background: var(--brand-600);
+  box-shadow: 0 8px 18px -12px rgb(45 80 70 / 55%);
 }
 
 .btn--primary:hover {
   color: #fff;
   border-color: transparent;
-  background: linear-gradient(135deg, var(--brand-500), #d39a86);
-  box-shadow: 0 10px 22px -10px rgba(47, 99, 75, 0.72);
+  background: var(--brand-700);
+  box-shadow: 0 10px 22px -12px rgb(45 80 70 / 65%);
 }
 
 .btn--ghost {
@@ -232,7 +283,7 @@ svg {
   height: 42px;
   padding: 0 20px;
   font-size: 14px;
-  border-radius: 12px;
+  border-radius: var(--radius-button);
 }
 
 .btn--block {
@@ -319,8 +370,8 @@ svg {
   min-width: 0;
   padding: 7px 10px;
   border: 1px solid var(--line);
-  border-radius: 9px;
-  background: #fff;
+  border-radius: var(--radius-input);
+  background: var(--surface-raised);
   font-size: 13px;
   color: var(--ink-800);
   outline: none;
@@ -337,8 +388,8 @@ svg {
 .input:focus,
 .textarea:focus,
 .select:focus {
-  border-color: var(--brand-300);
-  box-shadow: 0 0 0 3px var(--brand-50);
+  border-color: var(--brand-400);
+  box-shadow: 0 0 0 3px rgb(45 80 70 / 9%);
 }
 
 .textarea {

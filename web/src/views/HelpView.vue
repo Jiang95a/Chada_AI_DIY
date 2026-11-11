@@ -290,10 +290,11 @@ async function copyDiagnostics(): Promise<void> {
 .help-hero {
   margin-top: 26px;
   padding: 24px;
-  border: 1px solid #d9e2f6;
+  border: 1px solid var(--brand-200);
   border-radius: 20px;
   background:
-    radial-gradient(circle at 90% 5%, rgb(36 87 214 / 13%), transparent 30%), linear-gradient(135deg, #f7f9ff, #fff);
+    radial-gradient(circle at 90% 5%, rgb(45 80 70 / 12%), transparent 30%),
+    linear-gradient(135deg, var(--brand-50), var(--surface));
 }
 .help-hero > div:first-child {
   display: flex;
@@ -322,7 +323,7 @@ async function copyDiagnostics(): Promise<void> {
 }
 .help-steps article {
   padding: 14px;
-  border: 1px solid rgb(36 87 214 / 10%);
+  border: 1px solid rgb(45 80 70 / 10%);
   border-radius: 12px;
   background: rgb(255 255 255 / 72%);
 }
@@ -484,9 +485,9 @@ async function copyDiagnostics(): Promise<void> {
 }
 .feedback-form input:focus,
 .feedback-form textarea:focus {
-  border-color: #9db5f2;
-  background: #fff;
-  box-shadow: 0 0 0 3px rgb(36 87 214 / 8%);
+  border-color: var(--brand-400);
+  background: var(--surface-raised);
+  box-shadow: 0 0 0 3px rgb(45 80 70 / 9%);
 }
 .feedback-form label > small {
   justify-self: end;

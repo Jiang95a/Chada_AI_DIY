@@ -376,10 +376,10 @@ onMounted(async () => {
 .ai-guide-card,
 .ai-guide-note,
 .ai-result {
-  border: 1px solid var(--line-soft, #eef0f6);
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: 0 18px 45px -38px rgb(15 23 42 / 35%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
 }
 
 .ai-builder-card {
@@ -400,8 +400,8 @@ onMounted(async () => {
   height: 44px;
   flex: 0 0 auto;
   border-radius: 13px;
-  color: var(--brand-600, #4f46e5);
-  background: linear-gradient(135deg, #eef2ff, #e8f8f4);
+  color: var(--brand-600);
+  background: linear-gradient(135deg, var(--brand-100), var(--accent-100));
   place-items: center;
 }
 
@@ -472,8 +472,8 @@ onMounted(async () => {
 }
 
 .ai-scene-grid button:hover {
-  border-color: var(--brand-200, #c7d2fe);
-  background: #fafaff;
+  border-color: var(--brand-200);
+  background: var(--brand-50);
   transform: translateY(-1px);
 }
 
@@ -513,17 +513,17 @@ onMounted(async () => {
 .ai-composer {
   overflow: hidden;
   border: 1px solid var(--line-strong, #dfe3ee);
-  border-radius: 15px;
-  background: #fff;
-  box-shadow: 0 12px 35px -30px rgb(79 70 229 / 45%);
+  border-radius: var(--radius-card);
+  background: var(--surface-raised);
+  box-shadow: 0 12px 35px -30px rgb(45 80 70 / 30%);
   transition:
     border-color 0.16s ease,
     box-shadow 0.16s ease;
 }
 
 .ai-composer:focus-within {
-  border-color: var(--brand-300, #a5b4fc);
-  box-shadow: 0 0 0 3px rgb(79 70 229 / 6%);
+  border-color: var(--brand-400);
+  box-shadow: 0 0 0 3px rgb(45 80 70 / 8%);
 }
 
 .ai-composer textarea {
@@ -576,7 +576,7 @@ onMounted(async () => {
   gap: 12px;
   padding: 10px 12px 12px 16px;
   border-top: 1px solid var(--line, #e9ecf3);
-  background: #fcfcfe;
+  background: var(--surface-soft);
 }
 
 .ai-composer-actions > a {
@@ -598,17 +598,17 @@ onMounted(async () => {
   gap: 7px;
   padding: 0 16px;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--radius-button);
   color: #fff;
-  background: linear-gradient(135deg, var(--brand-600, #4f46e5), #7c5ce7);
-  box-shadow: 0 10px 20px -12px rgb(79 70 229 / 80%);
+  background: var(--brand-600);
+  box-shadow: 0 10px 20px -14px rgb(45 80 70 / 65%);
   font-size: 10px;
   font-weight: 750;
   cursor: pointer;
 }
 
 .ai-composer-actions > button:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--brand-500, #6366f1), #8b6cef);
+  background: var(--brand-700);
 }
 
 .ai-composer-actions > button:disabled {
@@ -831,7 +831,7 @@ onMounted(async () => {
 .ai-result > footer .ai-result-create {
   border: 0;
   color: #fff;
-  background: linear-gradient(135deg, var(--brand-600, #4f46e5), #7c5ce7);
+  background: var(--brand-600);
   font-weight: 750;
 }
 

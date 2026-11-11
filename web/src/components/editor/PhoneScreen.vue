@@ -484,7 +484,7 @@ defineExpose({ pageEl, submit })
 }
 
 .slot.is-selected {
-  outline: 1.5px solid #6366f1;
+  outline: 1.5px solid var(--brand-500);
   outline-offset: -1px;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
   border-radius: 6px;
@@ -514,7 +514,7 @@ defineExpose({ pageEl, submit })
   height: 18px;
   padding: 0 6px;
   border-radius: 6px 0 6px 0;
-  background: #6366f1;
+  background: var(--brand-500);
   color: #fff;
   font-family: var(--font);
   font-size: 9.5px;

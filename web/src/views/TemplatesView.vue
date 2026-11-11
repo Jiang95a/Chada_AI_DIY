@@ -6,6 +6,10 @@ import BaseModal from '@/components/ui/BaseModal.vue'
 import Icon from '@/components/ui/Icon.vue'
 import { useToast } from '@/composables/useToast'
 import { useProjectStore } from '@/stores/projects'
+import coverGarden from '@/assets/activity-cover-garden.svg'
+import coverSelfCare from '@/assets/activity-cover-self-care.svg'
+import coverClub from '@/assets/activity-cover-club.svg'
+import coverQuiet from '@/assets/activity-cover-quiet.svg'
 import {
   loadTemplateCatalog,
   removeCustomTemplate,
@@ -45,13 +49,20 @@ interface TemplateCard {
   scene: string
   tagline: string
   icon: string
-  gradient: [string, string]
   source: TemplateCatalogItem['source']
   kind: TemplateKind
   title: string
   pageCount: number
   blockCount: number
   previewPages: string[]
+  coverImage: string
+}
+
+const templateCovers: Record<string, string> = {
+  recruit: coverClub,
+  signup: coverGarden,
+  vote: coverQuiet,
+  checkin: coverSelfCare,
 }
 
 const cards = computed<TemplateCard[]>(() =>
@@ -63,13 +74,13 @@ const cards = computed<TemplateCard[]>(() =>
       scene: template.scene,
       tagline: template.tagline,
       icon: template.icon,
-      gradient: template.gradient,
       source: template.source,
       kind: template.kind,
       title: build.title,
       pageCount: build.pages.length,
       blockCount: build.pages.reduce((total, page) => total + page.blocks.length, 0),
       previewPages: build.pages.map((page) => page.name),
+      coverImage: templateCovers[template.id] ?? (template.kind === 'career' ? coverQuiet : coverGarden),
     }
   })
 )
@@ -125,9 +136,8 @@ async function confirmDeleteTemplate(): Promise<void> {
     <main class="templates-page">
       <header class="templates-head">
         <div>
-          <p class="eyebrow">Wellbeing templates</p>
-          <h1>心晴模板</h1>
-          <p class="templates-sub">从心理社团常用场景开始，进入页面工坊调整内容，也可以让 AI 先生成初稿。</p>
+          <h1>模板库</h1>
+          <p class="templates-sub">从四种高频心晴场景开始，进入页面工坊替换文案、图片和组件。</p>
         </div>
         <button class="app-button app-button--primary" type="button" @click="askAi()">
           <Icon name="wand" :size="16" />让 AI 帮我做页面
@@ -203,8 +213,9 @@ async function confirmDeleteTemplate(): Promise<void> {
         <article v-for="card in visibleCards" :key="card.id" class="template-card">
           <div
             class="template-card__art"
-            :style="{ background: `linear-gradient(135deg, ${card.gradient[0]}, ${card.gradient[1]})` }"
+            :class="`template-card__art--${card.id}`"
           >
+            <img class="template-card__image" :src="card.coverImage" alt="" loading="lazy" decoding="async" />
             <span class="template-card__scene">{{ card.scene }}</span>
             <span v-if="card.source === 'custom'" class="template-card__custom">我的心晴模板</span>
             <span v-else-if="card.kind === 'career'" class="template-card__kind">生涯</span>
@@ -233,7 +244,7 @@ async function confirmDeleteTemplate(): Promise<void> {
                 <Icon name="trash" :size="14" />
               </button>
               <button
-                class="app-button app-button--secondary"
+                class="app-button app-button--primary"
                 type="button"
                 :disabled="creatingId === card.id"
                 @click="useTemplate(card)"
@@ -272,9 +283,11 @@ async function confirmDeleteTemplate(): Promise<void> {
 <style scoped>
 .templates-page {
   display: flex;
+  width: min(1440px, 100%);
+  margin: 0 auto;
   flex-direction: column;
-  gap: 18px;
-  padding: 4px 2px 32px;
+  gap: 24px;
+  padding: 36px 36px 64px;
 }
 
 .templates-head {
@@ -286,22 +299,27 @@ async function confirmDeleteTemplate(): Promise<void> {
 }
 
 .templates-head h1 {
-  margin: 2px 0 6px;
-  font-size: 22px;
-  letter-spacing: -0.2px;
-  color: var(--ink-900, #101828);
+  margin: 0;
+  color: var(--brand-900);
+  font-family: var(--font-serif);
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
 }
 
 .templates-sub {
-  margin: 0;
-  font-size: 12.5px;
-  color: var(--ink-500, #667085);
+  max-width: 640px;
+  margin: 9px 0 0;
+  color: var(--ink-500);
+  font-size: 13px;
+  line-height: 1.75;
 }
 
 .templates-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
 }
 
 .templates-kinds {
@@ -310,15 +328,15 @@ async function confirmDeleteTemplate(): Promise<void> {
   width: max-content;
   padding: 4px;
   border: 1px solid var(--line);
-  border-radius: 11px;
-  background: #fff;
+  border-radius: var(--radius-button);
+  background: rgb(255 253 249 / 82%);
 }
 
 .templates-kinds button {
   min-height: 31px;
   padding: 0 13px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 9px;
   color: var(--ink-500);
   background: transparent;
   font-size: 9px;
@@ -327,95 +345,194 @@ async function confirmDeleteTemplate(): Promise<void> {
 
 .templates-kinds button.is-active {
   color: var(--brand-700);
-  background: var(--brand-50);
+  background: var(--brand-100);
 }
 
 .template-card {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--line-soft, #eef0f6);
-  border-radius: 16px;
-  background: #fff;
   overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
   transition:
-    transform 0.16s ease,
-    box-shadow 0.16s ease;
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 200ms ease,
+    border-color 200ms ease;
 }
 
 .template-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.09);
+  transform: translateY(-4px);
+  border-color: var(--brand-200);
+  box-shadow: 0 18px 34px -26px rgb(37 55 45 / 42%);
 }
 
 .template-card__art {
   position: relative;
   display: flex;
+  min-height: 168px;
   flex-direction: column;
   justify-content: flex-end;
-  gap: 4px;
-  min-height: 112px;
-  padding: 14px;
-  color: #fff;
+  gap: 7px;
+  overflow: hidden;
+  padding: 18px;
+  color: var(--brand-900);
+}
+
+.template-card__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.template-card:hover .template-card__image {
+  transform: scale(1.025);
+}
+
+.template-card__art::before {
+  position: absolute;
+  top: 24px;
+  right: 22px;
+  width: 74px;
+  height: 74px;
+  border: 1px solid currentcolor;
+  border-radius: 48% 52% 42% 58%;
+  opacity: 0.18;
+  content: '';
+  transform: rotate(18deg);
+}
+
+.template-card__art::after {
+  position: absolute;
+  right: -38px;
+  bottom: -70px;
+  width: 170px;
+  height: 170px;
+  border: 1px solid currentcolor;
+  border-radius: 50%;
+  opacity: 0.12;
+  content: '';
+}
+
+.template-card__art--recruit {
+  background: #dce9dd;
+}
+
+.template-card__art--signup {
+  background: #eadfd3;
+}
+
+.template-card__art--vote {
+  background: #bfd6cf;
+}
+
+.template-card__art--checkin {
+  background: #24483a;
+}
+
+.template-card__art:not([class*='--recruit']):not([class*='--signup']):not([class*='--vote']):not(
+    [class*='--checkin']
+  ) {
+  background: var(--brand-100);
 }
 
 .template-card__scene {
   position: absolute;
   top: 12px;
-  right: 12px;
-  font-size: 9.5px;
+  left: 12px;
+  padding: 5px 9px;
+  border: 1px solid rgb(45 80 70 / 13%);
+  border-radius: 999px;
+  color: rgb(31 49 41 / 64%);
+  background: rgb(255 255 255 / 40%);
+  font-size: 9px;
+  font-weight: 700;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.78;
+  backdrop-filter: blur(8px);
+  z-index: 2;
 }
 
 .template-card__custom {
   position: absolute;
-  top: 11px;
-  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  top: auto;
+  left: auto;
   padding: 3px 7px;
   border: 1px solid rgb(255 255 255 / 22%);
   border-radius: 999px;
-  color: #fff;
-  background: rgb(0 0 0 / 16%);
+  color: var(--brand-900);
+  background: rgb(255 255 255 / 42%);
   font-size: 8px;
   font-weight: 700;
   backdrop-filter: blur(7px);
+  z-index: 2;
 }
 
 .template-card__kind {
   position: absolute;
-  top: 11px;
-  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  top: auto;
+  left: auto;
   padding: 3px 7px;
   border: 1px solid rgb(255 255 255 / 22%);
   border-radius: 999px;
-  color: #fff;
-  background: rgb(0 0 0 / 16%);
+  color: var(--brand-900);
+  background: rgb(255 255 255 / 42%);
   font-size: 8px;
   font-weight: 700;
   backdrop-filter: blur(7px);
+  z-index: 2;
 }
 
 .template-card__art strong {
-  font-size: 15px;
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: max-content;
+  max-width: 180px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: rgb(255 253 249 / 88%);
+  font-family: var(--font-serif);
+  font-size: 21px;
+  line-height: 1.25;
+}
+
+.template-card__art > svg {
+  position: absolute;
+  top: 35px;
+  right: 35px;
+  z-index: 1;
+  box-sizing: content-box;
+  padding: 7px;
+  border-radius: 50%;
+  color: rgb(31 49 41 / 44%);
+  background: rgb(255 253 249 / 78%);
 }
 
 .template-card__body {
   flex: 1;
-  padding: 12px 14px 8px;
+  padding: 17px 18px 10px;
 }
 
 .template-card__body h2 {
   margin: 0 0 4px;
-  font-size: 13px;
-  color: var(--ink-800, #111827);
+  color: var(--brand-900);
+  font-size: 15px;
+  letter-spacing: -0.015em;
 }
 
 .template-card__body p {
   margin: 0;
+  color: var(--ink-500);
   font-size: 11.5px;
   line-height: 1.7;
-  color: var(--ink-500, #667085);
 }
 
 .template-card__meta {
@@ -424,22 +541,22 @@ async function confirmDeleteTemplate(): Promise<void> {
   list-style: none;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
 }
 
 .template-card__meta li {
-  padding: 3px 8px;
+  padding: 4px 8px;
   border-radius: 999px;
-  background: var(--ink-50, #f6f7f9);
+  background: var(--surface-soft);
   font-size: 10px;
-  color: var(--ink-500, #667085);
+  color: var(--ink-500);
 }
 
 .template-card__foot {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 10px 14px 14px;
+  padding: 10px 18px 18px;
 }
 
 .template-card__actions {
@@ -450,6 +567,8 @@ async function confirmDeleteTemplate(): Promise<void> {
 
 .template-card__actions .app-button {
   flex: 1;
+  min-height: 38px;
+  font-size: 12px;
 }
 
 .template-card__delete {
@@ -472,8 +591,11 @@ async function confirmDeleteTemplate(): Promise<void> {
 }
 
 .template-card__title {
+  overflow: hidden;
+  color: var(--ink-400);
   font-size: 10.5px;
-  color: var(--ink-400, #98a2b3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .templates-ai-builder {
@@ -484,10 +606,7 @@ async function confirmDeleteTemplate(): Promise<void> {
   padding: 30px;
   border-radius: 22px;
   color: #fff;
-  background:
-    radial-gradient(circle at 85% 12%, rgb(214 231 209 / 20%), transparent 24%),
-    radial-gradient(circle at 70% 78%, rgb(190 137 108 / 18%), transparent 30%),
-    linear-gradient(135deg, #1b3528, #365f49 55%, #896b57);
+  background: #24483a;
   grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
 }
 
@@ -594,7 +713,7 @@ async function confirmDeleteTemplate(): Promise<void> {
   border: 0;
   border-radius: 14px;
   color: #102239;
-  background: linear-gradient(100deg, #d9eadc, #f4e4d7);
+  background: #e7eadb;
   text-align: left;
   cursor: pointer;
   transition:
@@ -650,7 +769,8 @@ async function confirmDeleteTemplate(): Promise<void> {
   height: 58px;
   margin-bottom: 10px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #6e80f0, #4bc2ae);
+  background: #668b78;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 18%);
 }
 
 .ai-preview-page strong {
@@ -778,6 +898,14 @@ async function confirmDeleteTemplate(): Promise<void> {
 }
 
 @media (max-width: 980px) {
+  .templates-page {
+    padding: 28px 22px 48px;
+  }
+
+  .templates-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .templates-ai-builder {
     grid-template-columns: 1fr;
   }
@@ -788,6 +916,22 @@ async function confirmDeleteTemplate(): Promise<void> {
 }
 
 @media (max-width: 640px) {
+  .templates-page {
+    padding: 24px 18px 42px;
+  }
+
+  .templates-head {
+    align-items: stretch;
+  }
+
+  .templates-head .app-button {
+    width: 100%;
+  }
+
+  .templates-grid {
+    grid-template-columns: 1fr;
+  }
+
   .templates-ai-builder {
     padding: 22px 18px;
   }

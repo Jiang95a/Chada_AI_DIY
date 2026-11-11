@@ -81,8 +81,8 @@ async function submit(): Promise<void> {
   min-height: 100vh;
   padding: 24px;
   background:
-    radial-gradient(circle at 15% 10%, rgb(36 87 214 / 12%), transparent 34%),
-    radial-gradient(circle at 85% 90%, rgb(23 166 115 / 12%), transparent 30%), #f4f6fa;
+    radial-gradient(circle at 15% 10%, rgb(45 80 70 / 12%), transparent 34%),
+    radial-gradient(circle at 85% 90%, rgb(184 140 114 / 15%), transparent 30%), var(--bg);
   place-items: center;
 }
 .login-card {
@@ -105,7 +105,7 @@ async function submit(): Promise<void> {
   height: 42px;
   border-radius: 13px;
   color: #fff;
-  background: linear-gradient(145deg, #2fddb3, #1e75ff);
+  background: linear-gradient(145deg, var(--brand-500), var(--brand-700));
   place-items: center;
 }
 .login-brand > div {
@@ -161,8 +161,8 @@ h1 {
   font-size: 12px;
 }
 .login-form input:focus {
-  border-color: #9db5f2;
-  box-shadow: 0 0 0 3px rgb(36 87 214 / 8%);
+  border-color: var(--brand-400);
+  box-shadow: 0 0 0 3px rgb(45 80 70 / 9%);
 }
 .login-error {
   margin: 0;

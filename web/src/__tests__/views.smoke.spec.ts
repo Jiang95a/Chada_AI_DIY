@@ -7,10 +7,10 @@ import { appRoutes } from '@/router'
 
 const cases = [
   { path: '/', selector: '.landing-page', text: '让每一份心事' },
-  { path: '/projects', selector: '.studio-dashboard', text: '心晴运营台' },
+  { path: '/projects', selector: '.studio-dashboard', text: '运营概览' },
   { path: '/projects/new', selector: '.studio-create', text: '制作一个心晴活动页面' },
   { path: '/published', selector: '.published-page', text: '参与数据' },
-  { path: '/templates', selector: '.templates-page', text: '心晴模板' },
+  { path: '/templates', selector: '.templates-page', text: '模板库' },
   { path: '/ai', selector: '.ai-page', text: '让 AI 一起构思心晴活动' },
   { path: '/campus', selector: '.campus-page', text: '发现一场' },
   { path: '/resources', selector: '.resources-page', text: '不知道从哪里开始时' },
