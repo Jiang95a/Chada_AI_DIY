@@ -655,7 +655,7 @@ onMounted(async () => {
 .published-app-list > button.is-active {
   border-color: var(--brand-100, #e0e7ff);
   background: #f7f7ff;
-  box-shadow: inset 3px 0 var(--brand-500, #6366f1);
+  box-shadow: inset 3px 0 var(--brand-500);
 }
 
 .app-cover {
@@ -731,7 +731,7 @@ onMounted(async () => {
 }
 
 .app-count > strong {
-  color: var(--brand-600, #4f46e5);
+  color: var(--brand-600);
   font-size: 15px;
 }
 
@@ -812,7 +812,7 @@ onMounted(async () => {
 
 .selected-actions a:first-child {
   border-color: var(--brand-100, #e0e7ff);
-  color: var(--brand-600, #4f46e5);
+  color: var(--brand-600);
 }
 
 .selected-metrics {
@@ -840,8 +840,8 @@ onMounted(async () => {
   height: 30px;
   flex: 0 0 auto;
   border-radius: 9px;
-  color: var(--brand-600, #4f46e5);
-  background: var(--brand-50, #eef2ff);
+  color: var(--brand-600);
+  background: var(--brand-50);
   place-items: center;
 }
 
@@ -867,7 +867,7 @@ onMounted(async () => {
   align-items: center;
   gap: 5px;
   padding: 0 11px;
-  color: var(--brand-600, #4f46e5);
+  color: var(--brand-600);
   font-size: 8px;
   font-weight: 700;
   white-space: nowrap;
@@ -888,7 +888,7 @@ onMounted(async () => {
 }
 
 .participant-card > header span {
-  color: var(--brand-600, #4f46e5);
+  color: var(--brand-600);
   font-size: 7px;
   font-weight: 750;
   letter-spacing: 0.08em;
@@ -968,8 +968,8 @@ onMounted(async () => {
 .participant-name em {
   padding: 2px 5px;
   border-radius: 99px;
-  color: var(--brand-600, #4f46e5);
-  background: var(--brand-50, #eef2ff);
+  color: var(--brand-600);
+  background: var(--brand-50);
   font-size: 6px;
   font-style: normal;
 }
@@ -980,8 +980,8 @@ onMounted(async () => {
   height: 27px;
   flex: 0 0 auto;
   border-radius: 8px;
-  color: var(--brand-600, #4f46e5);
-  background: var(--brand-50, #eef2ff);
+  color: var(--brand-600);
+  background: var(--brand-50);
   font-size: 9px;
   font-weight: 750;
   place-items: center;
@@ -1056,7 +1056,7 @@ onMounted(async () => {
   padding: 5px 8px;
   border: 1px solid var(--line, #e9ecf3);
   border-radius: 6px;
-  color: var(--brand-600, #4f46e5);
+  color: var(--brand-600);
   background: #fff;
   font-size: 8px;
   cursor: pointer;
@@ -1068,8 +1068,8 @@ onMounted(async () => {
   height: 42px;
   margin-bottom: 3px;
   border-radius: 12px;
-  color: var(--brand-500, #6366f1);
-  background: var(--brand-50, #eef2ff);
+  color: var(--brand-500);
+  background: var(--brand-50);
   place-items: center;
 }
 
@@ -1089,8 +1089,8 @@ onMounted(async () => {
   width: 58px;
   height: 58px;
   border-radius: 18px;
-  color: var(--brand-600, #4f46e5);
-  background: var(--brand-50, #eef2ff);
+  color: var(--brand-600);
+  background: var(--brand-50);
   place-items: center;
 }
 

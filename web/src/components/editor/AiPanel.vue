@@ -254,7 +254,7 @@ function dismissSuggestion(id: string): void {
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  background: linear-gradient(135deg, var(--brand-50), #f3e8ff);
+  background: var(--accent-50);
   color: var(--brand-600);
 }
 
@@ -323,7 +323,7 @@ function dismissSuggestion(id: string): void {
   padding: 9px 10px;
   border: 1px solid var(--brand-100);
   border-radius: 11px;
-  background: linear-gradient(135deg, var(--brand-50), var(--accent-50));
+  background: var(--surface-soft);
   text-align: left;
   cursor: pointer;
   transition:
@@ -394,7 +394,7 @@ function dismissSuggestion(id: string): void {
 
 .bubble--user {
   align-self: flex-end;
-  background: linear-gradient(135deg, var(--brand-600), var(--violet-500));
+  background: var(--brand-600);
   color: #fff;
   border-bottom-right-radius: 4px;
 }
@@ -593,7 +593,7 @@ function dismissSuggestion(id: string): void {
   height: 30px;
   border: 0;
   border-radius: 9px;
-  background: linear-gradient(135deg, var(--brand-600), var(--violet-500));
+  background: var(--brand-600);
   color: #fff;
   cursor: pointer;
   transition: opacity 0.15s ease;

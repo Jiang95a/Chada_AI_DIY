@@ -191,7 +191,7 @@ async function downloadPoster(): Promise<void> {
   width: 44px;
   height: 44px;
   border-radius: 13px;
-  background: linear-gradient(135deg, var(--brand-50), #f3e8ff);
+  background: var(--accent-50);
   color: var(--brand-600);
 }
 

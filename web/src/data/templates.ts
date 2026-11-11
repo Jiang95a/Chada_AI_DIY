@@ -980,7 +980,7 @@ export const TEMPLATES: TemplateDef[] = [
     scene: '心理社团 / 成员招募',
     tagline: '社团介绍 + 参与方向 + 报名表',
     icon: 'users',
-    gradient: ['#5d8c72', '#9fbfaa'],
+    gradient: ['#4f735f', '#a9c3b2'],
     build: buildWellbeingRecruit,
   },
   {
@@ -989,7 +989,7 @@ export const TEMPLATES: TemplateDef[] = [
     scene: '游园会 / 团辅 / 分享会',
     tagline: '活动说明 + 安心提示 + 匿名报名',
     icon: 'calendar',
-    gradient: ['#b87c66', '#e0b69f'],
+    gradient: ['#9a705a', '#d8b19e'],
     build: buildWellbeingEvent,
   },
   {
@@ -998,7 +998,7 @@ export const TEMPLATES: TemplateDef[] = [
     scene: '科普 / 知识互动',
     tagline: '知识问答 + 科普反馈',
     icon: 'check-circle',
-    gradient: ['#648b94', '#a7c1c6'],
+    gradient: ['#527d78', '#aec5bf'],
     build: buildWellbeingQuiz,
   },
   {
@@ -1007,7 +1007,7 @@ export const TEMPLATES: TemplateDef[] = [
     scene: '日常练习 / 轻量陪伴',
     tagline: '每日练习 + 无压力记录',
     icon: 'clock',
-    gradient: ['#6f8f72', '#b9c79c'],
+    gradient: ['#6c8c72', '#c5cdae'],
     build: buildWellbeingCheckin,
   },
 ]

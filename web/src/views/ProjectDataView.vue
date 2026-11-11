@@ -469,8 +469,8 @@ watch(activeTab, async () => {
                   ><em>累计公开页访问</em>
                 </div>
               </article>
-              <article class="metric-card">
-                <span class="metric-icon metric-icon--violet"><Icon name="cursor" :size="18" /></span>
+            <article class="metric-card">
+              <span class="metric-icon metric-icon--clay"><Icon name="cursor" :size="18" /></span>
                 <div>
                   <small>开始填写</small><strong>{{ num(summary?.formStarted) }}</strong
                   ><em>触发表单交互</em>

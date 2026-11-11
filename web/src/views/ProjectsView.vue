@@ -476,8 +476,8 @@ async function confirmDelete(): Promise<void> {
 }
 
 .project-more.is-open {
-  color: var(--brand-600, #4f46e5);
-  background: var(--brand-50, #eef2ff);
+  color: var(--brand-600);
+  background: var(--brand-50);
 }
 
 .project-context-menu {

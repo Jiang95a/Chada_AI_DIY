@@ -68,7 +68,7 @@ export function buildStaticHtml(pageEl: HTMLElement, doc: Doc): string {
 <style>
   .export-shell .screen__body { height: auto !important; overflow: visible !important; }
   .export-note { max-width: 390px; margin: 0 auto 14px; padding: 10px 14px; border-radius: 12px;
-    background: #eef2ff; color: #3730a3; font: 12px/1.6 system-ui, "Microsoft YaHei", sans-serif; }
+    background: #edf4f0; color: #213e36; font: 12px/1.6 system-ui, "Microsoft YaHei", sans-serif; }
 </style>
 </head>
 <body class="export-body">

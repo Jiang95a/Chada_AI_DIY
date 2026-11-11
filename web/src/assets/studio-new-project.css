@@ -177,7 +177,7 @@
 .field input:focus,
 .field select:focus,
 .field textarea:focus {
-  border-color: #9db5f2;
+  border-color: var(--brand-400);
   background: #fff;
   box-shadow: 0 0 0 3px rgb(45 80 70 / 9%);
 }
@@ -307,22 +307,22 @@
 
 .template-option--photo {
   color: #fff;
-  background: linear-gradient(145deg, #e68b67, #4a475f);
+  background: #9a705a;
 }
 
 .template-option--event {
   color: #fff;
-  background: linear-gradient(145deg, #2964d9, #74a6ff);
+  background: #4f735f;
 }
 
 .template-option--vote {
   color: #fff;
-  background: linear-gradient(145deg, #6b4fc9, #dc89b7);
+  background: #527d78;
 }
 
 .template-option--habit {
   color: #fff;
-  background: linear-gradient(145deg, #087d67, #73bb89);
+  background: #6c8c72;
 }
 
 .template-option strong {
@@ -433,8 +433,8 @@
   gap: 5px;
   padding: 5px 8px;
   border-radius: 999px;
-  color: var(--violet);
-  background: var(--violet-soft);
+  color: var(--accent-600);
+  background: var(--accent-50);
   font-size: 8px;
 }
 
@@ -468,9 +468,7 @@
   justify-content: flex-end;
   padding: 14px;
   color: #fff;
-  background:
-    radial-gradient(circle at 80% 20%, rgb(255 255 255 / 18%), transparent 26%),
-    linear-gradient(145deg, #e49a74, #403a4c 74%);
+  background: var(--brand-700);
 }
 
 .create-phone-hero::after {
@@ -504,7 +502,7 @@
 }
 
 .create-phone-kicker {
-  color: #d07956;
+  color: var(--accent-300);
   font-size: 5px;
   font-weight: 800;
   letter-spacing: 0.14em;

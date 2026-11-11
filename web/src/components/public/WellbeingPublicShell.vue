@@ -86,9 +86,7 @@ function goWorkspace(): void {
 .public-shell {
   min-height: 100vh;
   padding-top: 94px;
-  background:
-    radial-gradient(circle at 8% 2%, rgb(95 142 110 / 14%), transparent 24%),
-    radial-gradient(circle at 92% 0%, rgb(185 130 102 / 12%), transparent 22%), #f6f3eb;
+  background: var(--bg);
 }
 
 .public-nav {
@@ -124,7 +122,7 @@ function goWorkspace(): void {
   width: 38px;
   height: 38px;
   border-radius: 50% 50% 46% 54%;
-  background: linear-gradient(145deg, #d5e4d2, #6e9b7d);
+  background: var(--brand-400);
   place-items: center;
 }
 
@@ -157,7 +155,7 @@ function goWorkspace(): void {
 .public-brand small {
   margin-top: 2px;
   color: rgb(255 255 255 / 38%);
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .public-nav nav {
@@ -173,7 +171,7 @@ function goWorkspace(): void {
   min-height: 34px;
   padding: 0 2px;
   color: rgb(255 255 255 / 60%);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 650;
 }
 
@@ -196,7 +194,7 @@ function goWorkspace(): void {
   border-radius: 999px;
   color: #fff;
   background: rgb(255 255 255 / 8%);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -210,9 +208,7 @@ function goWorkspace(): void {
   padding: 54px max(34px, calc((100vw - 1320px) / 2)) 38px;
   border-radius: 30px 30px 0 0;
   color: rgb(255 255 255 / 46%);
-  background:
-    radial-gradient(circle at 82% 0%, rgb(151 188 164 / 14%), transparent 28%),
-    linear-gradient(145deg, #182e23, #102219 72%);
+  background: var(--brand-900);
   grid-template-columns: 1fr auto;
 }
 
@@ -223,7 +219,7 @@ function goWorkspace(): void {
 .public-footer > div:first-child > p {
   max-width: 520px;
   margin-top: 19px;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.8;
 }
 
@@ -235,7 +231,7 @@ function goWorkspace(): void {
 
 .public-footer-links a {
   color: rgb(255 255 255 / 58%);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .public-emergency {
@@ -248,7 +244,7 @@ function goWorkspace(): void {
   border-radius: 10px;
   color: rgb(255 255 255 / 54%);
   background: rgb(255 255 255 / 5%);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 @media (max-width: 820px) {
@@ -292,7 +288,7 @@ function goWorkspace(): void {
     gap: 3px;
     border-radius: 12px;
     color: rgb(255 255 255 / 55%);
-    font-size: 7px;
+    font-size: 9px;
     flex-direction: column;
   }
 

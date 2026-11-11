@@ -32,7 +32,7 @@ function art(colors: [string, string, string], variant: 'soft' | 'film' | 'grid'
 }
 
 export const PLACEHOLDER_IMAGES = {
-  dusk: art(['#312e81', '#7c3aed', '#f472b6'], 'soft'),
+  dusk: art(['#3c5b4c', '#a9846d', '#d9c3a7'], 'soft'),
   dawn: art(['#f59e0b', '#fb7185', '#fde68a'], 'film'),
   forest: art(['#065f46', '#10b981', '#a3e635'], 'grid'),
   ocean: art(['#0c4a6e', '#0284c7', '#67e8f9'], 'soft'),

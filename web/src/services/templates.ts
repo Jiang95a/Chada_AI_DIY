@@ -54,17 +54,17 @@ export interface SaveCustomTemplateInput {
 const CUSTOM_TEMPLATE_KEY = 'diy-campus:custom-templates:v1'
 
 const CATEGORY_META: Record<string, { scene: string; icon: string; gradient: [string, string] }> = {
-  recruitment: { scene: '心理社团招新', icon: 'users', gradient: ['#5d8c72', '#9fbfaa'] },
-  registration: { scene: '心晴活动', icon: 'calendar', gradient: ['#b87c66', '#e0b69f'] },
-  vote: { scene: '心理知识问答', icon: 'check-circle', gradient: ['#648b94', '#a7c1c6'] },
-  checkin: { scene: '自我关怀打卡', icon: 'clock', gradient: ['#6f8f72', '#b9c79c'] },
-  other: { scene: '其他心理活动', icon: 'file', gradient: ['#6b7d70', '#c2b39e'] },
+  recruitment: { scene: '心理社团招新', icon: 'users', gradient: ['#4f735f', '#a9c3b2'] },
+  registration: { scene: '心晴活动', icon: 'calendar', gradient: ['#9a705a', '#d8b19e'] },
+  vote: { scene: '心理知识问答', icon: 'check-circle', gradient: ['#527d78', '#aec5bf'] },
+  checkin: { scene: '自我关怀打卡', icon: 'clock', gradient: ['#6c8c72', '#c5cdae'] },
+  other: { scene: '其他心理活动', icon: 'file', gradient: ['#5d7165', '#c2b39e'] },
 }
 
 const KIND_META: Record<TemplateKind, { scene: string; icon: string; gradient: [string, string] }> = {
-  wellbeing: { scene: '心理活动', icon: 'spark', gradient: ['#5d8c72', '#9fbfaa'] },
-  career: { scene: '生涯发展', icon: 'rocket', gradient: ['#7c8c75', '#c6b8a0'] },
-  general: { scene: '通用模板', icon: 'grid', gradient: ['#708090', '#b9c2c9'] },
+  wellbeing: { scene: '心理活动', icon: 'spark', gradient: ['#4f735f', '#a9c3b2'] },
+  career: { scene: '生涯发展', icon: 'rocket', gradient: ['#6d806e', '#c6b8a0'] },
+  general: { scene: '通用模板', icon: 'grid', gradient: ['#6b7f73', '#b9c6bf'] },
 }
 
 function toDoc(document: unknown): Doc | null {
@@ -80,7 +80,7 @@ function remoteItem(template: TemplateApiRecord): TemplateCatalogItem {
     KIND_META[kind] ?? {
       scene: template.category || '心理活动',
       icon: 'grid',
-      gradient: ['#2563eb', '#7c3aed'] as [string, string],
+      gradient: ['#2d5046', '#b88c72'] as [string, string],
     }
   return {
     id: template.id,
@@ -119,7 +119,7 @@ function customItem(template: CustomTemplateRecord): TemplateCatalogItem {
     KIND_META[kind] ?? {
       scene: template.category || '我的模板',
       icon: 'file',
-      gradient: ['#3158e8', '#16a085'] as [string, string],
+      gradient: ['#2d5046', '#6d937f'] as [string, string],
     }
   return {
     id: template.id,

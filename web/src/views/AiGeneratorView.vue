@@ -406,7 +406,7 @@ onMounted(async () => {
 }
 
 .ai-builder-intro > div > span {
-  color: var(--brand-600, #4f46e5);
+  color: var(--brand-600);
   font-size: 8px;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -482,8 +482,8 @@ onMounted(async () => {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  color: var(--brand-600, #4f46e5);
-  background: var(--brand-50, #eef2ff);
+  color: var(--brand-600);
+  background: var(--brand-50);
   place-items: center;
 }
 
@@ -588,7 +588,7 @@ onMounted(async () => {
 }
 
 .ai-composer-actions > a:hover {
-  color: var(--brand-600, #4f46e5);
+  color: var(--brand-600);
 }
 
 .ai-composer-actions > button {
@@ -647,7 +647,7 @@ onMounted(async () => {
 }
 
 .ai-guide-kicker {
-  color: var(--brand-600, #4f46e5);
+  color: var(--brand-600);
   font-size: 8px;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -678,8 +678,8 @@ onMounted(async () => {
   height: 25px;
   flex: 0 0 auto;
   border-radius: 8px;
-  color: var(--brand-600, #4f46e5);
-  background: var(--brand-50, #eef2ff);
+  color: var(--brand-600);
+  background: var(--brand-50);
   font-size: 8px;
   place-items: center;
 }
@@ -739,7 +739,7 @@ onMounted(async () => {
 }
 
 .ai-result > header span {
-  color: var(--brand-600, #4f46e5);
+  color: var(--brand-600);
   font-size: 8px;
   font-weight: 800;
 }

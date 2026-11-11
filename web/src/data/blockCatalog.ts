@@ -57,14 +57,14 @@ export function metaOf(type: BlockType): BlockMeta {
 /* ------------------------------- 主题 ------------------------------- */
 
 export const DEFAULT_THEME: Theme = {
-  primary: '#4f46e5',
-  accent: '#8b5cf6',
-  bg: '#f7f8fc',
-  text: '#111827',
+  primary: '#2d5046',
+  accent: '#b88c72',
+  bg: '#faf8f5',
+  text: '#1f3129',
   radius: 16,
   fontScale: 1,
   spacing: 1,
-  buttonStyle: 'gradient',
+  buttonStyle: 'solid',
   font: 'sans',
 }
 
@@ -77,38 +77,38 @@ export interface ThemePreset {
 export const THEME_PRESETS: ThemePreset[] = [
   {
     id: 'indigo',
-    name: '靛蓝',
-    theme: { primary: '#4f46e5', accent: '#8b5cf6', bg: '#f7f8fc', text: '#111827' },
+    name: '墨绿',
+    theme: { primary: '#2d5046', accent: '#b88c72', bg: '#faf8f5', text: '#1f3129' },
   },
   {
     id: 'sunset',
-    name: '落日',
-    theme: { primary: '#f97316', accent: '#f43f5e', bg: '#fff8f4', text: '#231a14' },
+    name: '暖棕',
+    theme: { primary: '#8d654f', accent: '#c69a80', bg: '#fbf5ef', text: '#2d261f' },
   },
   {
     id: 'forest',
     name: '森林',
-    theme: { primary: '#059669', accent: '#84cc16', bg: '#f4fbf7', text: '#0d2419' },
+    theme: { primary: '#355c4e', accent: '#b88c72', bg: '#f5f3ec', text: '#183028' },
   },
   {
     id: 'ocean',
-    name: '海盐',
-    theme: { primary: '#0284c7', accent: '#06b6d4', bg: '#f2f9fe', text: '#0b2536' },
+    name: '雾青',
+    theme: { primary: '#527d78', accent: '#b88c72', bg: '#f2f6f3', text: '#18332f' },
   },
   {
     id: 'rose',
-    name: '玫瑰',
-    theme: { primary: '#db2777', accent: '#f472b6', bg: '#fdf5f9', text: '#2b0f1f' },
+    name: '陶土',
+    theme: { primary: '#95604f', accent: '#c99278', bg: '#fbf3ef', text: '#33201a' },
   },
   {
     id: 'midnight',
-    name: '暗夜',
-    theme: { primary: '#f59e0b', accent: '#a78bfa', bg: '#12141c', text: '#f5f7fb' },
+    name: '夜墨',
+    theme: { primary: '#c69a80', accent: '#6d937f', bg: '#122019', text: '#f3f0e8' },
   },
   {
     id: 'graphite',
-    name: '石墨',
-    theme: { primary: '#334155', accent: '#64748b', bg: '#f6f7f9', text: '#0f172a' },
+    name: '深灰绿',
+    theme: { primary: '#3f554a', accent: '#b88c72', bg: '#f4f0e9', text: '#1f3129' },
   },
 ]
 

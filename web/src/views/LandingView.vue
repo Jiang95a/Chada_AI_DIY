@@ -152,7 +152,7 @@ onMounted(() => {
         <RouterLink to="/campus">查看全部 <Icon name="arrow-right" :size="15" /></RouterLink>
       </header>
 
-      <div class="activity-grid">
+      <div class="activity-grid" :class="{ 'is-compact': visibleActivities.length < 3 }">
         <RouterLink
           v-for="(activity, index) in visibleActivities"
           :key="activity.slug"
@@ -271,7 +271,7 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   color: rgb(229 245 235 / 72%);
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.16em;
 }
@@ -298,7 +298,7 @@ onMounted(() => {
 .hero-copy > p {
   max-width: 620px;
   color: rgb(255 255 255 / 72%);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.9;
 }
 
@@ -316,7 +316,7 @@ onMounted(() => {
   gap: 7px;
   padding: 0 17px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 750;
 }
 
@@ -344,7 +344,7 @@ onMounted(() => {
   align-items: center;
   gap: 5px;
   color: rgb(255 255 255 / 58%);
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .hero-invite {
@@ -518,6 +518,15 @@ onMounted(() => {
   grid-template-columns: 1.1fr 0.9fr;
 }
 
+.activity-grid.is-compact {
+  grid-template-rows: minmax(390px, auto);
+}
+
+.activity-grid.is-compact .activity-card--1 {
+  min-height: 390px;
+  grid-row: auto;
+}
+
 .activity-card {
   position: relative;
   display: flex;
@@ -536,15 +545,15 @@ onMounted(() => {
 }
 
 .activity-card.tone-read {
-  background: linear-gradient(145deg, #547d63, #b7c78f);
+  background: #547d63;
 }
 
 .activity-card.tone-photo {
-  background: linear-gradient(145deg, #967965, #d4b198);
+  background: #967965;
 }
 
 .activity-card.tone-volunteer {
-  background: linear-gradient(145deg, #577b79, #b4c9c5);
+  background: #527d78;
 }
 
 .activity-card::after {
@@ -570,7 +579,7 @@ onMounted(() => {
   padding: 4px 8px;
   border-radius: 999px;
   background: rgb(255 255 255 / 15%);
-  font-size: 8px;
+  font-size: 10px;
   backdrop-filter: blur(6px);
 }
 
@@ -601,7 +610,7 @@ onMounted(() => {
   max-width: 420px;
   margin-top: 10px;
   color: rgb(255 255 255 / 62%);
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.75;
 }
 
@@ -612,7 +621,7 @@ onMounted(() => {
   align-self: flex-start;
   margin-top: 18px;
   color: rgb(255 255 255 / 72%);
-  font-size: 8px;
+  font-size: 10px;
 }
 
 .nearby-section {
@@ -696,9 +705,7 @@ onMounted(() => {
   padding: 44px;
   border-radius: 28px;
   color: #fff;
-  background:
-    radial-gradient(circle at 90% 0%, rgb(255 255 255 / 15%), transparent 24%),
-    linear-gradient(135deg, #203b2f, #466d58 64%, #94745e);
+  background: #294b3d;
   grid-template-columns: 1fr 0.9fr;
 }
 

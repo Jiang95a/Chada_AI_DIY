@@ -204,9 +204,9 @@ function onTitleInput(event: Event): void {
   height: 32px;
   flex: 0 0 auto;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--brand-600), var(--violet-500));
+  background: var(--brand-600);
   color: #fff;
-  box-shadow: 0 8px 18px -10px rgba(79, 70, 229, 0.9);
+  box-shadow: 0 8px 18px -12px rgb(45 80 70 / 60%);
 }
 
 .hd__brand-name {

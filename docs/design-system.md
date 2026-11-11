@@ -49,19 +49,16 @@
 | `--line` | `#e5ded5` | 默认边框 |
 | `--line-strong` | `#d5cdc2` | 强边框 |
 
-### 渐变
+### 表面色
 
 ```css
---gradient-paper:
-  radial-gradient(circle at 82% 14%, rgb(184 140 114 / 10%), transparent 28%),
-  linear-gradient(145deg, #fffdf9, #f4f0e9);
-
---gradient-brand:
-  radial-gradient(circle at 84% 16%, rgb(220 233 225 / 18%), transparent 28%),
-  linear-gradient(137deg, #10241d, #213e36 68%, #355c4e);
+--surface-paper: #fffdf9;
+--surface-sage: #eef3ec;
+--surface-clay: #f6ede7;
+--surface-ink: #183a2e;
 ```
 
-禁止在正式页面中使用高饱和紫色、蓝紫色、荧光绿渐变。
+正式页面不使用渐变代替图片，也不使用高饱和紫色、蓝紫色或荧光绿。强调关系统一通过纯色块、字号、留白和边框表达。
 
 ## 3. 圆角、阴影与间距
 
@@ -183,7 +180,7 @@
 
 ### 数据统计卡片
 
-- 核心指标使用墨绿渐变背景与 `48px` 数字。
+- 核心指标使用纯墨绿背景与 `48px` 数字。
 - 普通指标使用暖纸白或极浅鼠尾草背景。
 - 四张卡片不得等权重；核心指标占更宽列。
 - 数据与实际业务值绑定，不使用虚构趋势图。

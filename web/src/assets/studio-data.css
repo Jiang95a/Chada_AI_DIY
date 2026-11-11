@@ -112,7 +112,7 @@
 .data-tab.is-active {
   border-color: var(--brand-200);
   color: var(--primary);
-  background: linear-gradient(135deg, var(--brand-50), var(--surface));
+  background: var(--brand-50);
   box-shadow: 0 12px 30px -24px rgb(45 80 70 / 45%);
 }
 
@@ -164,9 +164,9 @@
   background: var(--primary-soft);
 }
 
-.metric-icon--violet {
-  color: var(--violet);
-  background: var(--violet-soft);
+.metric-icon--clay {
+  color: var(--accent-600);
+  background: var(--accent-50);
 }
 
 .metric-icon--green {
@@ -385,7 +385,7 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, var(--primary), #6f93ec);
+  background: var(--brand-500);
 }
 
 .data-empty {
@@ -674,10 +674,9 @@
   gap: 28px;
   padding: 24px;
   overflow: hidden;
-  border: 1px solid #d9e2f8;
+  border: 1px solid var(--brand-200);
   border-radius: var(--radius-md);
-  background:
-    radial-gradient(circle at 92% 12%, rgb(91 128 231 / 15%), transparent 27%), linear-gradient(135deg, #f5f8ff, #fff);
+  background: var(--brand-50);
 }
 
 .export-hero-copy {

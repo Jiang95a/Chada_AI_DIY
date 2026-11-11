@@ -567,7 +567,7 @@ const PLAN_SCHEMA = `{
   "title": "活动名称",
   "intent": "你理解到的需求",
   "reason": "为什么这样排页面",
-  "theme": { "primary": "#4f46e5", "accent": "#8b5cf6", "bg": "#f7f8fc", "text": "#111827" },
+  "theme": { "primary": "#2d5046", "accent": "#b88c72", "bg": "#faf8f5", "text": "#1f3129" },
   "meta": { "org": "", "startAt": "", "place": "", "deadline": "", "capacity": 0 },
   "pages": [
     { "name": "首页", "role": "home", "blocks": [
