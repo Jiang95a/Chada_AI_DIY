@@ -54,7 +54,9 @@ cd agent
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-copy .env.example .env          # 填 LLM_API_KEY
+# ⚠️ 只有第一次安装才需要。已有 .env 时再执行会把填好的 key 全部覆盖掉。
+if (-not (Test-Path .env)) { copy .env.example .env }
+# 打开 .env 填 LLM_API_KEY
 .\start.ps1
 ```
 

@@ -190,8 +190,28 @@ class Settings(BaseSettings):
 
     @property
     def image_ready(self) -> bool:
-        """图像生成是否可用：要显式配置模型名，并且有 key（专属或复用主 key）。"""
-        return bool(self.image_enabled and self.image_model.strip() and self.image_api_key_value)
+        """图像生成是否真的可用。
+
+        **不是「有 key 就算就绪」。** IMAGE_API_KEY 留空会回退到 LLM_API_KEY，
+        而 LLM 通常是 deepseek —— 把 deepseek 的 key 发到百炼的 /images/generations，
+        必然 401。原来这里只要「有个 key」就报 ready=True，结果用户点一次生成
+        才看到 401，排查起来以为是自己配错了。
+
+        规则：IMAGE_BASE_URL 和主模型不是同一家时，必须显式给 IMAGE_API_KEY。
+        留空复用只在 base_url 也指向同一家时才说得通。
+        """
+        if not self.image_enabled or not self.image_model.strip():
+            return False
+        if self.image_api_key.strip():
+            return True
+        if not self.llm_api_key.strip():
+            return False
+        return self._same_endpoint(self.image_base_url_value, self.base_url)
+
+    @staticmethod
+    def _same_endpoint(left: str, right: str) -> bool:
+        """比 base_url 时忽略大小写和结尾斜杠，免得同一个地址判成不同家。"""
+        return left.strip().rstrip("/").lower() == right.strip().rstrip("/").lower()
 
     @property
     def image_api_key_value(self) -> str:
@@ -208,6 +228,8 @@ class Settings(BaseSettings):
             "model": self.image_model or "（未配置）",
             "base_url": self.image_base_url_value,
             "key_configured": bool(self.image_api_key_value),
+            # 复用主 key 只有在同一家供应商时才成立，前端/排查时看这个字段最省事
+            "key_reused_from_llm": not self.image_api_key.strip() and bool(self.llm_api_key.strip()),
         }
 
     @property

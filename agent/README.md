@@ -29,10 +29,16 @@ cd agent
 py -3.12 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-copy .env.example .env      # 填 LLM_API_KEY；海报解析再填 VISION_*
+# ⚠️ 只有第一次安装才需要下面这行。已有 .env 时再执行它，会把填好的 key 全部覆盖掉。
+if (-not (Test-Path .env)) { copy .env.example .env }
+# 然后打开 .env 填 LLM_API_KEY（海报解析再填 VISION_*，AI 出图再填 IMAGE_*）
 python selftest.py          # 不花钱
-.\start.ps1
+.\start.ps1                 # 启动前会自检 .env，缺 key 会直接告诉你缺哪几行
 ```
+
+> 踩过的坑：照着老文档无脑执行 `copy .env.example .env`，`.env` 会被打成空模板，
+> 服务照样启动、端口照样监听，只是每个 AI 接口都 503。现在 `start.ps1` 会先自检，
+> 而且这句 `copy` 已经被 `if (-not (Test-Path .env))` 包住了。
 
 真调一次：`python selftest.py --live`
 
