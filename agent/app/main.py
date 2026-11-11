@@ -84,7 +84,23 @@ async def lifespan(_: FastAPI):
     settings = get_settings()
     logger.info("配置就绪：provider=%s model=%s", settings.llm_provider, settings.model_name)
     if not settings.has_key:
-        logger.warning("未配置 LLM_API_KEY —— /chat 会返回 503，其余接口正常")
+        # 这句话必须点明「.env 找没找到」。以前只报「未配置 API KEY」，
+        # 而 provider 用的是代码里的默认值、照样显示「就绪」，
+        # 于是有人明明填了密钥却看到这两行同时成立，以为是自己填错了。
+        env_path = settings.env_file_path
+        if env_path.is_file():
+            logger.warning(
+                "未配置 LLM_API_KEY —— /chat 会返回 503，其余接口正常。"
+                "已读到配置文件 %s，但其中的 LLM_API_KEY 为空：请把密钥填在这个文件里再重启",
+                env_path,
+            )
+        else:
+            logger.warning(
+                "未配置 LLM_API_KEY —— /chat 会返回 503，其余接口正常。"
+                "没有找到配置文件 %s：请 `copy .env.example .env` 后填入密钥。"
+                "（代码已按 agent 目录定位该文件，与你在哪个目录启动无关）",
+                env_path,
+            )
 
     vision = settings.vision_summary()
     if vision["ready"]:

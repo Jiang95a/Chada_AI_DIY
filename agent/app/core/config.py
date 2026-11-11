@@ -9,10 +9,24 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# .env 必须是绝对路径。
+#
+# 原来写的是 env_file=".env" —— 相对路径，相对于**进程的当前工作目录**。
+# 这意味着从仓库根目录启动（`uvicorn app.main:app` 没先 cd agent/）时，
+# pydantic-settings 去根目录找 .env，找不到就静默回落到默认值：
+# API KEY 变成空字符串，而 LLM_PROVIDER=deepseek 是写在代码里的默认值，
+# 于是日志出现「配置就绪 provider=deepseek」和「未配置 LLM API KEY」同时成立的自相矛盾——
+# 这正是队友反馈「一填密钥运行命令就自动清空」的真实原因：.env 压根没被读到。
+#
+# 这里按文件位置反推 agent/.env，从任何目录启动都能读到同一份配置。
+_AGENT_ROOT = Path(__file__).resolve().parents[2]
+_ENV_FILE = _AGENT_ROOT / ".env"
 
 # 各家「兼容 OpenAI 协议」的地址和常用模型。
 # 换供应商只要改 .env 里的 LLM_PROVIDER，代码一行不用动。
@@ -30,7 +44,7 @@ PROVIDER_PRESETS: dict[str, dict[str, str]] = {
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(_ENV_FILE),
         env_file_encoding="utf-8",
         extra="ignore",
         case_sensitive=False,
@@ -227,6 +241,11 @@ class Settings(BaseSettings):
     @property
     def has_key(self) -> bool:
         return bool(self.llm_api_key.strip())
+
+    @property
+    def env_file_path(self) -> Path:
+        """本次实际读取的 .env 路径，供启动日志点明「到底读了哪个文件」。"""
+        return _ENV_FILE
 
     def db_summary(self) -> dict[str, object]:
         """给自检和日志用：不含密码。"""
