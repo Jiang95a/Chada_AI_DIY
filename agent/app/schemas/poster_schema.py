@@ -48,3 +48,39 @@ class PosterExtractResponse(BaseModel):
     image: dict[str, Any] = Field(default_factory=dict)
     info: PosterInfo = Field(default_factory=PosterInfo)
     warnings: list[str] = Field(default_factory=list)
+
+
+# ====================================================================== 图像生成
+
+
+class PosterGenerateRequest(BaseModel):
+    """页面工坊「AI 生成海报」的入参。
+
+    prompt 由前端根据活动字段拼出来，只包含公开的活动视觉描述——
+    不许带报名者信息、匿名反馈原文或任何个人敏感信息（见 docs/poster-generation-api.md 的安全条款）。
+    """
+
+    prompt: str = Field(min_length=4, max_length=800, description="画面描述")
+    aspectRatio: str = Field(default="3:4", description="3:4 / 4:3 / 1:1 / 16:9")
+    style: str = Field(default="warm-editorial-campus", max_length=60, description="版式风格标识")
+
+
+class PosterGenerateResponse(BaseModel):
+    """出图结果。
+
+    url 是上游返回的图片地址（可能几小时就失效），b64 是同一张图的 base64——
+    给调用方一次落盘/入库的机会，不要依赖上游 URL 长期可用。
+    """
+
+    ok: bool = True
+    source: str = "image"
+    model: str = ""
+    latencyMs: int = 0
+    prompt: str = ""
+    aspectRatio: str = "3:4"
+    url: str = ""
+    b64: str = ""
+    revisedPrompt: str = ""
+    size: str = ""
+    warnings: list[str] = Field(default_factory=list)
+

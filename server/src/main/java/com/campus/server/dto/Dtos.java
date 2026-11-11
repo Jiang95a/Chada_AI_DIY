@@ -425,4 +425,39 @@ public final class Dtos {
     public record NotificationDto(String id, String type, String title, String detail,
                                   String targetPath, boolean read, String createdAt) {
     }
+
+    // ================================================================ AI 海报生成
+
+    /**
+     * POST /ai/poster/generate 的请求体。
+     *
+     * <p>只收画面描述——不收活动字段。活动字段由前端自己拼进 prompt，
+     * 后端再去查数据库反而会把报名者信息带上（见 docs/poster-generation-api.md 的安全条款）。
+     *
+     * <p>{@code clientRequestId} 是幂等键：前端连点或网络重试时，
+     * 同一个 id 只出一次图，不重复付费。
+     */
+    public record PosterGenerateRequest(
+            @jakarta.validation.constraints.NotBlank(message = "请先描述想要的画面")
+            @jakarta.validation.constraints.Size(min = 4, max = 800, message = "画面描述需要 4~800 字")
+            String prompt,
+            String aspectRatio,
+            String style,
+            /** 幂等键：前端每次点击生成一个，重试沿用同一个。 */
+            String clientRequestId,
+            /**
+             * 可选。不传时后端退化成「该用户最近的项目」——ai_jobs.project_id 是 NOT NULL
+             * 且有外键，而海报生成在语义上不必然绑定某个项目，见 PosterService#resolveProjectId。
+             */
+            String projectId
+    ) {
+    }
+
+    /**
+     * 出图结果。{@code url} 是本服务自己 /files 下的永久地址（不是上游临时地址），
+     * {@code jobId} 用于运营排查：每一次生成在 ai_jobs 里都有一条记录。
+     */
+    public record PosterGenerateResponse(String jobId, String url, String prompt, String model,
+                                         String aspectRatio, int latencyMs, boolean cached) {
+    }
 }

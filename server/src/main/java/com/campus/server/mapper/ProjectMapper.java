@@ -166,6 +166,17 @@ public interface ProjectMapper {
     @Select("SELECT COUNT(*) FROM projects WHERE owner_id = #{ownerId} AND deleted_at IS NULL")
     long countByOwner(@Param("ownerId") String ownerId);
 
+    /**
+     * 取某人最近动过的一个项目。
+     *
+     * <p>给「AI 海报生成」兜底用：{@code ai_jobs.project_id} 是 NOT NULL 且有外键，
+     * 而海报生成这个动作在语义上并不一定绑定某个项目。与其为此放开全库约束，
+     * 不如退化成「用户最近的项目」——单条主键查询，成本可以忽略。
+     */
+    @Select("SELECT " + COLUMNS + " FROM projects WHERE owner_id = #{ownerId} AND deleted_at IS NULL "
+          + "ORDER BY updated_at DESC, created_at DESC LIMIT 1")
+    ProjectEntity findLatestByOwner(@Param("ownerId") String ownerId);
+
     // ------------------------------------------------------------------------
     // 公开活动列表：只查已发布、未删除、且还在开放时间窗内的项目。
     // 时间窗放在 SQL 里做，避免把整表拉回内存再过滤。

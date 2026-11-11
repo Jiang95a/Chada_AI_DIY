@@ -3,6 +3,7 @@ package com.campus.server.web;
 import com.campus.server.common.ApiResponse;
 import com.campus.server.dto.Dtos;
 import com.campus.server.service.AiService;
+import com.campus.server.service.PosterService;
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,9 +27,11 @@ import java.util.Map;
 public class AiController {
 
     private final AiService aiService;
+    private final PosterService posterService;
 
-    public AiController(AiService aiService) {
+    public AiController(AiService aiService, PosterService posterService) {
         this.aiService = aiService;
+        this.posterService = posterService;
     }
 
     /** 透传 /chat，给编辑器 AiPanel 用。 */
@@ -52,6 +55,22 @@ public class AiController {
         String dataUrl = body == null || body.get("dataUrl") == null
                 ? null : String.valueOf(body.get("dataUrl"));
         return ApiResponse.ok(aiService.extractPoster(dataUrl, url));
+    }
+
+    /**
+     * 生成活动海报底图。
+     *
+     * <p>返回的 {@code url} 是本服务 /files 下的永久地址，不是上游临时地址——
+     * 上游地址几小时就失效，透传会让用户过几天看到裂图。
+     *
+     * <p>没配图像模型时返回 503 IMAGE_GENERATION_UNAVAILABLE，
+     * 前端按契约提示「改用上传已有海报」，不要引导用户重试。
+     */
+    @PostMapping("/poster/generate")
+    public ApiResponse.Envelope<Dtos.PosterGenerateResponse> generatePoster(
+            @Valid @RequestBody Dtos.PosterGenerateRequest request) {
+        return ApiResponse.ok(posterService.generate(request.projectId(), request.prompt(),
+                request.aspectRatio(), request.style(), request.clientRequestId()));
     }
 
     /** 按一句话需求生成候选页面，返回 ai_proposals 记录（不直接改草稿）。 */

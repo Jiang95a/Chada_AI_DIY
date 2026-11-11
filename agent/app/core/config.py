@@ -66,6 +66,19 @@ class Settings(BaseSettings):
     vision_timeout: int = 90
     poster_max_bytes: int = 5 * 1024 * 1024   # 和前端上传限制保持一致
 
+    # ---- 图像生成 / 海报出图 ----
+    # 和「视觉（读图）」是两回事，别复用 VISION_*：读图的模型反过来不一定能画图。
+    # 走 OpenAI 兼容的 POST {base}/images/generations，所以 OpenAI、通义万相兼容模式、
+    # 智谱 CogView、以及各类中转都能直接换。
+    # 四个值留空 = 没接入图像模型，/poster/generate 老实返回 503，
+    # 前端页面继续提供「上传已有海报」，绝不假装生成成功。
+    image_enabled: bool = True
+    image_model: str = ""           # 如 dall-e-3 / wanx-v1 / cogview-3
+    image_api_key: str = ""         # 留空则复用 LLM_API_KEY
+    image_base_url: str = ""        # 留空则复用 LLM_BASE_URL
+    image_timeout: int = 150        # 出图很慢，比 vision_timeout 还宽
+    image_size: str = "1024x1024"   # 上游只认具体尺寸，比例由我们换算
+
     # ---- RAG ----
     rag_enabled: bool = True
     rag_top_k: int = 4
@@ -162,6 +175,28 @@ class Settings(BaseSettings):
         return (self.vision_api_key or self.llm_api_key).strip()
 
     @property
+    def image_ready(self) -> bool:
+        """图像生成是否可用：要显式配置模型名，并且有 key（专属或复用主 key）。"""
+        return bool(self.image_enabled and self.image_model.strip() and self.image_api_key_value)
+
+    @property
+    def image_api_key_value(self) -> str:
+        return (self.image_api_key or self.llm_api_key).strip()
+
+    @property
+    def image_base_url_value(self) -> str:
+        return (self.image_base_url or self.base_url).strip()
+
+    def image_summary(self) -> dict[str, object]:
+        return {
+            "enabled": self.image_enabled,
+            "ready": self.image_ready,
+            "model": self.image_model or "（未配置）",
+            "base_url": self.image_base_url_value,
+            "key_configured": bool(self.image_api_key_value),
+        }
+
+    @property
     def vision_base_url_value(self) -> str:
         return (self.vision_base_url or self.base_url).strip()
 
@@ -215,6 +250,7 @@ class Settings(BaseSettings):
             "temperature": self.llm_temperature,
             "history_limit": self.history_limit,
             "vision": self.vision_summary(),
+            "image": self.image_summary(),
             "rag": self.rag_summary(),
             "guard_enabled": self.guard_enabled,
             "db": self.db_summary(),

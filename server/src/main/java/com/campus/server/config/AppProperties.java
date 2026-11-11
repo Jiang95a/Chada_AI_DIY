@@ -20,6 +20,13 @@ public class AppProperties {
     private String apiBaseUrl = "http://127.0.0.1:8080";
     private String agentBaseUrl = "http://127.0.0.1:8000";
     private int agentTimeoutSeconds = 90;
+    /**
+     * AI 海报生成的读取超时。
+     *
+     * <p>比 {@link #agentTimeoutSeconds} 长得多：图像模型普遍要 30~120 秒才出图，
+     * 用 90 秒会「快的刚好够、慢的必超时」，用户白等，而上游往往已经计费。
+     */
+    private int imageTimeoutSeconds = 180;
     private Jwt jwt = new Jwt();
     private Upload upload = new Upload();
 

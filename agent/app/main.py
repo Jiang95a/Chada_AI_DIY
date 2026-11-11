@@ -37,6 +37,7 @@ from app.routers import chat as chat_router
 from app.routers import knowledge as kb_router
 from app.routers import mcp as mcp_router
 from app.routers import plan as plan_router
+from app.routers import poster as poster_router
 from app.routers import vision as vision_router
 from app.schemas.chat_schema import HealthResponse
 from app.services.rag import store as kb_store
@@ -126,6 +127,7 @@ app.add_middleware(
 app.include_router(chat_router.router)
 app.include_router(plan_router.router)
 app.include_router(vision_router.router)
+app.include_router(poster_router.router)
 app.include_router(kb_router.router)
 app.include_router(mcp_router.router)
 app.include_router(audit_router.router)
