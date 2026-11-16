@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 import { getAccessToken } from '@/services/http'
-import { fetchRemoteTrace, saveRemoteTrace } from '@/services/traces'
+import { fetchRemoteTrace, fetchRemoteTraceList, deleteRemoteTrace, saveRemoteTrace } from '@/services/traces'
 import { ruleParser } from '@/services/traceParser'
 import {
   emptyTrace,
@@ -200,10 +200,21 @@ export const useTraceStore = defineStore('trace', () => {
       const remote = await fetchRemoteTrace(activityId)
       if (remote) {
         const normalized = normalizeTrace(remote, userId.value, activityId, domain)
-        if (normalized && normalized.updatedAt >= base.updatedAt) {
-          traces.value = { ...traces.value, [activityId]: normalized }
-          persist(normalized)
-          status.value = { ...status.value, [activityId]: 'synced' }
+        if (normalized) {
+          // 后端 Trace DTO 还没有 history 字段：远端回来时保留本机时间线，
+          // 否则登录后一次刷新就会把变化卡清空。
+          const merged: ParticipantTrace = {
+            ...normalized,
+            notes: normalized.notes?.length ? normalized.notes : (local?.notes ?? []),
+            history: normalized.history?.length ? normalized.history : (local?.history ?? []),
+          }
+          if (merged.updatedAt >= base.updatedAt) {
+            traces.value = { ...traces.value, [activityId]: merged }
+            persist(merged)
+            status.value = { ...status.value, [activityId]: 'synced' }
+          } else {
+            status.value = { ...status.value, [activityId]: 'synced' }
+          }
         } else {
           status.value = { ...status.value, [activityId]: 'synced' }
         }
@@ -350,9 +361,11 @@ export const useTraceStore = defineStore('trace', () => {
     } catch {
       /* 忽略 */
     }
+    if (getAccessToken() && !backendDisabled.value) void deleteRemoteTrace(activityId)
   }
 
   function clearAll(): void {
+    const ids = Object.keys(traces.value)
     traces.value = {}
     try {
       const prefix = `${STORAGE_PREFIX}:${userId.value}:`
@@ -364,6 +377,34 @@ export const useTraceStore = defineStore('trace', () => {
       keys.forEach((key) => localStorage.removeItem(key))
     } catch {
       /* 忽略 */
+    }
+    if (getAccessToken() && !backendDisabled.value) ids.forEach((id) => void deleteRemoteTrace(id))
+  }
+
+  /** 登录后把其它设备上的轨迹拉回本机；返回后调用 list() 即可看到合并结果。 */
+  async function syncAll(): Promise<void> {
+    if (!getAccessToken() || backendDisabled.value) return
+    const remoteList = await fetchRemoteTraceList(50)
+    for (const item of remoteList) {
+      const local = traces.value[item.activityId] ?? readLocal(item.activityId)
+      if (local && local.updatedAt >= item.updatedAt) continue
+      const remote = await fetchRemoteTrace(item.activityId)
+      if (!remote) continue
+      const normalized = normalizeTrace(
+        remote,
+        userId.value,
+        item.activityId,
+        item.domain === 'career' ? 'career' : 'mental'
+      )
+      if (!normalized) continue
+      const merged: ParticipantTrace = {
+        ...normalized,
+        notes: normalized.notes?.length ? normalized.notes : (local?.notes ?? []),
+        history: normalized.history?.length ? normalized.history : (local?.history ?? []),
+      }
+      traces.value = { ...traces.value, [item.activityId]: merged }
+      persist(merged)
+      status.value = { ...status.value, [item.activityId]: 'synced' }
     }
   }
 
@@ -381,5 +422,6 @@ export const useTraceStore = defineStore('trace', () => {
     list,
     remove,
     clearAll,
+    syncAll,
   }
 })

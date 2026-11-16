@@ -46,7 +46,10 @@ function clearAll(): void {
   toast.pushToast('这台设备上的轨迹已清空', 'success')
 }
 
-onMounted(refresh)
+onMounted(async () => {
+  await traceStore.syncAll()
+  refresh()
+})
 </script>
 
 <template>

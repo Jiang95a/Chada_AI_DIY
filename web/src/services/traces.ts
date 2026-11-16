@@ -20,6 +20,34 @@ function unwrapTrace(payload: unknown): ParticipantTrace | null {
   return data as ParticipantTrace
 }
 
+export interface RemoteTraceSummary {
+  activityId: string
+  activityTitle: string
+  domain: string
+  semester: string
+  summary: string
+  tagCount: number
+  updatedAt: number
+}
+
+export async function fetchRemoteTraceList(limit = 50): Promise<RemoteTraceSummary[]> {
+  try {
+    const payload = await apiRequest<unknown>(`/traces/list?limit=${limit}`, {}, { timeoutMs: 12000 })
+    const data = readData<RemoteTraceSummary[]>(payload)
+    return Array.isArray(data) ? data : []
+  } catch {
+    return []
+  }
+}
+
+export async function deleteRemoteTrace(activityId: string): Promise<void> {
+  try {
+    await apiRequest(`/traces/${encodeURIComponent(activityId)}`, { method: 'DELETE' }, { timeoutMs: 12000 })
+  } catch {
+    // 删除失败不回滚本地删除：用户先看到“已删除”，下次同步会再对一次。
+  }
+}
+
 export async function fetchRemoteTrace(activityId: string): Promise<ParticipantTrace | null> {
   try {
     const payload = await apiRequest<unknown>(
