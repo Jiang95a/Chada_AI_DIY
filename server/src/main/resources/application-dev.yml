@@ -1,0 +1,26 @@
+# =============================================================================
+# 本地开发配置（profile = dev）
+#
+# 用法：
+#   mvn spring-boot:run -Dspring-boot.run.profiles=dev
+#   java -jar server-0.1.0.jar --spring.profiles.active=dev
+#   .\run-dev.ps1        （仓库里有这个脚本）
+#
+# 为什么会有这个文件：
+#   application.yml 里的 DB_PASSWORD 和 JWT_SECRET 原本带默认值兜底，
+#   结果是**忘记设环境变量时服务照常启动**，用着写死在仓库里的开发密钥。
+#   现在这两个默认值被移到了这里，只有显式激活 dev profile 才会生效。
+#   生产（不激活任何 profile）缺这两个变量会直接启动失败，这是刻意的。
+#
+# ⚠ 这里的值只用于本机开发，绝不要用在任何对外开放的环境。
+# =============================================================================
+
+spring:
+  datasource:
+    username: ${DB_USER:campus_app}
+    password: ${DB_PASSWORD:Campus_2026}
+
+app:
+  jwt:
+    # 只在本机有效；换到任何共享环境都必须通过 JWT_SECRET 覆盖
+    secret: ${JWT_SECRET:campus-diy-dev-secret-please-change-this-32bytes}

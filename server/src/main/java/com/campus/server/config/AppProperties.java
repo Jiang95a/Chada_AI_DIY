@@ -32,7 +32,18 @@ public class AppProperties {
 
     @Data
     public static class Jwt {
-        private String secret = "campus-diy-dev-secret-please-change-this-32bytes";
+        /**
+         * JWT 签名密钥，至少 32 字节。
+         *
+         * <p><b>刻意不给默认值。</b>这里原本写死了一个开发密钥，等于把「签发合法 token 的能力」
+         * 公开在仓库里 —— 任何人 clone 下来都能伪造任意用户的 token。而且由于它兜住了 null，
+         * {@link com.campus.server.security.JwtService} 的长度校验也永远不会触发，
+         * 运维漏配环境变量时服务照常启动，问题要到出事才被发现。
+         *
+         * <p>本地开发请在 {@code application-dev.yml}（dev profile）里提供，
+         * 生产必须通过环境变量 {@code JWT_SECRET} 提供。
+         */
+        private String secret;
         private long accessTtlMinutes = 15;
         private long refreshTtlDays = 7;
     }

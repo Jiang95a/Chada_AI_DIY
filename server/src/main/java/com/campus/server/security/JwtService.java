@@ -32,7 +32,17 @@ public class JwtService {
 
     public JwtService(AppProperties props) {
         this.props = props;
-        byte[] secret = props.getJwt().getSecret().getBytes(StandardCharsets.UTF_8);
+        String secretValue = props.getJwt().getSecret();
+        // 先判空再判长度：没有默认值之后，漏配时拿到的是 null 而不是空串，
+        // 直接 .getBytes() 会抛 NPE，报错信息对运维毫无帮助。这里换成一句
+        // 「缺哪个变量、本地怎么绕过」的提示。
+        if (secretValue == null || secretValue.isBlank()) {
+            throw new IllegalStateException(
+                    "缺少 JWT_SECRET：JWT 签名密钥没有配置，服务无法启动。"
+                            + "生产请设置环境变量 JWT_SECRET（至少 32 字节）；"
+                            + "本地开发请用 dev profile 启动（application-dev.yml 里有开发用密钥）。");
+        }
+        byte[] secret = secretValue.getBytes(StandardCharsets.UTF_8);
         if (secret.length < 32) {
             throw new IllegalStateException("JWT_SECRET 至少 32 字节，当前 " + secret.length + " 字节");
         }

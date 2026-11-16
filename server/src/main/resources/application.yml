@@ -13,7 +13,13 @@ spring:
   datasource:
     url: jdbc:mysql://${DB_HOST:127.0.0.1}:${DB_PORT:3306}/${DB_NAME:campus_diy}?useUnicode=true&characterEncoding=UTF-8&connectionCollation=utf8mb4_unicode_ci&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
     username: ${DB_USER:campus_app}
-    password: ${DB_PASSWORD:Campus_2026}
+    # 【无默认值，但必须写成空默认 ${DB_PASSWORD:}】
+    # 缺少环境变量时启动失败，而不是悄悄用仓库里写死的密码。
+    # 写成 ${DB_PASSWORD:} 的原因同下方 jwt.secret：不写 `:` 时 Spring 会把
+    # 字面量 "${DB_PASSWORD}" 当成密码去连库，报出来的错是「Access denied」，
+    # 让人以为是密码错了，其实是根本没配。
+    # 本地开发请激活 dev profile（见 application-dev.yml）。
+    password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 10
@@ -46,8 +52,17 @@ app:
   # AI 海报出图比对话慢得多（图像模型普遍 30~120 秒），单独放宽，见 AppProperties#imageTimeoutSeconds
   image-timeout-seconds: ${IMAGE_TIMEOUT_SECONDS:180}
   jwt:
-    # 生产必须通过环境变量覆盖，至少 32 字节
-    secret: ${JWT_SECRET:campus-diy-dev-secret-please-change-this-32bytes}
+    # 【无默认值，但必须写成空默认 ${JWT_SECRET:}】
+    # 生产必须通过环境变量提供，至少 32 字节。缺少时启动失败。
+    #
+    # 为什么不能直接写 ${JWT_SECRET}：变量未定义时 Spring 不会报错，
+    # 而是把字面量 "${JWT_SECRET}" 原样当作值绑进去（13 字节），
+    # 于是报出「当前 13 字节」这种对排错毫无帮助的错误。
+    # 写成 ${JWT_SECRET:} 让它解析成空串，由 JwtService 抛出带指引的异常。
+    #
+    # 原来这里写死了一个开发密钥，等于把签发 token 的能力公开在仓库里，
+    # 任何人都能拿它伪造合法 token。本地开发请激活 dev profile（见 application-dev.yml）。
+    secret: ${JWT_SECRET:}
     access-ttl-minutes: ${JWT_ACCESS_TTL_MINUTES:15}
     refresh-ttl-days: ${JWT_REFRESH_TTL_DAYS:7}
   upload:

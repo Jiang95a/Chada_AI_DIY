@@ -165,7 +165,8 @@ web/.env.development                      ← 新增：VITE_API_BASE_URL=http://
 2. **定登录方案**（见 1.1）—— 没有 token 连 `/projects` 都调不通
 3. `web/` 负责人 **补上 `web/src/data/`** —— 否则前端根本起不来
 4. **后端启动**：`java -jar server-0.1.0.jar`（8080），`GET /api/v1/health` 应返回 `database.ok=true`
-5. **数据库迁移**：`docs/sql/003_cover_fields.sql`、`004_more_templates.sql` 必须已执行
+5. **数据库迁移**：按 [`docs/sql/README.md`](./sql/README.md) 的顺序跑完 12 个脚本。
+   注意 `003_cover_fields.sql`、`004_more_templates.sql` 只是其中两个，**光跑这两个会缺表**
 6. 前端加 `.env.development` 后 `pnpm dev`
 7. 按 **登录 → 建项目 → 存草稿 → 发布 → 公开页提交 → 看统计** 的顺序联调
 

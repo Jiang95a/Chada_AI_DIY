@@ -15,7 +15,8 @@
 - [`团队综合开发文档`](./docs/团队综合开发文档.md) — 总体方案
 - [`OpenAPI 契约`](./docs/api/openapi.yaml) — **改接口先改它**
 - [`MySQL 建库脚本`](./docs/sql/00_create_database.sql) — 建库 + 建专用账号（root 执行）
-- [`初始化 SQL（MySQL 8）`](./docs/sql/001_init.sql) — 12 张表，可重复执行
+- [`初始化 SQL（MySQL 8）`](./docs/sql/001_init.sql) — 13 张基础表，可重复执行
+- [`迁移顺序（权威）`](./docs/sql/README.md) — **新库/旧库到底按什么顺序跑，看这份**
 - [`演示数据`](./docs/sql/002_seed.sql) — 演示用户 / 模板 / 项目，后端第一天就能跑通
 - [`MySQL 五步上手`](./docs/mysql-快速开始.md) — 装到验证，十分钟
 - [`环境变量模板`](./docs/.env.example) — 复制成本地 `.env`
@@ -24,24 +25,33 @@
 
 ### 数据库脚本怎么跑（顺序别乱）
 
+**新库请直接按 [`docs/sql/README.md`](./docs/sql/README.md) 的顺序跑完全部 12 个脚本**，
+那是唯一权威顺序。下面只是最精简的骨架，照着跑**会缺表**：
+
 ```
 docs/sql/00_create_database.sql    ← root 执行，建库 + 建 campus_app 账号
-docs/sql/001_init.sql              ← campus_app 执行，全量 12 张表
+docs/sql/001_init.sql              ← campus_app 执行，13 张基础表
 docs/sql/002_seed.sql              ← 演示用户和模板
 docs/sql/006_feedback.sql          ← 用户反馈表（老库必补，否则 POST /feedback 报 500）
 ```
 
-`003_*` / `004_*` / `005_*` 是阶段性增量脚本，**新库不需要跑**（内容已并入
-`001_init.sql`）。但**老库要按编号补跑缺的那些** —— 因为
+> ⚠️ 只跑到上面四步的话，`activity_consents` / `activity_feedback` /
+> `user_notifications` / `referral_requests` 这 4 张表**不存在**——它们在
+> `007` 和 `009` 里。心理关怀的同意、反馈、通知和转介工单会全部 500。
+> 完整 12 个脚本的跑法见 [`docs/sql/README.md`](./docs/sql/README.md)。
+
+`003_*` / `004_*` / `005_*` 是阶段性增量脚本，**新库也需要跑**（`001_init.sql`
+没有包含它们建的表和列）。**老库按编号补跑缺的那些** —— 因为
 `CREATE TABLE IF NOT EXISTS` 遇到已存在的表会整段跳过，重跑 `001` 不会补表。
+所有脚本都是幂等的，重跑安全。
 
 自查一句话：
 
 ```sql
-SHOW TABLES;   -- 应该是 12 张
+SHOW TABLES;   -- 应该是 16 张
 ```
 
-健康检查直接看 <http://127.0.0.1:8080/api/v1/health>，`database.tables` 应为 `12`。
+健康检查直接看 <http://127.0.0.1:8080/api/v1/health>，`database.tables` 应为 `16`。
 
 ## 本地启动
 

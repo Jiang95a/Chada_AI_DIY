@@ -10,6 +10,7 @@
 -- 后端原先没存这些，列表接口只能返回纯文本标题，卡片会一片空白。
 --
 -- 执行顺序：00_create_database.sql → 001_init.sql → 002_seed.sql → 本文件
+--           （完整的迁移顺序见 docs/sql/README.md）
 --
 -- 注意：campus_app 账号没有 CREATE ROUTINE 权限，所以这里不用存储过程，
 -- 改用「先查 information_schema，再按需执行」的写法。
@@ -23,17 +24,41 @@
 -- 【第二步】只执行「还不存在」的那些 ALTER 语句（MySQL 8 没有 ADD COLUMN IF NOT EXISTS）
 -- =============================================================================
 
-ALTER TABLE projects
-  ADD COLUMN activity_type VARCHAR(64)  NULL COMMENT '活动类型，如 社团招新/投票评选' AFTER description;
+-- 【第三版】改为幂等：原先这里是四条裸 ALTER TABLE ... ADD COLUMN，
+-- 重复执行会直接报 Duplicate column name 中断脚本。现在每列先查 information_schema，
+-- 已存在就跳过（DO 0），缺哪列补哪列。与 004_projects_cover_columns.sql 的写法一致。
+--
+-- 注意列定义取的是本文件的宽松版本（VARCHAR(64) 且可空），不是 001_init.sql 里的
+-- NOT NULL DEFAULT。原因：线上库就是按本文件建的，改成 NOT NULL 需要先回填存量
+-- 数据，属于另一个迁移；两种定义下 Java 侧都是 String，读取行为一致。
 
-ALTER TABLE projects
-  ADD COLUMN cover_tone VARCHAR(32)  NULL COMMENT '卡片配色主题，前端 ProjectRecord.coverTone' AFTER activity_type;
+SET @ddl := (SELECT IF(COUNT(*) = 0,
+    'ALTER TABLE projects ADD COLUMN activity_type VARCHAR(64) NULL COMMENT ''活动类型，如 社团招新/投票评选'' AFTER description',
+    'DO 0')
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE() AND table_name = 'projects' AND column_name = 'activity_type');
+PREPARE stmt FROM @ddl; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-ALTER TABLE projects
-  ADD COLUMN cover_code VARCHAR(64)  NULL COMMENT '卡片角标文字，前端 ProjectRecord.coverCode' AFTER cover_tone;
+SET @ddl := (SELECT IF(COUNT(*) = 0,
+    'ALTER TABLE projects ADD COLUMN cover_tone VARCHAR(32) NULL COMMENT ''卡片配色主题，前端 ProjectRecord.coverTone'' AFTER activity_type',
+    'DO 0')
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE() AND table_name = 'projects' AND column_name = 'cover_tone');
+PREPARE stmt FROM @ddl; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
-ALTER TABLE projects
-  ADD COLUMN cover_title VARCHAR(160) NULL COMMENT '卡片大标题，前端 ProjectRecord.coverTitle' AFTER cover_code;
+SET @ddl := (SELECT IF(COUNT(*) = 0,
+    'ALTER TABLE projects ADD COLUMN cover_code VARCHAR(64) NULL COMMENT ''卡片角标文字，前端 ProjectRecord.coverCode'' AFTER cover_tone',
+    'DO 0')
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE() AND table_name = 'projects' AND column_name = 'cover_code');
+PREPARE stmt FROM @ddl; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @ddl := (SELECT IF(COUNT(*) = 0,
+    'ALTER TABLE projects ADD COLUMN cover_title VARCHAR(160) NULL COMMENT ''卡片大标题，前端 ProjectRecord.coverTitle'' AFTER cover_code',
+    'DO 0')
+  FROM information_schema.columns
+  WHERE table_schema = DATABASE() AND table_name = 'projects' AND column_name = 'cover_title');
+PREPARE stmt FROM @ddl; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- -----------------------------------------------------------------------------
 -- 回填：已有项目按「类型 → 配色 → 角标 → 标题」的顺序补默认值，
@@ -57,7 +82,12 @@ WHERE p.deleted_at IS NULL;
 -- -----------------------------------------------------------------------------
 -- 便于按活动类型筛选
 -- -----------------------------------------------------------------------------
-ALTER TABLE projects ADD KEY idx_projects_activity_type (activity_type);
+SET @ddl := (SELECT IF(COUNT(*) = 0,
+    'ALTER TABLE projects ADD KEY idx_projects_activity_type (activity_type)',
+    'DO 0')
+  FROM information_schema.statistics
+  WHERE table_schema = DATABASE() AND table_name = 'projects' AND index_name = 'idx_projects_activity_type');
+PREPARE stmt FROM @ddl; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 -- 验证
 SELECT COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE

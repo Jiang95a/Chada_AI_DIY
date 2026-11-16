@@ -1,7 +1,19 @@
-﻿param(
+param(
   [Parameter(ValueFromRemainingArguments = $true)]
   [string[]] $MavenArguments
 )
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 本机开发启动脚本：mvn spring-boot:run，默认激活 dev profile。
+#
+# 为什么不直接开一个 JWT_SECRET 环境变量：Spring Boot 的 profile 配置
+# 本来就是为「同一份代码、不同环境有不同默认值」设计的，用 dev profile
+# 比让每个开发者各自设环境变量更容易复制，也不会有人把生产密钥写进 shell。
+#
+# 想跑生产式启动（无默认值、必须给环境变量）：
+#   .\dev.ps1 spring-boot:run
+#   $env:DB_PASSWORD='...'; $env:JWT_SECRET='...'
+# ─────────────────────────────────────────────────────────────────────────────
 
 $ErrorActionPreference = 'Stop'
 
@@ -61,7 +73,12 @@ $env:JAVA_HOME = Resolve-Jdk21
 $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 $maven = Resolve-Maven
 $repoArg = "-Dmaven.repo.local=$($mavenRepo.Replace('\', '/'))"
-$mavenArgs = if ($MavenArguments.Count -gt 0) { $MavenArguments } else { @('spring-boot:run') }
+$mavenArgs = if ($MavenArguments.Count -gt 0) { $MavenArguments } else {
+  # 默认激活 dev profile：application.yml 里 DB_PASSWORD / JWT_SECRET 已经没有默认值，
+  # 不激活 dev 会直接启动失败（这是刻意的，见 application-dev.yml 顶部注释）。
+  # spring-boot:run 用 -D 传 profile，打好的 jar 用 --spring.profiles.active=dev。
+  @('spring-boot:run', '-Dspring-boot.run.profiles=dev')
+}
 
 Write-Host "JAVA_HOME: $env:JAVA_HOME"
 Write-Host "Maven: $maven"

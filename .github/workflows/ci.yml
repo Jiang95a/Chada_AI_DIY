@@ -1,0 +1,115 @@
+name: CI
+
+# 每次 push 到 main、以及每个 PR，都跑全套检查。
+# 目标：不让「本地忘了跑测试」成为回归漏网的借口。
+#
+# 三个作业互相独立，任何一个红都会挡住合并：
+#   server — 后端编译 + 单元测试
+#   web    — 前端类型检查 + 单元测试 + 生产构建
+#   agent  — 智能体 pytest
+#
+# 刻意没有在 CI 里起 MySQL：那会引入 testcontainers/服务容器，拖慢到十几分钟，
+# 而当前后端测试全是纯单元测试。等加了需要库的集成测试，再加 db 作业。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# 同一分支的新提交取消上一次还在跑的，省额度也省等待
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  server:
+    name: 后端编译与测试
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: server/pom.xml
+
+      - name: 编译并跑测试
+        # -B 关掉交互式进度条，否则 CI 日志里全是 \r 刷屏
+        run: mvn -B test
+
+      - name: 打包（验证能出可运行的 jar）
+        run: mvn -B package -DskipTests
+
+  web:
+    name: 前端类型检查、测试与构建
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      # 版本取自 web/package.json 的 packageManager 字段，避免和本地不一致
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+
+      - name: 安装 Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: 安装依赖
+        # --frozen-lockfile：锁文件与 package.json 不一致时直接失败，
+        # 而不是悄悄装一个和本地不同的版本树
+        run: pnpm install --frozen-lockfile
+
+      - name: 类型检查
+        run: pnpm typecheck
+
+      - name: 单元测试
+        # vitest 在 CI 里默认 watch，需要显式 run 模式
+        run: pnpm test:unit --run
+
+      - name: 生产构建
+        run: pnpm build
+
+  agent:
+    name: 智能体测试
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agent
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: agent/requirements.txt
+
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+
+      - name: 跑测试
+        # 测试不需要真实 API 密钥：涉及外部调用的用例都做了 stub 或跳过。
+        # 万一有需要密钥的用例漏了跳过，用这个变量让它明确失败而不是悄悄跳过。
+        env:
+          LLM_API_KEY: ''
+        run: python -m pytest -q
