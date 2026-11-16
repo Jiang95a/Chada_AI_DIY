@@ -9,6 +9,11 @@ export interface FormContext {
   errors: Record<string, boolean>
   setAnswer: (key: string, value: string | string[]) => void
   clearError: (key: string) => void
+  /** 公开活动页才有：同意说明直接渲染在表单提交按钮上方 */
+  readonly consentRequired?: boolean
+  readonly consentAccepted?: boolean
+  readonly consentText?: string
+  setConsent?: (accepted: boolean) => void
 }
 
 export const FORM_CONTEXT: InjectionKey<FormContext> = Symbol('form-context')

@@ -156,6 +156,10 @@ function onFormSubmit() {
   emit('action', { type: 'submit' })
 }
 
+function onConsentChange(event: Event) {
+  form?.setConsent?.((event.target as HTMLInputElement).checked)
+}
+
 /* ------------------------------- 倒计时 ------------------------------- */
 
 const now = ref(Date.now())
@@ -317,6 +321,14 @@ const countdown = computed(() => {
           <em v-if="fieldError(field)" class="ff__error">这一项要填</em>
         </label>
       </div>
+
+      <label v-if="form?.consentRequired" class="form-consent">
+        <input type="checkbox" :checked="form.consentAccepted" @change="onConsentChange" />
+        <span>
+          <strong>参与前请了解</strong>
+          {{ form.consentText }}
+        </span>
+      </label>
 
       <button type="button" class="cta cta--submit" :class="`cta--${theme.buttonStyle}`" @click="onFormSubmit">
         {{ p.buttonText || '提交' }}
@@ -761,6 +773,36 @@ const countdown = computed(() => {
 
 .ff__control[readonly] {
   cursor: default;
+}
+
+.form-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ink) 4%, var(--surface));
+  color: var(--surface-muted);
+  font-size: 12.5px;
+  line-height: 1.65;
+  cursor: pointer;
+}
+
+.form-consent input {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  margin-top: 1px;
+  accent-color: var(--brand-600);
+}
+
+.form-consent strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--surface-ink);
+  font-size: 12px;
 }
 
 .cta--submit {

@@ -1,4 +1,5 @@
 import type { Doc } from '@/types/editor'
+import type { ActivityPrivacySettings } from '@/composables/useActivityPrivacy'
 import { normalizeDoc } from '@/utils/doc'
 import { apiRequest, readData } from './http'
 
@@ -87,16 +88,10 @@ export async function submitForm(
   )
 }
 
-export async function getPublicPrivacy(slug: string) {
-  return readData<{
-    privacyMode: 'real_name' | 'optional' | 'anonymous'
-    consentRequired: boolean
-    consentText: string
-    retentionDays: number
-    allowExport: boolean
-    allowLeave: boolean
-    quietSpace: boolean
-  }>(await apiRequest(`/public/activities/${encodeURIComponent(slug)}/privacy`, {}, { auth: false }))
+export async function getPublicPrivacy(slug: string): Promise<Partial<ActivityPrivacySettings>> {
+  return readData<Partial<ActivityPrivacySettings>>(
+    await apiRequest(`/public/activities/${encodeURIComponent(slug)}/privacy`, {}, { auth: false })
+  )
 }
 
 export async function recordConsent(slug: string, consentText?: string) {

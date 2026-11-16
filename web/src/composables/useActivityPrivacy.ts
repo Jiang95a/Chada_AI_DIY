@@ -21,3 +21,27 @@ export function defaultActivityPrivacy(): ActivityPrivacySettings {
     quietSpace: false,
   }
 }
+
+/**
+ * 合并服务端返回的隐私设置。
+ *
+ * 老版本 `/public/activities/:slug/privacy` 没有 `consentRequired` 字段，
+ * 如果直接整体替换，会把默认的 true 变成 undefined，页面就不渲染同意说明，
+ * 但后端提交时仍然要求 consentId——结果就是「提交按钮点了没反应」。
+ * 所以缺字段时按「需要同意」处理。
+ */
+export function normalizeActivityPrivacy(
+  input?: Partial<ActivityPrivacySettings> | null
+): ActivityPrivacySettings {
+  const base = defaultActivityPrivacy()
+  if (!input) return base
+  return {
+    privacyMode: input.privacyMode ?? base.privacyMode,
+    consentRequired: input.consentRequired ?? true,
+    consentText: input.consentText?.trim() || base.consentText,
+    retentionDays: input.retentionDays ?? base.retentionDays,
+    allowExport: input.allowExport ?? base.allowExport,
+    allowLeave: input.allowLeave ?? base.allowLeave,
+    quietSpace: input.quietSpace ?? base.quietSpace,
+  }
+}

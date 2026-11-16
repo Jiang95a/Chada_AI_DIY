@@ -11,7 +11,7 @@ import { useEditorStore } from '@/stores/editor'
 import { useProjectStore } from '@/stores/projects'
 import { themeCssVars } from '@/utils/theme'
 import { parseDate } from '@/utils/misc'
-import { defaultActivityPrivacy, type ActivityPrivacySettings } from '@/composables/useActivityPrivacy'
+import { defaultActivityPrivacy, normalizeActivityPrivacy, type ActivityPrivacySettings } from '@/composables/useActivityPrivacy'
 import {
   getPublicActivity,
   getPublicPrivacy,
@@ -69,7 +69,17 @@ const currentPage = computed(
     pages.value.find((page) => page.role === 'home') ??
     pages.value[0]
 )
-const visibleBlocks = computed(() => currentPage.value?.blocks.filter((block) => !block.hidden) ?? [])
+const visibleBlocks = computed(() => {
+  const blocks = currentPage.value?.blocks.filter((block) => !block.hidden) ?? []
+  // 表单块自己带一个提交按钮；模板/AI 又插一个「提交」按钮时，公开页会出现两个。
+  // 只在有表单的页面去掉这个重复按钮，避免用户点到那个没有校验上下文的按钮。
+  const hasForm = blocks.some((block) => block.type === 'form')
+  if (!hasForm) return blocks
+  return blocks.filter((block) => !(block.type === 'button' && block.props?.action?.type === 'submit'))
+})
+const hasFormBlock = computed(
+  () => currentPage.value?.blocks.some((block) => block.type === 'form' && !block.hidden) ?? false
+)
 const themeVars = computed(() => themeCssVars(document.value?.theme ?? editorStore.doc.theme))
 const shareUrl = computed(
   () =>
@@ -126,7 +136,24 @@ function clearError(key: string): void {
   if (errors[key]) delete errors[key]
 }
 
-provide(FORM_CONTEXT, { answers, errors, setAnswer, clearError })
+provide(FORM_CONTEXT, {
+  answers,
+  errors,
+  setAnswer,
+  clearError,
+  get consentRequired() {
+    return privacy.value.consentRequired
+  },
+  get consentAccepted() {
+    return consentAccepted.value
+  },
+  get consentText() {
+    return privacy.value.consentText
+  },
+  setConsent(value: boolean) {
+    consentAccepted.value = value
+  },
+})
 
 function resetPage(): void {
   currentPageId.value = pages.value.find((page) => page.role === 'home')?.id ?? pages.value[0]?.id ?? ''
@@ -145,7 +172,7 @@ onMounted(async () => {
     remoteActivity.value = result.activity
     publicState.value = 'ready'
     try {
-      privacy.value = await getPublicPrivacy(slug.value)
+      privacy.value = normalizeActivityPrivacy(await getPublicPrivacy(slug.value))
     } catch {
       // 隐私接口暂时不可用时仍展示活动，提交阶段由服务端再次校验。
     }
@@ -205,8 +232,9 @@ async function handleAction(action: any): Promise<void> {
     return
   }
   if (action.type === 'submit') {
+    if (submitting.value) return
     if (privacy.value.consentRequired && !consentAccepted.value) {
-      toast.pushToast('请先阅读并勾选参与说明', 'warn')
+      toast.pushToast('请先勾选表单上方的参与说明', 'warn')
       return
     }
     if (!validate()) {
@@ -359,7 +387,7 @@ function goBack(): void {
         </button>
       </header>
 
-      <div v-if="currentPage" class="public-document-page">
+      <div v-if="currentPage" class="public-document-page" :class="{ 'is-form-page': hasFormBlock }">
         <BlockView
           v-for="block in visibleBlocks"
           :key="block.id"
@@ -390,30 +418,6 @@ function goBack(): void {
       }}
       <span v-if="submitting"> · 提交中...</span>
     </p>
-    <aside v-if="privacy.consentRequired" class="activity-consent-panel">
-      <div class="consent-heading">
-        <span><Icon name="lock" :size="14" />参与前请了解</span>
-        <em>{{
-          privacy.privacyMode === 'anonymous'
-            ? '匿名参与'
-            : privacy.privacyMode === 'optional'
-              ? '可选匿名'
-              : '实名参与'
-        }}</em>
-      </div>
-      <label>
-        <input v-model="consentAccepted" type="checkbox" />
-        <span>{{ privacy.consentText }}</span>
-      </label>
-      <div class="consent-tags">
-        <span v-if="privacy.allowLeave"><Icon name="check" :size="12" />可随时离开</span>
-        <span v-if="privacy.quietSpace"><Icon name="check" :size="12" />设有安静休息区</span>
-        <span>
-          <Icon name="clock" :size="12" />信息保留 {{ privacy.retentionDays || '长期'
-          }}{{ privacy.retentionDays ? ' 天' : '' }}
-        </span>
-      </div>
-    </aside>
     <DynamicParticipation
       v-if="document || publicState === 'error' || publicState === 'offline'"
       :slug="slug"
@@ -487,7 +491,10 @@ function goBack(): void {
   min-height: 340px;
 }
 
-.activity-consent-panel,
+.public-document-page.is-form-page {
+  min-height: 0;
+}
+
 .activity-feedback,
 .activity-referral {
   width: min(760px, calc(100% - 32px));
@@ -496,68 +503,6 @@ function goBack(): void {
   border-radius: 9px;
   background: rgb(255 255 255 / 82%);
   box-shadow: 0 14px 35px -34px rgb(32 63 46 / 30%);
-}
-
-.activity-consent-panel {
-  padding: 14px;
-}
-
-.consent-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.consent-heading > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--brand-700);
-  font-size: 12px;
-  font-weight: 750;
-}
-
-.consent-heading em {
-  padding: 3px 7px;
-  border-radius: 99px;
-  color: var(--brand-600);
-  background: var(--brand-50);
-  font-size: 11px;
-  font-style: normal;
-}
-
-.activity-consent-panel > label {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  color: var(--ink-500);
-  font-size: 12px;
-  line-height: 1.75;
-}
-
-.activity-consent-panel input {
-  margin-top: 2px;
-  accent-color: var(--brand-600);
-}
-
-.consent-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 10px;
-}
-
-.consent-tags span {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 7px;
-  border-radius: 999px;
-  color: var(--ink-500);
-  background: var(--ink-50);
-  font-size: 11px;
 }
 
 .activity-feedback {
@@ -744,11 +689,6 @@ function goBack(): void {
 
 @media (max-width: 640px) {
   .activity-safety-footer {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .consent-heading {
     align-items: flex-start;
     flex-direction: column;
   }
