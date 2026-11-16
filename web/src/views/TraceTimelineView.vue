@@ -16,6 +16,7 @@ const traceStore = useTraceStore()
 const toast = useToast()
 const items = ref<ParticipantTrace[]>([])
 const changesOnly = ref(false)
+const loading = ref(false)
 
 const filtered = computed(() => (changesOnly.value ? items.value.filter((item) => Boolean(item.change)) : items.value))
 
@@ -47,8 +48,13 @@ function clearAll(): void {
 }
 
 onMounted(async () => {
-  await traceStore.syncAll()
-  refresh()
+  loading.value = true
+  try {
+    await traceStore.syncAll()
+  } finally {
+    refresh()
+    loading.value = false
+  }
 })
 </script>
 
@@ -70,7 +76,13 @@ onMounted(async () => {
 
     <TracePulseCard v-if="items.length" :traces="items" :show-link="false" class="trace-pulse" />
 
-    <section v-if="!items.length" class="trace-empty">
+    <section v-if="loading && !items.length" class="trace-empty">
+      <Icon name="refresh" :size="28" />
+      <strong>正在同步你的轨迹</strong>
+      <p>如果你登录过，其它设备上留下的记录会在这里出现。</p>
+    </section>
+
+    <section v-else-if="!items.length" class="trace-empty">
       <Icon name="layers" :size="28" />
       <strong>这里还没有东西</strong>
       <p>参加一场活动，写下一句话，选择「存进我的轨迹」之后，它会出现在这里。</p>
