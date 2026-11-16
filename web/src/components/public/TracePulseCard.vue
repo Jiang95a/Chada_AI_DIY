@@ -195,67 +195,84 @@ const axisStartLabel = computed(() => {
     </header>
 
     <p class="pulse-sub">
-      最近 {{ relativeTime }} · 记录保存在「我的轨迹」里，只有你能看到
+      最近 {{ relativeTime }}
       <RouterLink v-if="showLink" to="/trace">去轨迹页 <Icon name="arrow-right" :size="12" /></RouterLink>
     </p>
 
-    <div class="pulse-visual">
-      <svg viewBox="0 0 560 140" role="img" aria-label="最近十四天的记录变化">
-        <line x1="24" y1="124" x2="531" y2="124" stroke="#e3ece6" stroke-width="1" />
-        <line x1="24" y1="96" x2="531" y2="96" stroke="#edf3ef" stroke-width="1" stroke-dasharray="3 5" />
-        <g v-for="(bucket, index) in buckets" :key="bucket.day.getTime()">
-          <rect
-            v-if="bucket.count"
-            :x="24 + index * 39 - 7"
-            :y="112 - (bucket.count / maxDayCount) * 62"
-            width="14"
-            :height="(bucket.count / maxDayCount) * 62"
-            rx="4"
-            :fill="bucket.color"
-            fill-opacity="0.78"
-          />
-          <rect
-            v-if="bucket.count && index === todayIndex"
-            :x="24 + index * 39 - 9"
-            :y="112 - (bucket.count / maxDayCount) * 62 - 2"
-            width="18"
-            :height="(bucket.count / maxDayCount) * 62 + 4"
-            rx="5"
-            fill="none"
-            stroke="#5f8a73"
-            stroke-opacity="0.4"
-            stroke-width="2"
-          />
-          <circle v-if="!bucket.count" :cx="24 + index * 39" cy="119" r="2.4" fill="#dce8df" />
-        </g>
-      </svg>
-      <div class="pulse-axis">
-        <span>{{ axisStartLabel }}</span>
-        <span>7 天前</span>
-        <span>今天</span>
-      </div>
-    </div>
+    <div class="pulse-grid">
+      <div class="pulse-main">
+        <div class="pulse-visual">
+          <svg viewBox="0 0 560 140" role="img" aria-label="最近十四天的记录变化">
+            <line x1="24" y1="124" x2="531" y2="124" stroke="#e3ece6" stroke-width="1" />
+            <line x1="24" y1="96" x2="531" y2="96" stroke="#edf3ef" stroke-width="1" stroke-dasharray="3 5" />
+            <g v-for="(bucket, index) in buckets" :key="bucket.day.getTime()">
+              <rect
+                :x="24 + index * 39 - 7"
+                y="50"
+                width="14"
+                height="62"
+                rx="4"
+                fill="#f2f7f3"
+              />
+              <rect
+                v-if="bucket.count"
+                :x="24 + index * 39 - 7"
+                :y="112 - (bucket.count / maxDayCount) * 62"
+                width="14"
+                :height="(bucket.count / maxDayCount) * 62"
+                rx="4"
+                :fill="bucket.color"
+                fill-opacity="0.82"
+              />
+              <rect
+                v-if="bucket.count && index === todayIndex"
+                :x="24 + index * 39 - 9"
+                :y="112 - (bucket.count / maxDayCount) * 62 - 2"
+                width="18"
+                :height="(bucket.count / maxDayCount) * 62 + 4"
+                rx="5"
+                fill="none"
+                stroke="#5f8a73"
+                stroke-opacity="0.4"
+                stroke-width="2"
+              />
+            </g>
+          </svg>
+          <div class="pulse-axis">
+            <span>{{ axisStartLabel }}</span>
+            <span>7 天前</span>
+            <span>今天</span>
+          </div>
+        </div>
 
-    <div v-if="topTags.length" class="pulse-tags">
-      <div v-for="tag in topTags" :key="tag.content" class="pulse-tag-row">
-        <span class="pulse-dot" :style="{ background: tag.color }" />
-        <span class="pulse-tag-name">{{ tag.content }}</span>
-        <span class="pulse-tag-bar"><i :style="{ width: `${(tag.count / maxTagCount) * 100}%`, background: tag.color }" /></span>
-        <em>{{ tag.count }}</em>
+        <div v-if="topTags.length" class="pulse-tags">
+          <div v-for="tag in topTags" :key="tag.content" class="pulse-tag-row">
+            <span class="pulse-dot" :style="{ background: tag.color }" />
+            <span class="pulse-tag-name">{{ tag.content }}</span>
+            <span class="pulse-tag-bar"><i :style="{ width: `${(tag.count / maxTagCount) * 100}%`, background: tag.color }" /></span>
+            <em>{{ tag.count }}</em>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <p v-if="latestChange" class="pulse-change">
-      <Icon name="refresh" :size="13" />{{ latestChange }}
-    </p>
+      <div class="pulse-side">
+        <p v-if="latestChange" class="pulse-change">
+          <Icon name="refresh" :size="13" />{{ latestChange }}
+        </p>
 
-    <div class="pulse-suggest">
-      <span class="pulse-suggest-icon"><Icon name="spark" :size="16" /></span>
-      <div>
-        <strong>下一步</strong>
-        <p>{{ suggestion }}</p>
+        <div class="pulse-suggest">
+          <span class="pulse-suggest-icon"><Icon name="spark" :size="16" /></span>
+          <div>
+            <strong>下一步</strong>
+            <p>{{ suggestion }}</p>
+          </div>
+          <RouterLink :to="suggestionLink">{{ suggestionLabel }} <Icon name="arrow-right" :size="13" /></RouterLink>
+        </div>
+
+        <p class="pulse-record">
+          <Icon name="lock" :size="12" />记录保存在「我的轨迹」里，只有你能看到
+        </p>
       </div>
-      <RouterLink :to="suggestionLink">{{ suggestionLabel }} <Icon name="arrow-right" :size="13" /></RouterLink>
     </div>
   </section>
 </template>
@@ -329,6 +346,40 @@ const axisStartLabel = computed(() => {
   line-height: 1.65;
 }
 
+.pulse-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.8fr);
+  gap: 18px 26px;
+  align-items: start;
+  margin-top: 14px;
+}
+
+.pulse-main,
+.pulse-side {
+  min-width: 0;
+}
+
+.pulse-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pulse.is-compact .pulse-grid {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.pulse-record {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  color: var(--ink-500);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
 .pulse-sub a {
   display: inline-flex;
   align-items: center;
@@ -344,7 +395,7 @@ const axisStartLabel = computed(() => {
 }
 
 .pulse-visual {
-  margin-top: 14px;
+  margin-top: 0;
   padding: 10px 2px 0;
   border-radius: 8px;
   background: linear-gradient(180deg, #f8fbf9, #fff);
@@ -419,7 +470,7 @@ const axisStartLabel = computed(() => {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 13px 0 0;
+  margin: 0;
   padding: 8px 10px;
   border-radius: 6px;
   background: var(--surface-warm);
@@ -432,7 +483,7 @@ const axisStartLabel = computed(() => {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  margin-top: 13px;
+  margin-top: 0;
   padding: 12px;
   border-radius: 8px;
   background: var(--brand-50);
@@ -485,14 +536,28 @@ const axisStartLabel = computed(() => {
   background: var(--brand-700);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 760px) {
   .pulse {
     padding: 16px;
   }
 
   .pulse-head {
-    flex-direction: column;
-    gap: 8px;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .pulse-head > div {
+    min-width: 0;
+  }
+
+  .pulse-live {
+    margin-top: 3px;
+  }
+
+  .pulse-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .pulse-axis {
@@ -504,8 +569,16 @@ const axisStartLabel = computed(() => {
     flex-wrap: wrap;
   }
 
+  .pulse-suggest > div {
+    flex: 1 1 calc(100% - 40px);
+    min-width: 0;
+  }
+
   .pulse-suggest > a {
-    margin-left: 40px;
+    flex-basis: 100%;
+    justify-content: center;
+    width: calc(100% - 40px);
+    margin: 8px 0 0 40px;
   }
 }
 </style>

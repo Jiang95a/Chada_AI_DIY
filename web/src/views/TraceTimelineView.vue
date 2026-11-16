@@ -144,9 +144,9 @@ onMounted(async () => {
 
 <style scoped>
 .trace-page {
-  width: min(920px, calc(100% - 36px));
+  width: min(1120px, calc(100% - 36px));
   margin: 0 auto;
-  padding: 34px 0 90px;
+  padding: 34px 0 48px;
 }
 
 .trace-hero {
@@ -174,7 +174,7 @@ onMounted(async () => {
 }
 
 .trace-hero p {
-  max-width: 620px;
+  max-width: 760px;
   margin: 0;
   font-size: 14.5px;
   line-height: 1.85;
@@ -322,6 +322,7 @@ onMounted(async () => {
 }
 
 .trace-summary {
+  max-width: 860px;
   margin: 12px 0 0;
   font-size: 15.5px;
   line-height: 1.75;
