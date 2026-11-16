@@ -1,4 +1,4 @@
-# 数据库迁移顺序（唯一权威）
+﻿# 数据库迁移顺序（唯一权威）
 
 > 这份文件回答一个问题：**一个新库 / 一个旧库，到底该按什么顺序跑哪些脚本。**
 > 根目录 `README.md` 和其它文档里的说法如果和这里冲突，以这里为准。
@@ -24,18 +24,19 @@ mysql -u root -p --default-character-set=utf8mb4 < docs/sql/00_create_database.s
 for f in 001_init 002_seed 003_cover_fields 003_seed_fix 004_more_templates \
          004_projects_cover_columns 005_demo_data 006_feedback \
          007_wellbeing_privacy 008_wellbeing_templates 009_career_and_referral \
-         010_poster_generation; do
+         010_poster_generation 011_participant_traces; do
   mysql -u campus_app -p --default-character-set=utf8mb4 campus_diy < "docs/sql/$f.sql"
 done
 ```
 
-跑完自查，应该是 **16 张表**：
+跑完自查，应该是 **17 张表**：
 
 ```sql
 SHOW TABLES;
 -- 期望：activity_consents activity_events activity_feedback ai_jobs ai_proposals
 --       auth_sessions export_jobs feedback_reports form_submissions page_versions
---       project_assets projects referral_requests templates user_notifications users
+--       participant_traces project_assets projects referral_requests templates
+--       user_notifications users
 ```
 
 ## 二、旧库（已经建好，只想补缺的）
@@ -101,3 +102,4 @@ SHOW TABLES;
 | `008_wellbeing_templates.sql` | DML | 心理关怀模板 |
 | `009_career_and_referral.sql` | DDL | `referral_requests` + 模板 `activity_kind` + 提交归属 `user_id` |
 | `010_poster_generation.sql` | DDL | `ai_jobs` 的 `kind` 约束加入 `poster_generate` |
+| `011_participant_traces.sql` | DDL | 新增 `participant_traces`：参与端动态参与轨迹，主键 (user_id, project_id) |

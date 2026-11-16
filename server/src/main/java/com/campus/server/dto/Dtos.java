@@ -460,4 +460,66 @@ public final class Dtos {
     public record PosterGenerateResponse(String jobId, String url, String prompt, String model,
                                          String aspectRatio, int latencyMs, boolean cached) {
     }
+
+    // ================================================================ 参与轨迹
+
+    /**
+     * 一条参与轨迹。**直接沿用前端 {@code ParticipantTrace} 的形状**，
+     * 不做服务端自己的拆分——前端 {@code web/src/stores/trace.ts} 拿它整条存本地、
+     * 整条比对 updatedAt，任何字段缺失都会让它退化成空轨迹。
+     *
+     * <p>因此这里 {tags}/{sessionContext}/{notes} 用 JsonNode 原样透传：
+     * 它们的结构还在演进（一期是前端关键词规则引擎，三期换成 agent），
+     * 服务端不解析、不校验内部字段，只保证「存进去什么样、取出来什么样」。
+     */
+    public record ParticipantTraceDto(
+            /** 归属用户，取自 token，不信任请求体里的值。 */
+            String userId,
+            /** 与前端一致：这里是活动的 public_slug，不是 UUID。 */
+            String activityId,
+            /** mental | career */
+            String domain,
+            String semester,
+            String summary,
+            String openQuestion,
+            String change,
+            String promise,
+            com.fasterxml.jackson.databind.JsonNode tags,
+            com.fasterxml.jackson.databind.JsonNode sessionContext,
+            com.fasterxml.jackson.databind.JsonNode notes,
+            /** 前端毫秒时间戳，原样回传。 */
+            long updatedAt
+    ) {
+    }
+
+    /**
+     * PUT /traces/{activityId} 的请求体。
+     *
+     * <p>刻意**不校验** userId 是否与 token 一致——而是直接忽略请求体里的 userId，
+     * 一律用 token 里的。这样前端即使把本地缓存的旧 userId 带上来也不会写错行，
+     * 也不需要前端为「换了设备后本地 userId 过期」这种情况做特殊处理。
+     */
+    public record SaveTraceRequest(
+            String userId,
+            String domain,
+            String semester,
+            @jakarta.validation.constraints.Size(max = 500, message = "总结最多 500 字")
+            String summary,
+            String openQuestion,
+            String change,
+            String promise,
+            com.fasterxml.jackson.databind.JsonNode tags,
+            com.fasterxml.jackson.databind.JsonNode sessionContext,
+            com.fasterxml.jackson.databind.JsonNode notes,
+            /** 可选：不传则由服务端补当前时间。 */
+            Long updatedAt
+    ) {
+    }
+
+    /** 「我的轨迹」列表项：摘要信息 + 活动标题，不含完整 payload。 */
+    public record TraceListItemDto(
+            String activityId, String activityTitle, String domain, String semester,
+            String summary, int tagCount, long updatedAt
+    ) {
+    }
 }

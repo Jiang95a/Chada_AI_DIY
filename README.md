@@ -1,4 +1,4 @@
-# new — 传智杯 B 组 AI Web 网页项目
+﻿# new — 传智杯 B 组 AI Web 网页项目
 
 校园轻活动 AI DIY 工坊：一句话需求或一张海报，生成能报名、能分享、能统计的移动端活动页面。
 
@@ -48,10 +48,10 @@ docs/sql/006_feedback.sql          ← 用户反馈表（老库必补，否则 P
 自查一句话：
 
 ```sql
-SHOW TABLES;   -- 应该是 16 张
+SHOW TABLES;   -- 应该是 17 张
 ```
 
-健康检查直接看 <http://127.0.0.1:8080/api/v1/health>，`database.tables` 应为 `16`。
+健康检查直接看 <http://127.0.0.1:8080/api/v1/health>，`database.tables` 应为 `17`。
 
 ## 本地启动
 
