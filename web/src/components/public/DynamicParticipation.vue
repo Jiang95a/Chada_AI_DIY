@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import Icon from '@/components/ui/Icon.vue'
+import TracePulseCard from '@/components/public/TracePulseCard.vue'
 import { useToast } from '@/composables/useToast'
 import { hasCareWords } from '@/services/traceParser'
 import { useTraceStore } from '@/stores/trace'
@@ -540,6 +541,13 @@ onBeforeUnmount(() => {
         <RouterLink class="dyn-foot-link" to="/trace">看我的轨迹</RouterLink>
       </div>
     </div>
+
+    <TracePulseCard
+      v-if="trace && (tags.length || summary)"
+      :traces="[trace]"
+      compact
+      class="dyn-pulse"
+    />
   </section>
 </template>
 
@@ -1180,6 +1188,10 @@ onBeforeUnmount(() => {
   padding: 15px 16px 13px;
   border-radius: 8px;
   background: var(--surface-soft);
+}
+
+.dyn-pulse {
+  margin-top: 14px;
 }
 
 .dyn-summary-head {

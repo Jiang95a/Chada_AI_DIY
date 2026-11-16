@@ -1,4 +1,10 @@
-import type { ActivityDomain, ParticipantTrace, TraceParser, TraceTag } from '@/types/trace'
+import type {
+  ActivityDomain,
+  ParticipantTrace,
+  TraceParseResult,
+  TraceParser,
+  TraceTag,
+} from '@/types/trace'
 
 /**
  * 前端规则引擎：把一段自由输入解析成标签 + 会话上下文。
@@ -231,7 +237,10 @@ function buildSummary(domain: ActivityDomain, primaryTags: string[], care: boole
   return domain === 'career' ? `这次你提到 ${list}，还在找下一步。` : `这次你提到 ${list}，想先缓一缓。`
 }
 
-export async function parseTrace(input: { text: string; trace: ParticipantTrace }): Promise<Partial<ParticipantTrace>> {
+export async function parseTrace(input: {
+  text: string
+  trace: ParticipantTrace
+}): Promise<TraceParseResult> {
   const text = input.text.trim()
   const domain = input.trace.domain
   const care = hasCareWords(text)
@@ -294,6 +303,7 @@ export async function parseTrace(input: { text: string; trace: ParticipantTrace 
 
   return {
     tags: mergedTags,
+    matchedTags: currentTagNames,
     sessionContext: { currentHint: hint, availablePaths: paths },
     summary: buildSummary(domain, summaryTagNames, care) || input.trace.summary,
     openQuestion: (primary && QUESTIONS[domain][primary]) || input.trace.openQuestion,

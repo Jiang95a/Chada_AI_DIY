@@ -4,7 +4,13 @@ import { useAuthStore } from '@/stores/auth'
 import { getAccessToken } from '@/services/http'
 import { fetchRemoteTrace, saveRemoteTrace } from '@/services/traces'
 import { ruleParser } from '@/services/traceParser'
-import { emptyTrace, type ActivityDomain, type ParticipantNote, type ParticipantTrace } from '@/types/trace'
+import {
+  emptyTrace,
+  type ActivityDomain,
+  type ParticipantNote,
+  type ParticipantTrace,
+  type TraceEvent,
+} from '@/types/trace'
 
 /**
  * 个人轨迹（ParticipantTrace）。
@@ -77,6 +83,21 @@ function normalizeTrace(
         .slice(-10)
     : []
 
+  const history: TraceEvent[] = Array.isArray(value.history)
+    ? value.history
+        .filter((event) => event && typeof event.at === 'number')
+        .map((event) => ({
+          at: event.at,
+          kind: event.kind === 'note' || event.kind === 'summary' ? event.kind : ('input' as const),
+          activityId,
+          tags: Array.isArray(event.tags) ? event.tags.filter((tag) => typeof tag === 'string') : [],
+          hint: typeof event.hint === 'string' ? event.hint : undefined,
+          summary: typeof event.summary === 'string' ? event.summary : undefined,
+          change: typeof event.change === 'string' ? event.change : undefined,
+        }))
+        .slice(-60)
+    : []
+
   return {
     ...emptyTrace(userId, activityId, domain),
     ...value,
@@ -88,6 +109,7 @@ function normalizeTrace(
     tags,
     sessionContext,
     notes,
+    history,
     updatedAt: typeof value.updatedAt === 'number' ? value.updatedAt : Date.now(),
   }
 }
@@ -193,10 +215,28 @@ export const useTraceStore = defineStore('trace', () => {
     return traces.value[activityId] ?? base
   }
 
-  async function applyText(activityId: string, domain: ActivityDomain, text: string): Promise<ParticipantTrace> {
+  async function applyText(
+    activityId: string,
+    domain: ActivityDomain,
+    text: string
+  ): Promise<ParticipantTrace> {
     const trace = await load(activityId, domain)
-    const patch = await ruleParser.parse({ text: text.trim(), trace })
-    return patchTrace(activityId, patch)
+    const parsed = await ruleParser.parse({ text: text.trim(), trace })
+    const { matchedTags, ...patch } = parsed
+    const at = Date.now()
+    const history = [
+      ...(trace.history ?? []),
+      {
+        at,
+        kind: 'input' as const,
+        activityId,
+        tags: matchedTags ?? [],
+        hint: patch.sessionContext?.currentHint,
+        summary: patch.summary,
+        change: patch.change,
+      },
+    ].slice(-60)
+    return patchTrace(activityId, { ...patch, history })
   }
 
   /** 便签里勾选「存进我的轨迹」时调用：只在个人档案里留一个私有副本，不动公开墙。 */
@@ -222,11 +262,27 @@ export const useTraceStore = defineStore('trace', () => {
     }
     const notes = [...(trace.notes ?? []), copy].slice(-10)
     const summary = trace.summary || '你在这里留下了一句话。'
-    return patchTrace(activityId, { tags, notes, summary, updatedAt: at })
+    const history = [
+      ...(trace.history ?? []),
+      {
+        at,
+        kind: 'note' as const,
+        activityId,
+        tags: ['写下过一句话'],
+        summary,
+      },
+    ].slice(-60)
+    return patchTrace(activityId, { tags, notes, history, summary, updatedAt: at })
   }
 
   function updateSummary(activityId: string, summary: string): void {
-    patchTrace(activityId, { summary: summary.trim().slice(0, 60) })
+    const value = summary.trim().slice(0, 60)
+    const trace = traces.value[activityId]
+    const history = [
+      ...(trace?.history ?? []),
+      { at: Date.now(), kind: 'summary' as const, activityId, tags: [] as string[], summary: value },
+    ].slice(-60)
+    patchTrace(activityId, { summary: value, history })
   }
 
   function removeTag(activityId: string, content: string): void {
@@ -248,7 +304,7 @@ export const useTraceStore = defineStore('trace', () => {
         const raw = localStorage.getItem(key)
         if (!raw) continue
         const trace = normalizeTrace(JSON.parse(raw), userId.value, otherId, 'mental')
-        if (!trace || (!trace.summary && !trace.tags.length)) continue
+        if (!trace || (!trace.summary && !trace.tags.length && !trace.history?.length)) continue
         if (!latest || trace.updatedAt > latest.updatedAt) latest = trace
       }
       return latest
@@ -265,7 +321,7 @@ export const useTraceStore = defineStore('trace', () => {
   function list(): ParticipantTrace[] {
     const map = new Map<string, ParticipantTrace>()
     for (const [activityId, trace] of Object.entries(traces.value)) {
-      if (trace.summary || trace.tags.length) map.set(activityId, trace)
+      if (trace.summary || trace.tags.length || trace.history?.length) map.set(activityId, trace)
     }
     try {
       const prefix = `${STORAGE_PREFIX}:${userId.value}:`

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import Icon from '@/components/ui/Icon.vue'
+import TracePulseCard from '@/components/public/TracePulseCard.vue'
 import { useToast } from '@/composables/useToast'
 import { useTraceStore } from '@/stores/trace'
 import type { ParticipantTrace } from '@/types/trace'
@@ -63,6 +64,8 @@ onMounted(refresh)
         </button>
       </div>
     </section>
+
+    <TracePulseCard v-if="items.length" :traces="items" :show-link="false" class="trace-pulse" />
 
     <section v-if="!items.length" class="trace-empty">
       <Icon name="layers" :size="28" />
@@ -134,6 +137,10 @@ onMounted(refresh)
 .trace-hero {
   padding: 30px 0 26px;
   border-bottom: 1px solid var(--line);
+}
+
+.trace-pulse {
+  margin-top: 22px;
 }
 
 .trace-kicker {

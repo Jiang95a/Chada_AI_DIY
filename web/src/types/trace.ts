@@ -24,6 +24,17 @@ export interface SessionContext {
   availablePaths: string[]
 }
 
+/** 一次输入/便签/改摘要留下的时间点，用来画变化轨迹，不对外展示原文 */
+export interface TraceEvent {
+  at: number
+  kind: 'input' | 'note' | 'summary'
+  activityId?: string
+  tags: string[]
+  hint?: string
+  summary?: string
+  change?: string
+}
+
 export interface ParticipantTrace {
   userId: string
   activityId: string
@@ -38,6 +49,8 @@ export interface ParticipantTrace {
   sessionContext: SessionContext
   /** 用户主动勾选「存进我的轨迹」的便签私有副本，公开墙不读这里 */
   notes?: ParticipantNote[]
+  /** 按时间排列的动态记录；只存摘要和标签，不存输入原文 */
+  history?: TraceEvent[]
   updatedAt: number
 }
 
@@ -52,8 +65,13 @@ export interface ParticipantNote {
 }
 
 /** 解析器契约：一期前端关键词规则，三期换成 agent，调用方不变 */
+export interface TraceParseResult extends Partial<ParticipantTrace> {
+  /** 本次输入真正命中的标签，用来记一条时间点 */
+  matchedTags?: string[]
+}
+
 export interface TraceParser {
-  parse(input: { text: string; trace: ParticipantTrace }): Promise<Partial<ParticipantTrace>>
+  parse(input: { text: string; trace: ParticipantTrace }): Promise<TraceParseResult>
 }
 
 export const emptyTrace = (
@@ -69,5 +87,6 @@ export const emptyTrace = (
   tags: [],
   sessionContext: { currentHint: '', availablePaths: [] },
   notes: [],
+  history: [],
   updatedAt: Date.now(),
 })

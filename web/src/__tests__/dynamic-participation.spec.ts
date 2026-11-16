@@ -2,6 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import DynamicParticipation from '@/components/public/DynamicParticipation.vue'
+import TracePulseCard from '@/components/public/TracePulseCard.vue'
 import TraceTimelineView from '@/views/TraceTimelineView.vue'
 import { emptyTrace } from '@/types/trace'
 import { hasCareWords, parseTrace } from '@/services/traceParser'
@@ -72,9 +73,41 @@ describe('轨迹存储', () => {
     expect(trace?.notes?.[0]?.text).toContain('今天说出来')
     expect(trace?.notes?.[0]?.candidateTraceId).toBeTruthy()
     expect(trace?.summary).toBe('你在这里留下了一句话。')
+    expect(trace?.history?.[0]?.kind).toBe('note')
 
     const saved = JSON.parse(localStorage.getItem('diy-campus:trace:v1:device-store:a9') ?? '{}')
     expect(saved.notes.length).toBe(1)
+  })
+})
+
+describe('变化卡', () => {
+  it('显示记录次数、最近一次变化和下一步建议', () => {
+    const trace = {
+      ...emptyTrace('u1', 'a1'),
+      tags: [
+        { content: '压力', source: 'auto' as const, createdAt: Date.now() - 3600000 },
+        { content: '睡眠', source: 'auto' as const, createdAt: Date.now() },
+      ],
+      history: [
+        { at: Date.now() - 3600000, kind: 'input' as const, activityId: 'a1', tags: ['压力'], summary: '压力有点大' },
+        {
+          at: Date.now(),
+          kind: 'input' as const,
+          activityId: 'a1',
+          tags: ['睡眠'],
+          summary: '最近睡不好',
+          change: '从「压力」到「睡眠」',
+        },
+      ],
+    }
+    const wrapper = mount(TracePulseCard, {
+      props: { traces: [trace] },
+      global: { stubs: { RouterLink: { props: ['to'], template: '<a><slot /></a>' } } },
+    })
+
+    expect(wrapper.text()).toContain('2 次记录')
+    expect(wrapper.text()).toContain('从「压力」到「睡眠」')
+    expect(wrapper.text()).toContain('下一步')
   })
 })
 
@@ -164,5 +197,7 @@ describe('动态参与面板', () => {
     const saved = JSON.parse(localStorage.getItem(keys[0]!) ?? '{}')
     expect(saved.activityId).toBe('a1')
     expect(saved.tags.length).toBeGreaterThan(0)
+    expect(saved.history.length).toBe(1)
+    expect(saved.history[0].tags).toContain('家庭')
   })
 })
