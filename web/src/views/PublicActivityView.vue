@@ -36,6 +36,7 @@ const submitting = ref(false)
 const formStartedPages = new Set<string>()
 const consentAccepted = ref(false)
 const consentId = ref('')
+const formError = ref('')
 const hasSubmitted = ref(false)
 const feedbackChoice = ref('')
 const feedbackNote = ref('')
@@ -115,6 +116,7 @@ const errors = reactive<Record<string, boolean>>({})
 function setAnswer(key: string, value: string | string[]): void {
   answers[key] = value
   if (errors[key]) delete errors[key]
+  if (formError.value) formError.value = ''
   void recordFormStarted()
 }
 
@@ -153,9 +155,16 @@ provide(FORM_CONTEXT, {
   setConsent(value: boolean) {
     consentAccepted.value = value
   },
+  get errorSummary() {
+    return formError.value
+  },
+  get submitting() {
+    return submitting.value
+  },
 })
 
 function resetPage(): void {
+  formError.value = ''
   currentPageId.value = pages.value.find((page) => page.role === 'home')?.id ?? pages.value[0]?.id ?? ''
 }
 
@@ -194,7 +203,7 @@ function isEmpty(value: string | string[] | undefined): boolean {
 }
 
 function validate(): boolean {
-  let valid = true
+  const missing: string[] = []
   for (const block of currentPage.value?.blocks ?? []) {
     if (block.hidden) continue
     if (block.type === 'form') {
@@ -204,18 +213,19 @@ function validate(): boolean {
         const key = `${block.id}:${field.id}`
         if (isEmpty(answers[key])) {
           errors[key] = true
-          valid = false
+          missing.push(field.label || '未命名字段')
         }
       }
     }
     if ((block.type === 'radio' || block.type === 'checkbox') && block.props.required) {
       if (isEmpty(answers[block.id])) {
         errors[block.id] = true
-        valid = false
+        missing.push(block.props.question || '必选项')
       }
     }
   }
-  return valid
+  formError.value = missing.length ? `还差：${missing.join('、')}` : ''
+  return missing.length === 0
 }
 
 async function handleAction(action: any): Promise<void> {
@@ -260,6 +270,7 @@ async function handleAction(action: any): Promise<void> {
       })
       const successPage = pages.value.find((page) => page.role === 'success')
       if (successPage) currentPageId.value = successPage.id
+      formError.value = ''
       hasSubmitted.value = true
       toast.pushToast('报名提交成功', 'success')
     } catch (error) {
@@ -421,13 +432,11 @@ function goBack(): void {
     <DynamicParticipation
       v-if="document || publicState === 'error' || publicState === 'offline'"
       :slug="slug"
-      :activity-title="document?.title"
       :content-unavailable="publicState === 'error' || publicState === 'offline'"
     />
     <EchoNote
       v-if="document || publicState === 'error' || publicState === 'offline'"
       :slug="slug"
-      :activity-title="document?.title"
     />
     <section v-if="hasSubmitted" class="activity-feedback">
       <div>

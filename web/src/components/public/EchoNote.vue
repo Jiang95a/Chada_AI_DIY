@@ -17,7 +17,7 @@ import { useTraceStore } from '@/stores/trace'
  * 边界：不做心理诊断，不扫描上传，不自动通知任何人。只有他自己点「想找人聊聊」才会提交联系意愿。
  */
 
-const props = defineProps<{ slug: string; activityTitle?: string }>()
+const props = defineProps<{ slug: string }>()
 
 const toast = useToast()
 const traceStore = useTraceStore()

@@ -17,10 +17,45 @@ const pendingCount = computed(() => items.value.filter((item) => item.status ===
 const overdueCount = computed(
   () => items.value.filter((item) => item.status === 'pending' && item.pendingHours > 24).length
 )
-const visibleItems = computed(() => items.value.filter((item) => item.status === filter.value))
+const counts = computed(() => ({
+  pending: items.value.filter((item) => item.status === 'pending').length,
+  contacted: items.value.filter((item) => item.status === 'contacted').length,
+  closed: items.value.filter((item) => item.status === 'closed').length,
+}))
 
-function overdue(item: ReferralTodo): boolean {
-  return item.status === 'pending' && item.pendingHours > 24
+const visibleItems = computed(() => {
+  const list = items.value.filter((item) => item.status === filter.value)
+  return [...list].sort((a, b) => {
+    if (filter.value === 'pending') return b.pendingHours - a.pendingHours
+    const left = new Date(a.handledAt ?? a.createdAt).getTime()
+    const right = new Date(b.handledAt ?? b.createdAt).getTime()
+    return right - left
+  })
+})
+
+function urgencyClass(item: ReferralTodo): string {
+  if (item.status !== 'pending') return ''
+  if (item.pendingHours > 48) return 'is-critical'
+  if (item.pendingHours > 24) return 'is-overdue'
+  if (item.pendingHours > 12) return 'is-soon'
+  return ''
+}
+
+function statusLabel(item: ReferralTodo): string {
+  if (item.status === 'contacted') return '已联系'
+  if (item.status === 'closed') return '已关闭'
+  if (item.pendingHours > 48) return '超时 48h+'
+  if (item.pendingHours > 24) return '超时 24h+'
+  return `等待 ${Math.max(1, Math.round(item.pendingHours))}h`
+}
+
+function waitingLabel(item: ReferralTodo): string {
+  if (item.status !== 'pending') {
+    return item.handledAt ? `处理于 ${timeLabel(item.handledAt)}` : '已处理'
+  }
+  const hours = Math.max(0, item.pendingHours)
+  if (hours < 1) return '刚提交不久'
+  return `已等待 ${Math.floor(hours)} 小时${hours >= 24 ? '，建议今天联系' : ''}`
 }
 
 function timeLabel(value: string): string {
@@ -106,7 +141,7 @@ onMounted(load)
           :class="{ 'is-active': filter === tab.id }"
           @click="filter = tab.id"
         >
-          {{ tab.label }}
+          {{ tab.label }}<em>{{ counts[tab.id] }}</em>
         </button>
       </div>
 
@@ -131,14 +166,14 @@ onMounted(load)
           v-for="item in visibleItems"
           :key="item.id"
           class="referral-card"
-          :class="{ 'is-overdue': overdue(item) }"
+          :class="urgencyClass(item)"
         >
           <div class="referral-card-head">
             <div>
               <span>来自活动</span>
               <h2>{{ item.activityTitle }}</h2>
             </div>
-            <em :class="`is-${item.status}`">{{ overdue(item) ? '已超时' : item.status }}</em>
+            <em :class="`is-${item.status}`">{{ statusLabel(item) }}</em>
           </div>
           <div class="referral-card-info">
             <span
@@ -146,6 +181,7 @@ onMounted(load)
             >
             <span><Icon name="clock" :size="14" />希望时间：{{ item.preferredTime || '未说明' }}</span>
             <span><Icon name="bell" :size="14" />提交于 {{ timeLabel(item.createdAt) }}</span>
+            <span><Icon name="clock" :size="14" />{{ waitingLabel(item) }}</span>
           </div>
           <footer>
             <RouterLink :to="`/p/${item.publicSlug}`" target="_blank">
@@ -197,13 +233,13 @@ onMounted(load)
 }
 
 .referrals-heading p {
-  color: var(--ink-500);
-  font-size: 10px;
+  color: var(--ink-600);
+  font-size: 13px;
 }
 
 .eyebrow {
-  color: var(--ink-400);
-  font-size: 8px;
+  color: var(--ink-500);
+  font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -229,7 +265,7 @@ onMounted(load)
 
 .referral-stats span {
   color: var(--ink-500);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -240,8 +276,8 @@ onMounted(load)
 
 .referral-stats small {
   margin-top: 4px;
-  color: var(--ink-400);
-  font-size: 8px;
+  color: var(--ink-600);
+  font-size: 12px;
 }
 
 .referral-stats article.is-danger {
@@ -266,19 +302,49 @@ onMounted(load)
 }
 
 .referral-tabs button {
-  min-height: 32px;
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 6px;
   padding: 0 13px;
   border: 0;
   border-radius: 8px;
-  color: var(--ink-500);
+  color: var(--ink-600);
   background: transparent;
-  font-size: 9px;
+  font-size: 12.5px;
   cursor: pointer;
+}
+
+.referral-tabs em {
+  display: inline-grid;
+  min-width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--ink-50);
+  color: var(--ink-500);
+  font-size: 10.5px;
+  font-style: normal;
+  font-weight: 700;
 }
 
 .referral-tabs button.is-active {
   color: var(--brand-700);
   background: var(--brand-50);
+}
+
+.referral-tabs button.is-active em {
+  background: var(--brand-100);
+  color: var(--brand-700);
+}
+
+.referral-card.is-critical {
+  border-color: #e2a49d;
+  background: #fff7f6;
+}
+
+.referral-card.is-soon {
+  border-color: #ead6b8;
 }
 
 .referral-list {
@@ -307,8 +373,8 @@ onMounted(load)
 }
 
 .referral-card-head span {
-  color: var(--ink-400);
-  font-size: 8px;
+  color: var(--ink-500);
+  font-size: 11.5px;
 }
 
 .referral-card-head h2 {
@@ -317,17 +383,17 @@ onMounted(load)
 }
 
 .referral-card-head em {
-  padding: 4px 8px;
+  padding: 4px 9px;
   border-radius: 999px;
   color: #8a6541;
   background: #f8f0e4;
-  font-size: 8px;
+  font-size: 11px;
   font-style: normal;
   font-weight: 700;
 }
 
-.referral-card-head em.is-overdue,
-.referral-card.is-overdue .referral-card-head em {
+.referral-card.is-critical .referral-card-head em,
+.referral-card-head em.is-overdue {
   color: #b5473d;
   background: #fdecea;
 }
@@ -342,8 +408,8 @@ onMounted(load)
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--ink-500);
-  font-size: 9px;
+  color: var(--ink-600);
+  font-size: 12.5px;
 }
 
 .referral-card-info svg {
@@ -365,12 +431,12 @@ onMounted(load)
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 8px;
+  padding: 7px 10px;
   border: 1px solid var(--line);
   border-radius: 7px;
-  color: var(--ink-500);
+  color: var(--ink-600);
   background: #fff;
-  font-size: 8px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -399,11 +465,12 @@ onMounted(load)
 
 .referral-state strong {
   color: var(--ink-700);
-  font-size: 11px;
+  font-size: 14px;
 }
 
 .referral-state p {
-  font-size: 9px;
+  font-size: 12.5px;
+  color: var(--ink-600);
 }
 
 .referral-state.is-error {

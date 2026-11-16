@@ -14,6 +14,9 @@ export interface FormContext {
   readonly consentAccepted?: boolean
   readonly consentText?: string
   setConsent?: (accepted: boolean) => void
+  /** 校验失败时展示在提交按钮上方的一句汇总 */
+  readonly errorSummary?: string
+  readonly submitting?: boolean
 }
 
 export const FORM_CONTEXT: InjectionKey<FormContext> = Symbol('form-context')

@@ -20,7 +20,6 @@ import type { ActivityDomain, ParticipantTrace } from '@/types/trace'
 const props = withDefaults(
   defineProps<{
     slug: string
-    activityTitle?: string
     domain?: ActivityDomain
     contentUnavailable?: boolean
   }>(),

@@ -99,4 +99,65 @@ describe('公开活动隐私设置', () => {
     expect(submitButtons.length).toBe(1)
     wrapper.unmount()
   })
+
+  it('必填项没填时，在提交按钮上方给出汇总', async () => {
+    const document = createDocFromTemplate('vote')!
+    const home = document.pages[0]!
+    home.blocks.push({
+      id: 'required-form',
+      type: 'form',
+      props: {
+        title: '',
+        buttonText: '提交',
+        successHint: '',
+        fields: [
+          {
+            id: 'name',
+            label: '怎么称呼',
+            type: 'text',
+            required: true,
+            placeholder: '请输入',
+            options: [],
+          },
+        ],
+      },
+      style: { ...home.blocks[0]!.style },
+      hidden: false,
+    })
+    vi.mocked(getPublicActivity).mockResolvedValue({
+      activity: { name: '心理知识问答', slug: 'quiz', status: 'published' },
+      document,
+    })
+    vi.mocked(getPublicPrivacy).mockResolvedValue({
+      privacyMode: 'optional',
+      consentRequired: false,
+      consentText: '本活动无需单独同意',
+      retentionDays: 30,
+    })
+
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [
+        { path: '/p/:slug', component: PublicActivityView },
+        { path: '/projects', component: { template: '<div />' } },
+        { path: '/resources', component: { template: '<div />' } },
+        { path: '/trace', component: { template: '<div />' } },
+      ],
+    })
+    await router.push('/p/quiz')
+    await router.isReady()
+
+    const wrapper = mount(PublicActivityView, {
+      global: { plugins: [createPinia(), router] },
+    })
+    await flushPromises()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    await flushPromises()
+
+    await wrapper.find('button.cta--submit').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.form-error').text()).toContain('怎么称呼')
+    wrapper.unmount()
+  })
 })

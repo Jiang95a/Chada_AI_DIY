@@ -322,6 +322,8 @@ const countdown = computed(() => {
         </label>
       </div>
 
+      <p v-if="form?.errorSummary" class="form-error" role="alert">{{ form.errorSummary }}</p>
+
       <label v-if="form?.consentRequired" class="form-consent">
         <input type="checkbox" :checked="form.consentAccepted" @change="onConsentChange" />
         <span>
@@ -330,8 +332,14 @@ const countdown = computed(() => {
         </span>
       </label>
 
-      <button type="button" class="cta cta--submit" :class="`cta--${theme.buttonStyle}`" @click="onFormSubmit">
-        {{ p.buttonText || '提交' }}
+      <button
+        type="button"
+        class="cta cta--submit"
+        :class="`cta--${theme.buttonStyle}`"
+        :disabled="form?.submitting"
+        @click="onFormSubmit"
+      >
+        {{ form?.submitting ? '提交中…' : p.buttonText || '提交' }}
       </button>
       <p v-if="p.successHint" class="formcard__hint">{{ p.successHint }}</p>
     </div>
@@ -775,6 +783,13 @@ const countdown = computed(() => {
   cursor: default;
 }
 
+.form-error {
+  margin: 12px 0 0;
+  color: #b5473d;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
 .form-consent {
   display: flex;
   align-items: flex-start;
@@ -808,6 +823,11 @@ const countdown = computed(() => {
 .cta--submit {
   width: 100%;
   margin-top: 14px;
+}
+
+.cta--submit:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .formcard__hint {
