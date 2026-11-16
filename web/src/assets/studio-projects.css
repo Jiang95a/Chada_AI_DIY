@@ -402,7 +402,7 @@
   display: grid;
   width: 48px;
   height: 48px;
-  border-radius: 15px;
+  border-radius: 9px;
   color: var(--primary);
   background: var(--primary-soft);
   place-items: center;
@@ -663,7 +663,7 @@
   width: 48px;
   height: 48px;
   border: 1px solid #d8e0ef;
-  border-radius: 15px;
+  border-radius: 9px;
   color: var(--primary);
   background: var(--surface);
   place-items: center;

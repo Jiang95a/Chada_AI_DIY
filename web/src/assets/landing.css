@@ -37,7 +37,7 @@
   width: 38px;
   height: 38px;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--brand-600);
   box-shadow: 0 9px 20px -12px var(--brand-700);
 }
@@ -227,7 +227,7 @@
   gap: 18px;
   padding: 0 17px;
   border: 0;
-  border-radius: 14px;
+  border-radius: 9px;
   color: #fff;
   background: var(--landing-ink);
   text-align: left;
@@ -257,7 +257,7 @@
   gap: 7px;
   padding: 0 17px;
   border: 1px solid rgb(20 23 31 / 14%);
-  border-radius: 14px;
+  border-radius: 9px;
   color: var(--landing-ink);
   background: rgb(255 255 255 / 52%);
   font-size: 10px;
@@ -312,7 +312,7 @@
   width: 300px;
   padding: 15px;
   border: 1px solid rgb(255 255 255 / 16%);
-  border-radius: 16px;
+  border-radius: 10px;
   color: #fff;
   background: rgb(255 255 255 / 10%);
   backdrop-filter: blur(16px);
@@ -534,7 +534,7 @@
   align-items: center;
   gap: 8px;
   padding: 11px;
-  border-radius: 12px;
+  border-radius: 8px;
   grid-template-columns: auto 1fr auto;
 }
 
@@ -575,7 +575,7 @@
   bottom: 38px;
   width: 170px;
   padding: 13px;
-  border-radius: 13px;
+  border-radius: 8px;
 }
 
 .floating-card--data > span {
@@ -759,7 +759,7 @@
   display: grid;
   width: 48px;
   height: 48px;
-  border-radius: 15px;
+  border-radius: 9px;
   color: var(--landing-accent);
   background: rgb(255 255 255 / 80%);
   place-items: center;
@@ -794,7 +794,7 @@
   bottom: 24px;
   left: 24px;
   min-height: 102px;
-  border-radius: 14px;
+  border-radius: 9px;
 }
 
 .ability-demo--prompt {
@@ -1079,7 +1079,7 @@
   width: 230px;
   padding: 13px;
   border: 1px solid var(--brand-200);
-  border-radius: 12px;
+  border-radius: 8px;
   background: #f8faf7;
   box-shadow: 0 15px 30px -24px #000;
 }
@@ -1163,7 +1163,7 @@
   justify-content: center;
   gap: 9px;
   border: 0;
-  border-radius: 13px;
+  border-radius: 8px;
   color: var(--brand-900);
   background: var(--accent-200);
   font-size: 11px;

@@ -291,7 +291,7 @@ async function copyDiagnostics(): Promise<void> {
   margin-top: 26px;
   padding: 24px;
   border: 1px solid var(--brand-200);
-  border-radius: 20px;
+  border-radius: 10px;
   background:
     radial-gradient(circle at 90% 5%, rgb(45 80 70 / 12%), transparent 30%),
     linear-gradient(135deg, var(--brand-50), var(--surface));
@@ -305,7 +305,7 @@ async function copyDiagnostics(): Promise<void> {
   display: grid;
   width: 42px;
   height: 42px;
-  border-radius: 13px;
+  border-radius: 8px;
   color: var(--primary);
   background: #fff;
   box-shadow: var(--shadow-sm);
@@ -324,7 +324,7 @@ async function copyDiagnostics(): Promise<void> {
 .help-steps article {
   padding: 14px;
   border: 1px solid rgb(45 80 70 / 10%);
-  border-radius: 12px;
+  border-radius: 8px;
   background: rgb(255 255 255 / 72%);
 }
 .help-steps b {
@@ -387,7 +387,7 @@ async function copyDiagnostics(): Promise<void> {
 .help-faq {
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 10px;
   background: #fff;
 }
 .help-faq details {
@@ -428,7 +428,7 @@ async function copyDiagnostics(): Promise<void> {
   gap: 14px;
   padding: 20px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 10px;
   background: #fff;
 }
 .feedback-categories {
@@ -519,7 +519,7 @@ async function copyDiagnostics(): Promise<void> {
 .help-side-card {
   padding: 17px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 10px;
   background: #fff;
 }
 .help-side-card h2 {

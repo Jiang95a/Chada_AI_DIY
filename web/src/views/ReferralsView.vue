@@ -222,7 +222,7 @@ onMounted(load)
   justify-content: center;
   padding: 18px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 10px;
   background: #fff;
   flex-direction: column;
 }
@@ -260,7 +260,7 @@ onMounted(load)
   margin-top: 22px;
   padding: 4px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 8px;
   background: #fff;
   width: max-content;
 }
@@ -290,7 +290,7 @@ onMounted(load)
 .referral-card {
   padding: 18px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 10px;
   background: #fff;
 }
 
@@ -392,7 +392,7 @@ onMounted(load)
   gap: 8px;
   margin-top: 16px;
   border: 1px dashed var(--line-strong);
-  border-radius: 16px;
+  border-radius: 10px;
   color: var(--ink-400);
   text-align: center;
 }

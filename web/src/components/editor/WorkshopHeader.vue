@@ -321,7 +321,7 @@ function onTitleInput(event: Event): void {
   width: 214px;
   padding: 6px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 8px;
   background: #fff;
   box-shadow: var(--shadow-lg);
   z-index: 50;

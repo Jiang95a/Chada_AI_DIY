@@ -584,7 +584,7 @@ function onPageRole(event: Event): void {
   gap: 9px;
   padding: 11px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 8px;
   background: #fcfcfe;
 }
 
@@ -714,7 +714,7 @@ function onPageRole(event: Event): void {
   gap: 9px;
   padding: 11px;
   border: 1px dashed var(--line-strong);
-  border-radius: 12px;
+  border-radius: 8px;
   color: var(--ink-500);
   font-size: 11.5px;
   line-height: 1.6;

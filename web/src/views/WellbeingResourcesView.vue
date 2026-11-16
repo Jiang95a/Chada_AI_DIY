@@ -136,7 +136,7 @@ const companionTips = [
   gap: 11px;
   padding: 20px;
   border: 1px solid #e7d8c7;
-  border-radius: 18px;
+  border-radius: 10px;
   color: #8a6541;
   background: #fcf7ee;
 }
@@ -182,7 +182,7 @@ const companionTips = [
   min-height: 210px;
   padding: 20px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 10px;
   background: #fff;
 }
 
@@ -190,7 +190,7 @@ const companionTips = [
   display: grid;
   width: 38px;
   height: 38px;
-  border-radius: 12px;
+  border-radius: 8px;
   color: var(--brand-600);
   background: var(--brand-50);
   place-items: center;
@@ -269,7 +269,7 @@ const companionTips = [
   align-items: center;
   gap: 3px 9px;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--ink-50);
   grid-template-columns: auto 1fr;
 }
@@ -303,7 +303,7 @@ const companionTips = [
   display: grid;
   gap: 1px;
   border: 1px solid var(--line);
-  border-radius: 15px;
+  border-radius: 9px;
   background: var(--line);
   overflow: hidden;
 }

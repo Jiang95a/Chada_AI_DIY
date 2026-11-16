@@ -340,7 +340,7 @@ defineExpose({ pageEl, submit })
   width: 96px;
   height: 22px;
   transform: translateX(-50%);
-  border-radius: 12px;
+  border-radius: 8px;
   background: #0b0e14;
 }
 
@@ -588,7 +588,7 @@ defineExpose({ pageEl, submit })
   margin: 4px 16px 10px;
   height: 38px;
   border: 1.5px dashed color-mix(in srgb, var(--ink) 18%, transparent);
-  border-radius: 12px;
+  border-radius: 8px;
   background: transparent;
   color: color-mix(in srgb, var(--ink) 45%, transparent);
   font-size: 12px;
@@ -614,7 +614,7 @@ defineExpose({ pageEl, submit })
   margin: 40px 20px 20px;
   padding: 26px 18px;
   border: 1.5px dashed color-mix(in srgb, var(--ink) 14%, transparent);
-  border-radius: 16px;
+  border-radius: 10px;
   color: color-mix(in srgb, var(--ink) 40%, transparent);
   text-align: center;
 }

@@ -69,14 +69,14 @@
   --shadow-lg: 0 28px 68px -38px rgb(37 55 45 / 30%);
 
   /* 圆角、间距与文字层级 */
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-card: 16px;
-  --radius-button: 12px;
-  --radius-input: 10px;
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-card: 8px;
+  --radius-button: 6px;
+  --radius-input: 5px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -311,14 +311,14 @@ svg {
   border-color: transparent;
   color: #fff;
   background: var(--brand-600);
-  box-shadow: 0 8px 18px -12px rgb(45 80 70 / 55%);
+  box-shadow: none;
 }
 
 .btn--primary:hover {
   color: #fff;
   border-color: transparent;
   background: var(--brand-700);
-  box-shadow: 0 10px 22px -12px rgb(45 80 70 / 65%);
+  box-shadow: none;
 }
 
 .btn--ghost {
@@ -617,11 +617,9 @@ svg {
   opacity: 0;
 }
 
-@keyframes page-rise {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
+/* 圆角统一后，卡片不再靠阴影和位移表达层级 */
+.card-hover-note {
+  display: none;
 }
 
 @keyframes soft-float {
@@ -636,7 +634,7 @@ svg {
 
 .workspace-content > main,
 .landing-page > section {
-  animation: page-rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -370,16 +370,15 @@ onMounted(() => {
   width: min(310px, 100%);
   padding: 22px;
   border: 1px solid rgb(255 255 255 / 22%);
-  border-radius: 20px;
+  border-radius: 10px;
   color: #fff;
   background: rgb(227 237 226 / 13%);
-  box-shadow: 0 20px 50px -35px rgb(0 0 0 / 55%);
   backdrop-filter: blur(16px);
 }
 
 .hero-invite > span {
-  color: rgb(255 255 255 / 48%);
-  font-size: 7px;
+  color: rgb(255 255 255 / 70%);
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.14em;
 }
@@ -394,8 +393,8 @@ onMounted(() => {
 
 .hero-invite p {
   margin-top: 8px;
-  color: rgb(255 255 255 / 58%);
-  font-size: 9px;
+  color: rgb(255 255 255 / 80%);
+  font-size: 12px;
   line-height: 1.7;
 }
 
@@ -455,7 +454,7 @@ onMounted(() => {
   display: grid;
   gap: 1px;
   border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: 10px;
   background: var(--line);
   grid-template-columns: repeat(3, minmax(0, 1fr));
   overflow: hidden;
@@ -476,7 +475,7 @@ onMounted(() => {
   width: 38px;
   height: 38px;
   flex: 0 0 auto;
-  border-radius: 12px;
+  border-radius: 8px;
   color: var(--brand-600);
   background: var(--brand-50);
   place-items: center;
@@ -490,8 +489,8 @@ onMounted(() => {
 .intro-points small {
   display: block;
   margin-top: 7px;
-  color: var(--ink-400);
-  font-size: 9px;
+  color: var(--ink-500);
+  font-size: 12px;
   line-height: 1.7;
 }
 
@@ -778,7 +777,7 @@ onMounted(() => {
 .maker-preview {
   padding: 18px;
   border: 1px solid rgb(255 255 255 / 18%);
-  border-radius: 16px;
+  border-radius: 10px;
   background: rgb(255 255 255 / 10%);
   backdrop-filter: blur(10px);
 }
@@ -843,7 +842,7 @@ onMounted(() => {
   display: grid;
   gap: 1px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 10px;
   background: var(--line);
   overflow: hidden;
 }

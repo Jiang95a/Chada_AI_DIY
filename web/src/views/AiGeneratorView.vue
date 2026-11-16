@@ -399,7 +399,7 @@ onMounted(async () => {
   width: 44px;
   height: 44px;
   flex: 0 0 auto;
-  border-radius: 13px;
+  border-radius: 8px;
   color: var(--brand-600);
   background: var(--surface-warm);
   place-items: center;

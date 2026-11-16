@@ -2,6 +2,8 @@
 import { computed, onMounted, provide, reactive, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import BlockView from '@/components/editor/BlockView.vue'
+import DynamicParticipation from '@/components/public/DynamicParticipation.vue'
+import EchoNote from '@/components/public/EchoNote.vue'
 import Icon from '@/components/ui/Icon.vue'
 import { FORM_CONTEXT } from '@/composables/formContext'
 import { useToast } from '@/composables/useToast'
@@ -340,7 +342,11 @@ function goBack(): void {
 
 <template>
   <main class="activity-page studio-activity">
-    <div class="activity-shell public-document-shell" :style="themeVars">
+    <div
+      class="activity-shell public-document-shell"
+      :class="{ 'is-unavailable': publicState === 'error' || publicState === 'not-found' }"
+      :style="themeVars"
+    >
       <header class="activity-nav public-document-nav">
         <div class="activity-nav-left">
           <button class="activity-back" type="button" aria-label="返回上一页" @click="goBack">←</button>
@@ -408,6 +414,17 @@ function goBack(): void {
         </span>
       </div>
     </aside>
+    <DynamicParticipation
+      v-if="document || publicState === 'error' || publicState === 'offline'"
+      :slug="slug"
+      :activity-title="document?.title"
+      :content-unavailable="publicState === 'error' || publicState === 'offline'"
+    />
+    <EchoNote
+      v-if="document || publicState === 'error' || publicState === 'offline'"
+      :slug="slug"
+      :activity-title="document?.title"
+    />
     <section v-if="hasSubmitted" class="activity-feedback">
       <div>
         <span>活动后的轻量反馈</span>
@@ -462,13 +479,21 @@ function goBack(): void {
 </template>
 
 <style scoped>
+.public-document-shell.is-unavailable .public-document-page {
+  min-height: 0;
+}
+
+.public-document-shell.is-unavailable .public-document-empty {
+  min-height: 340px;
+}
+
 .activity-consent-panel,
 .activity-feedback,
 .activity-referral {
   width: min(760px, calc(100% - 32px));
   margin: 14px auto 0;
   border: 1px solid #dce8df;
-  border-radius: 15px;
+  border-radius: 9px;
   background: rgb(255 255 255 / 82%);
   box-shadow: 0 14px 35px -34px rgb(32 63 46 / 30%);
 }
@@ -490,7 +515,7 @@ function goBack(): void {
   align-items: center;
   gap: 5px;
   color: var(--brand-700);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 750;
 }
 
@@ -499,7 +524,7 @@ function goBack(): void {
   border-radius: 99px;
   color: var(--brand-600);
   background: var(--brand-50);
-  font-size: 7px;
+  font-size: 11px;
   font-style: normal;
 }
 
@@ -508,7 +533,7 @@ function goBack(): void {
   align-items: flex-start;
   gap: 8px;
   color: var(--ink-500);
-  font-size: 8px;
+  font-size: 12px;
   line-height: 1.75;
 }
 
@@ -532,7 +557,7 @@ function goBack(): void {
   border-radius: 999px;
   color: var(--ink-500);
   background: var(--ink-50);
-  font-size: 7px;
+  font-size: 11px;
 }
 
 .activity-feedback {
@@ -562,13 +587,13 @@ function goBack(): void {
 
 .referral-toggle strong {
   color: var(--ink-700);
-  font-size: 9px;
+  font-size: 13px;
 }
 
 .referral-toggle small {
   margin-top: 3px;
-  color: var(--ink-400);
-  font-size: 7px;
+  color: var(--ink-500);
+  font-size: 11.5px;
   line-height: 1.6;
 }
 
@@ -585,7 +610,7 @@ function goBack(): void {
   border: 1px solid var(--line);
   border-radius: 8px;
   outline: 0;
-  font-size: 8px;
+  font-size: 12.5px;
 }
 
 .referral-fields button {
@@ -598,7 +623,7 @@ function goBack(): void {
   border-radius: 8px;
   color: #fff;
   background: var(--brand-600);
-  font-size: 8px;
+  font-size: 12.5px;
   cursor: pointer;
 }
 
@@ -609,7 +634,7 @@ function goBack(): void {
 
 .activity-feedback > div:first-child > span {
   color: var(--brand-500);
-  font-size: 7px;
+  font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.08em;
 }
@@ -622,8 +647,8 @@ function goBack(): void {
 
 .activity-feedback p {
   margin-top: 5px;
-  color: var(--ink-400);
-  font-size: 8px;
+  color: var(--ink-600);
+  font-size: 12.5px;
 }
 
 .feedback-choices {
@@ -640,7 +665,7 @@ function goBack(): void {
   border-radius: 999px;
   color: var(--ink-500);
   background: #fff;
-  font-size: 8px;
+  font-size: 12.5px;
   cursor: pointer;
 }
 
@@ -658,7 +683,7 @@ function goBack(): void {
   border: 1px solid var(--line);
   border-radius: 8px;
   outline: 0;
-  font-size: 8px;
+  font-size: 12.5px;
 }
 
 .activity-feedback .feedback-save {
@@ -670,7 +695,7 @@ function goBack(): void {
   border: 0;
   color: var(--brand-600);
   background: transparent;
-  font-size: 8px;
+  font-size: 12.5px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -684,10 +709,10 @@ function goBack(): void {
   margin: 18px auto 28px;
   padding: 11px 14px;
   border: 1px solid #dde8df;
-  border-radius: 12px;
+  border-radius: 8px;
   color: #718078;
   background: rgb(255 255 255 / 72%);
-  font-size: 8px;
+  font-size: 11.5px;
 }
 
 .activity-safety-footer > div,
@@ -713,7 +738,7 @@ function goBack(): void {
   border: 0;
   color: var(--brand-600);
   background: transparent;
-  font-size: 8px;
+  font-size: 11.5px;
   cursor: pointer;
 }
 

@@ -1,15 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router'
 import PublicLayout from '@/layouts/PublicLayout.vue'
-import LandingView from '@/views/LandingView.vue'
-import CampusActivitiesView from '@/views/CampusActivitiesView.vue'
-import WellbeingResourcesView from '@/views/WellbeingResourcesView.vue'
-import WellbeingToolsView from '@/views/WellbeingToolsView.vue'
-import WellbeingAboutView from '@/views/WellbeingAboutView.vue'
-import PublicActivityView from '@/views/PublicActivityView.vue'
-import LoginView from '@/views/LoginView.vue'
-import ForgotPasswordView from '@/views/ForgotPasswordView.vue'
-import ResetPasswordView from '@/views/ResetPasswordView.vue'
-
 export const publicRoutes: RouteRecordRaw[] = [
   {
     path: '/',
@@ -19,52 +9,57 @@ export const publicRoutes: RouteRecordRaw[] = [
       {
         path: '',
         name: 'landing',
-        component: LandingView,
+        component: () => import('@/views/LandingView.vue'),
       },
       {
         path: 'campus',
         name: 'campus-activities',
-        component: CampusActivitiesView,
+        component: () => import('@/views/CampusActivitiesView.vue'),
       },
       {
         path: 'resources',
         name: 'wellbeing-resources',
-        component: WellbeingResourcesView,
+        component: () => import('@/views/WellbeingResourcesView.vue'),
       },
       {
         path: 'tools',
         name: 'wellbeing-tools',
-        component: WellbeingToolsView,
+        component: () => import('@/views/WellbeingToolsView.vue'),
+      },
+      {
+        path: 'trace',
+        name: 'my-trace',
+        component: () => import('@/views/TraceTimelineView.vue'),
       },
       {
         path: 'about',
         name: 'wellbeing-about',
-        component: WellbeingAboutView,
+        component: () => import('@/views/WellbeingAboutView.vue'),
       },
     ],
   },
   {
     path: '/login',
     name: 'login',
-    component: LoginView,
+    component: () => import('@/views/LoginView.vue'),
     meta: { public: true, surface: 'public' },
   },
   {
     path: '/forgot-password',
     name: 'forgot-password',
-    component: ForgotPasswordView,
+    component: () => import('@/views/ForgotPasswordView.vue'),
     meta: { public: true, surface: 'public' },
   },
   {
     path: '/reset-password',
     name: 'reset-password',
-    component: ResetPasswordView,
+    component: () => import('@/views/ResetPasswordView.vue'),
     meta: { public: true, surface: 'public' },
   },
   {
     path: '/p/:slug',
     name: 'public-activity',
-    component: PublicActivityView,
+    component: () => import('@/views/PublicActivityView.vue'),
     meta: { public: true, surface: 'public' },
   },
 ]

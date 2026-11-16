@@ -548,7 +548,7 @@ async function confirmDelete(): Promise<void> {
   width: 40px;
   height: 40px;
   flex: 0 0 auto;
-  border-radius: 12px;
+  border-radius: 8px;
   color: #d92d20;
   background: var(--rose-50, #fef2f2);
   place-items: center;

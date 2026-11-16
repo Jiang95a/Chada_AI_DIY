@@ -251,7 +251,7 @@ onMounted(() => {
   justify-content: space-between;
   padding: 0 15px;
   border: 1px solid var(--line);
-  border-radius: 13px;
+  border-radius: 8px;
   color: var(--ink-600);
   background: #fff;
   font-size: 10px;
@@ -270,7 +270,7 @@ onMounted(() => {
   justify-content: center;
   padding: 24px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 10px;
   background: linear-gradient(145deg, #f8fbf7, #f3eee7);
   flex-direction: column;
 }
@@ -340,7 +340,7 @@ onMounted(() => {
   width: 55px;
   height: 55px;
   margin-top: 22px;
-  border-radius: 18px;
+  border-radius: 10px;
   color: var(--brand-600);
   background: var(--brand-50);
   place-items: center;
@@ -442,7 +442,7 @@ onMounted(() => {
   margin-top: 20px;
   padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 8px;
   outline: 0;
   color: var(--ink-700);
   background: #fbfcfa;

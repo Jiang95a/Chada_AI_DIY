@@ -21,6 +21,7 @@ const cases = [
   { path: '/profile', selector: '.account-page', text: '个人资料' },
   { path: '/settings', selector: '.settings-page', text: '偏好设置' },
   { path: '/help', selector: '.help-page', text: '帮助与反馈' },
+  { path: '/trace', selector: '.trace-page', text: '你是怎么想过来的' },
   { path: '/editor/demo', selector: '.studio-editor', text: '质量检查' },
   // 测试环境无法连接 8080，按“断网才本地兜底”的规则回退到编辑器演示文档。
   // 后端返回 404/未发布时不会再走这个回退。

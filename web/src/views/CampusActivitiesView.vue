@@ -513,7 +513,7 @@ onMounted(load)
   grid-template-columns: minmax(150px, 0.7fr) 1fr;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: 10px;
   background: #fff;
 }
 
@@ -623,7 +623,7 @@ onMounted(load)
   gap: 8px;
   margin-top: 20px;
   border: 1px dashed var(--line-strong);
-  border-radius: 20px;
+  border-radius: 10px;
   color: var(--ink-400);
   text-align: center;
 }

@@ -107,7 +107,7 @@ function onBackdrop() {
   flex-direction: column;
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 56px);
-  border-radius: 18px;
+  border-radius: 10px;
   background: #fff;
   box-shadow: 0 40px 80px -30px rgba(15, 23, 42, 0.45);
   overflow: hidden;

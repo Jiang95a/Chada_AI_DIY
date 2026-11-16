@@ -654,7 +654,7 @@ async function confirmDeleteTemplate(): Promise<void> {
   width: 100%;
   padding: 15px 16px;
   border: 1px solid rgb(255 255 255 / 20%);
-  border-radius: 14px;
+  border-radius: 9px;
   outline: none;
   color: #fff;
   background: rgb(7 14 33 / 38%);
@@ -705,7 +705,7 @@ async function confirmDeleteTemplate(): Promise<void> {
   margin-top: 14px;
   padding: 0 15px;
   border: 0;
-  border-radius: 14px;
+  border-radius: 9px;
   color: #102239;
   background: #e7eadb;
   text-align: left;
@@ -748,7 +748,7 @@ async function confirmDeleteTemplate(): Promise<void> {
 .ai-preview-page {
   padding: 15px;
   border: 1px solid rgb(255 255 255 / 16%);
-  border-radius: 15px;
+  border-radius: 9px;
   background: rgb(255 255 255 / 9%);
   box-shadow: 0 18px 35px -26px #000;
   backdrop-filter: blur(14px);

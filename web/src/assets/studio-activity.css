@@ -37,9 +37,9 @@ body:has(.activity-page) {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.06em;
 }
 
 .activity-brand > i {
@@ -70,15 +70,15 @@ body:has(.activity-page) {
 
 .activity-nav button {
   display: inline-flex;
-  height: 31px;
+  height: 34px;
   align-items: center;
   gap: 5px;
-  padding: 0 9px;
+  padding: 0 11px;
   border: 1px solid rgb(255 255 255 / 30%);
   border-radius: 999px;
   color: #fff;
   background: rgb(255 255 255 / 10%);
-  font-size: 8px;
+  font-size: 12px;
   backdrop-filter: blur(8px);
 }
 
@@ -197,7 +197,7 @@ body:has(.activity-page) {
   flex-direction: column;
   padding: 12px;
   border: 1px solid #ece3da;
-  border-radius: 12px;
+  border-radius: 8px;
   background: #fff;
 }
 
@@ -337,7 +337,7 @@ body:has(.activity-page) {
   gap: 15px;
   padding: 15px;
   border: 1px solid #ece4dd;
-  border-radius: 12px;
+  border-radius: 8px;
   background: #fff;
 }
 
@@ -380,7 +380,7 @@ body:has(.activity-page) {
   margin-top: 22px;
   padding: 18px;
   border: 1px solid #ece3db;
-  border-radius: 15px;
+  border-radius: 9px;
   background: #fff;
 }
 
@@ -486,7 +486,7 @@ body:has(.activity-page) {
   margin: 0 14px 14px;
   padding: 10px 10px 10px 15px;
   border: 1px solid rgb(255 255 255 / 75%);
-  border-radius: 15px;
+  border-radius: 9px;
   background: rgb(255 255 255 / 88%);
   box-shadow: 0 14px 36px rgb(36 31 29 / 18%);
   backdrop-filter: blur(16px);
@@ -526,9 +526,9 @@ body:has(.activity-page) {
 }
 
 .activity-preview-note {
-  margin: 18px 0 0;
-  color: #8d8781;
-  font-size: 8px;
+  margin: 12px 0 0;
+  color: #7b756e;
+  font-size: 11.5px;
   text-align: center;
 }
 
@@ -598,7 +598,7 @@ body:has(.activity-page) {
   border-radius: 9px;
   color: #fff;
   background: var(--brand);
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 700;
 }
 

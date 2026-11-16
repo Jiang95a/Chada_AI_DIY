@@ -179,7 +179,7 @@ onMounted(load)
   width: 100%;
   padding: 11px 12px;
   border: 1px solid var(--brand-100);
-  border-radius: 13px;
+  border-radius: 8px;
   background: linear-gradient(135deg, var(--brand-50), #f5f3ff);
   text-align: left;
   cursor: pointer;
@@ -330,7 +330,7 @@ onMounted(load)
   overflow: hidden;
   margin-bottom: 10px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 9px;
   background: #fff;
   transition:
     border-color 0.15s ease,

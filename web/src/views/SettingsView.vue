@@ -248,7 +248,7 @@ function resetAll(): void {
   gap: 4px;
   padding: 8px;
   border: 1px solid var(--line);
-  border-radius: 15px;
+  border-radius: 9px;
   background: #fff;
 }
 .settings-nav a {
@@ -271,7 +271,7 @@ function resetAll(): void {
 .settings-card {
   padding: 22px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 10px;
   background: #fff;
   box-shadow: var(--shadow-sm);
 }
@@ -317,7 +317,7 @@ function resetAll(): void {
   gap: 9px;
   padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 8px;
   color: var(--ink-soft);
   background: var(--surface-soft);
   text-align: left;
@@ -351,7 +351,7 @@ function resetAll(): void {
   gap: 10px;
   padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--surface-soft);
 }
 .setting-workspace-current > span:not(.setting-workspace-avatar) {

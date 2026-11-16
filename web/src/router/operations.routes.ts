@@ -1,19 +1,11 @@
 import type { RouteRecordRaw } from 'vue-router'
-import ProjectsView from '@/views/ProjectsView.vue'
-import ProjectDataView from '@/views/ProjectDataView.vue'
-import PublishedDataView from '@/views/PublishedDataView.vue'
-import ReferralsView from '@/views/ReferralsView.vue'
-import ProfileView from '@/views/ProfileView.vue'
-import SettingsView from '@/views/SettingsView.vue'
-import HelpView from '@/views/HelpView.vue'
-
 const operationMeta = { surface: 'operations' as const }
 
 export const operationsRoutes: RouteRecordRaw[] = [
   {
     path: '/projects',
     name: 'projects',
-    component: ProjectsView,
+    component: () => import('@/views/ProjectsView.vue'),
     meta: operationMeta,
   },
   {
@@ -23,49 +15,49 @@ export const operationsRoutes: RouteRecordRaw[] = [
   {
     path: '/published',
     name: 'published-data',
-    component: PublishedDataView,
+    component: () => import('@/views/PublishedDataView.vue'),
     meta: operationMeta,
   },
   {
     path: '/referrals',
     name: 'referral-queue',
-    component: ReferralsView,
+    component: () => import('@/views/ReferralsView.vue'),
     meta: operationMeta,
   },
   {
     path: '/profile',
     name: 'profile',
-    component: ProfileView,
+    component: () => import('@/views/ProfileView.vue'),
     meta: operationMeta,
   },
   {
     path: '/settings',
     name: 'settings',
-    component: SettingsView,
+    component: () => import('@/views/SettingsView.vue'),
     meta: operationMeta,
   },
   {
     path: '/help',
     name: 'help',
-    component: HelpView,
+    component: () => import('@/views/HelpView.vue'),
     meta: operationMeta,
   },
   {
     path: '/projects/:projectId/analytics',
     name: 'project-analytics',
-    component: ProjectDataView,
+    component: () => import('@/views/ProjectDataView.vue'),
     meta: operationMeta,
   },
   {
     path: '/projects/:projectId/submissions',
     name: 'project-submissions',
-    component: ProjectDataView,
+    component: () => import('@/views/ProjectDataView.vue'),
     meta: operationMeta,
   },
   {
     path: '/projects/:projectId/exports',
     name: 'project-exports',
-    component: ProjectDataView,
+    component: () => import('@/views/ProjectDataView.vue'),
     meta: operationMeta,
   },
 ]

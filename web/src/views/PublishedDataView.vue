@@ -1000,7 +1000,7 @@ onMounted(async () => {
   width: 42px;
   height: 42px;
   margin-bottom: 3px;
-  border-radius: 12px;
+  border-radius: 8px;
   color: var(--brand-500);
   background: var(--brand-50);
   place-items: center;
@@ -1021,7 +1021,7 @@ onMounted(async () => {
   display: grid;
   width: 58px;
   height: 58px;
-  border-radius: 18px;
+  border-radius: 10px;
   color: var(--brand-600);
   background: var(--brand-50);
   place-items: center;

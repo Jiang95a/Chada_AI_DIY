@@ -339,7 +339,7 @@ function updateCapacity(event: Event): void {
   flex-direction: column;
   gap: 10px;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--ink-50);
 }
 

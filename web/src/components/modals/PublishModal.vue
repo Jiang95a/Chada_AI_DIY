@@ -180,7 +180,7 @@ async function downloadPoster(): Promise<void> {
   gap: 9px;
   padding: 26px 30px;
   border: 1px dashed var(--line-strong);
-  border-radius: 14px;
+  border-radius: 9px;
   background: linear-gradient(180deg, #fbfaff, #fff);
   text-align: center;
 }
@@ -190,7 +190,7 @@ async function downloadPoster(): Promise<void> {
   place-items: center;
   width: 44px;
   height: 44px;
-  border-radius: 13px;
+  border-radius: 8px;
   background: var(--accent-50);
   color: var(--brand-600);
 }
@@ -223,7 +223,7 @@ async function downloadPoster(): Promise<void> {
   gap: 8px;
   padding: 14px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 9px;
   background: #fff;
   box-shadow: 0 16px 40px -30px rgba(15, 23, 42, 0.5);
 }

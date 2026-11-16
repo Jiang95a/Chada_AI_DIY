@@ -52,6 +52,9 @@ function cycleTheme(): void {
         <RouterLink to="/resources" :class="{ 'is-active': route.path === '/resources' }">
           <Icon name="help" :size="14" />心理资源
         </RouterLink>
+        <RouterLink to="/trace" :class="{ 'is-active': route.path === '/trace' }">
+          <Icon name="clock" :size="14" />我的轨迹
+        </RouterLink>
         <RouterLink to="/about" :class="{ 'is-active': route.path === '/about' }">
           <Icon name="users" :size="14" />关于心屿
         </RouterLink>
@@ -85,6 +88,9 @@ function cycleTheme(): void {
       >
       <RouterLink to="/resources" :class="{ 'is-active': route.path === '/resources' }"
         ><Icon name="help" :size="17" />资源</RouterLink
+      >
+      <RouterLink to="/trace" :class="{ 'is-active': route.path === '/trace' }"
+        ><Icon name="clock" :size="17" />轨迹</RouterLink
       >
       <RouterLink to="/about" :class="{ 'is-active': route.path === '/about' }"
         ><Icon name="users" :size="17" />关于</RouterLink
@@ -133,7 +139,7 @@ function cycleTheme(): void {
   gap: 22px;
   padding: 0 24px;
   border: 1px solid rgb(255 255 255 / 9%);
-  border-radius: 18px;
+  border-radius: 10px;
   color: #fff;
   background: var(--brand-900);
   box-shadow: 0 22px 55px -35px rgb(14 31 23 / 72%);
@@ -342,11 +348,11 @@ function cycleTheme(): void {
     display: grid;
     padding: 6px;
     border: 1px solid rgb(255 255 255 / 9%);
-    border-radius: 18px;
+    border-radius: 10px;
     background: var(--brand-900);
     box-shadow: 0 18px 45px -24px rgb(14 31 23 / 60%);
     backdrop-filter: blur(20px);
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
   }
 
   .public-mobile-nav a {
@@ -355,9 +361,9 @@ function cycleTheme(): void {
     align-items: center;
     justify-content: center;
     gap: 3px;
-    border-radius: 12px;
-    color: rgb(255 255 255 / 55%);
-    font-size: 9px;
+    border-radius: 8px;
+    color: rgb(255 255 255 / 68%);
+    font-size: 11px;
     flex-direction: column;
   }
 

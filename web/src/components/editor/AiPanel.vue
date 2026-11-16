@@ -379,7 +379,7 @@ function dismissSuggestion(id: string): void {
 .bubble {
   max-width: 94%;
   padding: 9px 11px;
-  border-radius: 12px;
+  border-radius: 8px;
   font-size: 12px;
   line-height: 1.68;
 }

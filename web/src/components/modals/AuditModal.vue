@@ -113,7 +113,7 @@ function locate(issue: Issue): void {
   gap: 10px;
   padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 13px;
+  border-radius: 8px;
   background: #fcfcfe;
 }
 
