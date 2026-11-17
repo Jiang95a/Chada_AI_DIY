@@ -34,6 +34,16 @@ function coverTone(item: PublicActivitySummary): string {
   return item.coverTone || 'read'
 }
 
+function keepsFor(item: PublicActivitySummary): string {
+  const text = `${item.title} ${item.description ?? ''} ${item.activityType ?? ''}`
+  if (/招新|加入|社团/.test(text)) return '一次被看见的选择'
+  if (/打卡|21 天|练习|连续/.test(text)) return '一段连续记录'
+  if (/问答|知识|科普|测试/.test(text)) return '一次自我校准'
+  if (/游园|压力|放松|心晴/.test(text)) return '一张压力地图'
+  if (/职规|生涯|职业|方向/.test(text)) return '一条方向线索'
+  return '一段只属于你的记录'
+}
+
 function updatedLabel(value?: string): string {
   if (!value) return '最近更新'
   const date = new Date(value)
@@ -147,7 +157,11 @@ onMounted(load)
             <p>{{ featured.description || '点击查看活动详情与参与方式。' }}</p>
             <span>查看活动 <Icon name="arrow-right" :size="15" /></span>
           </div>
-          <small>{{ updatedLabel(featured.updatedAt) }}</small>
+          <aside class="featured-aside">
+            <span>会留下</span>
+            <strong>{{ keepsFor(featured) }}</strong>
+            <small>{{ updatedLabel(featured.updatedAt) }}</small>
+          </aside>
         </RouterLink>
       </section>
 
@@ -169,6 +183,7 @@ onMounted(load)
                 ><h3>{{ item.title }}</h3></RouterLink
               >
               <p>{{ item.description || '点击查看活动详情与安心参与方式。' }}</p>
+              <span class="campus-keeps">会留下：{{ keepsFor(item) }}</span>
               <footer>
                 <span><Icon name="clock" :size="12" />{{ updatedLabel(item.updatedAt) }}</span>
                 <button type="button" @click="copyLink(item.slug)"><Icon name="copy" :size="13" />分享</button>
@@ -698,6 +713,297 @@ onMounted(load)
 
   .campus-card-art {
     min-height: 210px;
+  }
+}
+.campus-page {
+  width: min(1180px, calc(100% - 10vw));
+  padding-top: 30px;
+}
+
+.campus-hero {
+  min-height: 0;
+  padding: 40px 0 36px;
+  border-top: 1px solid var(--ink-900);
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--ink-900);
+  background: transparent;
+  grid-template-columns: 1fr;
+}
+
+.hero-copy > span {
+  color: var(--brand-600);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.hero-copy h1 {
+  max-width: 780px;
+  margin: 14px 0 14px;
+  color: var(--ink-900);
+  font-family: var(--font);
+  font-size: clamp(38px, 4.4vw, 58px);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+}
+
+.hero-copy > p {
+  max-width: 660px;
+  color: var(--ink-600);
+  font-size: 14.5px;
+  line-height: 1.8;
+}
+
+.hero-copy > div {
+  margin-top: 22px;
+}
+
+.hero-copy > div > a {
+  min-height: 40px;
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--ink-900);
+  font-size: 12.5px;
+}
+
+.hero-copy > div > span {
+  color: var(--ink-500);
+  font-size: 12px;
+}
+
+.hero-motif {
+  display: none;
+}
+
+.discover-panel {
+  gap: 14px;
+  margin-top: 0;
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.campus-search {
+  border-radius: 2px;
+  background: #fff;
+}
+
+.campus-search input {
+  color: var(--ink-700);
+  font-size: 13px;
+}
+
+.campus-card footer span {
+  color: var(--ink-600);
+  font-size: 11.5px;
+}
+
+.campus-types button {
+  border-radius: 2px;
+  font-size: 12px;
+}
+
+.featured-section {
+  margin-top: 30px;
+}
+
+.featured-event {
+  display: grid;
+  min-height: 0;
+  align-items: start;
+  gap: 30px;
+  padding: 26px 28px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--brand-600);
+  border-radius: 0;
+  color: var(--ink-900);
+  background: #fff !important;
+  grid-template-columns: minmax(0, 1fr) 220px;
+}
+
+.featured-aside {
+  display: flex;
+  align-self: stretch;
+  justify-content: center;
+  gap: 5px;
+  padding-left: 24px;
+  border-left: 1px solid var(--line);
+  flex-direction: column;
+}
+
+.featured-aside > span {
+  color: var(--ink-500);
+  font-size: 11px;
+}
+
+.featured-aside > strong {
+  color: var(--ink-900);
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.featured-aside > small {
+  margin-top: 8px;
+  color: var(--ink-500);
+  font-size: 11.5px;
+}
+
+.campus-keeps {
+  display: inline-flex;
+  margin-top: 8px;
+  color: var(--brand-700);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.featured-label {
+  display: none;
+}
+
+.featured-art {
+  display: none;
+}
+
+.featured-copy {
+  max-width: none;
+  padding-top: 0;
+}
+
+.featured-copy em {
+  color: var(--brand-600);
+  font-size: 11px;
+}
+
+.featured-copy h2 {
+  margin-top: 7px;
+  color: var(--ink-900);
+  font-family: var(--font);
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+}
+
+.featured-copy p {
+  max-width: 640px;
+  margin-top: 9px;
+  color: var(--ink-600);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.featured-copy > span {
+  margin-top: 16px;
+  color: var(--brand-700);
+  font-size: 12px;
+}
+
+.featured-event > small {
+  position: static;
+  display: block;
+  margin-top: 14px;
+  color: var(--ink-500);
+  font-size: 11.5px;
+}
+
+.activity-feed {
+  margin-top: 40px;
+}
+
+.activity-feed > header > span {
+  color: var(--brand-600);
+  font-size: 11px;
+}
+
+.activity-feed > header > h2 {
+  font-family: var(--font);
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.activity-feed-grid {
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.campus-card {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+}
+
+.campus-card-art {
+  display: none;
+}
+
+.campus-card-body {
+  padding: 18px 20px;
+}
+
+.campus-card-type {
+  color: var(--brand-600);
+  font-size: 11px;
+}
+
+.campus-card-body h3 {
+  font-family: var(--font);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.campus-card-body p {
+  max-width: 720px;
+  color: var(--ink-600);
+  font-size: 13px;
+}
+
+.campus-card-body footer {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-500);
+  font-size: 11.5px;
+}
+
+.campus-card-body footer button {
+  color: var(--brand-700);
+  font-size: 11.5px;
+}
+
+@media (max-width: 720px) {
+  .campus-page {
+    padding-top: 18px;
+  }
+
+  .campus-hero {
+    padding: 28px 0;
+  }
+
+  .featured-event {
+    padding: 20px;
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .featured-aside {
+    align-self: auto;
+    padding-top: 14px;
+    padding-left: 0;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+
+  .campus-card-body {
+    padding: 16px;
   }
 }
 </style>

@@ -355,4 +355,252 @@ const companionTips = [
     grid-template-columns: 1fr;
   }
 }
+.resources-page {
+  width: min(1180px, calc(100% - 56px));
+  padding-top: 30px;
+}
+
+.resources-hero {
+  align-items: start;
+  gap: 40px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+  grid-template-columns: minmax(0, 1fr) 330px;
+}
+
+.resources-hero > div > span,
+.resource-section header > span,
+.support-card > span,
+.where-card > span,
+.resources-boundary > div > span {
+  color: var(--brand-600);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+
+.resources-hero h1 {
+  margin-top: 12px;
+  color: var(--ink-900);
+  font-family: var(--font);
+  font-size: clamp(38px, 4.6vw, 58px);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1.15;
+}
+
+.resources-hero > div > p {
+  max-width: 620px;
+  margin-top: 14px;
+  color: var(--ink-600);
+  font-size: 14.5px;
+  line-height: 1.8;
+}
+
+.resources-hero aside {
+  border: 1px solid var(--line);
+  border-left: 4px solid #b45e55;
+  border-radius: 0;
+  background: #fff;
+  color: var(--ink-700);
+  padding: 18px;
+}
+
+.resources-hero aside strong {
+  font-size: 13px;
+}
+
+.resources-hero aside p {
+  color: var(--ink-600);
+  font-size: 12.5px;
+}
+
+.resource-section {
+  margin-top: 42px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.resource-section h2,
+.support-card h2,
+.where-card h2,
+.resources-boundary h2 {
+  font-family: var(--font);
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.topic-grid {
+  gap: 0 34px;
+  margin-top: 18px;
+  border-top: 2px solid var(--ink-900);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.topic-grid article {
+  min-height: 0;
+  padding: 18px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.topic-grid article > span {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+}
+
+.topic-grid h3 {
+  margin-top: 8px;
+  font-family: var(--font);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.topic-grid p {
+  max-width: 440px;
+  margin-top: 5px;
+  color: var(--ink-600);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
+.support-layout {
+  gap: 12px;
+  margin-top: 42px;
+}
+
+.support-card,
+.where-card {
+  padding: 24px;
+  border-radius: 0;
+}
+
+.support-card {
+  background: var(--brand-900);
+}
+
+.support-card > span {
+  color: #b9d7c3;
+}
+
+.support-card li {
+  color: rgb(255 255 255 / 78%);
+  font-size: 13px;
+}
+
+.where-card {
+  border: 1px solid var(--line);
+}
+
+.where-card > div {
+  gap: 0;
+  margin-top: 14px;
+}
+
+.where-card p {
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.where-card p b {
+  font-size: 13px;
+}
+
+.where-card p small {
+  color: var(--ink-600);
+  font-size: 12px;
+}
+
+.resources-boundary {
+  gap: 32px;
+  margin-top: 42px;
+  padding: 28px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.boundary-list {
+  gap: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.boundary-list article {
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+}
+
+.boundary-list b {
+  font-family: var(--font);
+  font-size: 12px;
+}
+
+.boundary-list strong {
+  font-size: 13.5px;
+}
+
+.boundary-list p {
+  color: var(--ink-600);
+  font-size: 12.5px;
+}
+
+@media (max-width: 900px) {
+  .resources-page {
+    width: calc(100% - 36px);
+    padding-top: 18px;
+  }
+
+  .resources-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .topic-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .support-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .resources-boundary {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .resources-hero h1 {
+    font-size: 32px;
+  }
+
+  .resource-section h2,
+  .support-card h2,
+  .where-card h2,
+  .resources-boundary h2 {
+    font-size: 26px;
+    text-wrap: balance;
+  }
+
+  .topic-grid article > span {
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .support-card,
+  .where-card {
+    padding: 20px;
+  }
+}
 </style>

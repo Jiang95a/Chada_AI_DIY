@@ -11,6 +11,7 @@ import coverGarden from '@/assets/activity-cover-garden.svg'
 import coverSelfCare from '@/assets/activity-cover-self-care.svg'
 import coverClub from '@/assets/activity-cover-club.svg'
 import coverQuiet from '@/assets/activity-cover-quiet.svg'
+import campusWalk from '@/assets/campus-walk.jpg'
 
 const router = useRouter()
 const projectStore = useProjectStore()
@@ -147,10 +148,8 @@ onMounted(() => {
 <template>
   <main class="landing-page">
     <section class="hero">
-      <div class="hero-visual" aria-hidden="true" />
-      <div class="hero-shade" />
       <div class="hero-copy">
-        <span class="hero-kicker"><i />CAMPUS WELLBEING · ACTIVITY TO TRACE</span>
+        <span class="hero-kicker">CAMPUS WELLBEING · 心屿同行</span>
         <h1>让每次参与，<br />都留下一点<span>回响</span>。</h1>
         <p>心屿同行帮社团搭建、发布心理与成长活动，也帮参与者记住自己是怎么想过来的。</p>
         <div class="hero-actions">
@@ -168,26 +167,10 @@ onMounted(() => {
         </div>
       </div>
 
-      <RouterLink to="/trace" class="hero-invite hero-trace">
-        <span>TRACE PREVIEW · 变化卡</span>
-        <strong>从「压力」到「睡眠」</strong>
-        <p>4 次记录，只有你自己能看到。下次打开，先看到上次那句话。</p>
-        <svg class="hero-trace-spark" viewBox="0 0 220 44" aria-hidden="true">
-          <rect x="4" y="24" width="10" height="20" rx="4" fill="rgb(255 255 255 / 24%)" />
-          <rect x="22" y="10" width="10" height="34" rx="4" fill="rgb(255 255 255 / 62%)" />
-          <rect x="40" y="20" width="10" height="24" rx="4" fill="rgb(255 255 255 / 24%)" />
-          <rect x="58" y="14" width="10" height="30" rx="4" fill="rgb(255 255 255 / 62%)" />
-          <rect x="76" y="26" width="10" height="18" rx="4" fill="rgb(255 255 255 / 24%)" />
-          <rect x="94" y="18" width="10" height="26" rx="4" fill="rgb(255 255 255 / 24%)" />
-          <rect x="112" y="8" width="10" height="36" rx="4" fill="rgb(255 255 255 / 62%)" />
-          <rect x="130" y="22" width="10" height="22" rx="4" fill="rgb(255 255 255 / 24%)" />
-          <rect x="148" y="16" width="10" height="28" rx="4" fill="rgb(255 255 255 / 24%)" />
-          <rect x="166" y="6" width="10" height="38" rx="4" fill="rgb(255 255 255 / 62%)" />
-          <rect x="184" y="20" width="10" height="24" rx="4" fill="rgb(255 255 255 / 24%)" />
-          <rect x="202" y="12" width="10" height="32" rx="4" fill="rgb(255 255 255 / 62%)" />
-        </svg>
-        <div><em>看看变化卡</em><Icon name="arrow-right" :size="16" /></div>
-      </RouterLink>
+      <figure class="hero-photo">
+        <img :src="campusWalk" alt="学生独自走在校园小路上" />
+        <figcaption>校园里的一段路，也可以慢一点走。</figcaption>
+      </figure>
     </section>
 
     <section class="intro-strip">
@@ -1137,6 +1120,429 @@ onMounted(() => {
 
   .maker-section {
     padding: 26px 20px;
+  }
+}
+.landing-page .hero {
+  min-height: 0;
+  align-items: stretch;
+  padding: 0;
+  color: var(--ink-900);
+  background: var(--bg);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.landing-page .hero-copy {
+  display: flex;
+  max-width: none;
+  justify-content: center;
+  padding: 86px max(5vw, calc((100vw - 1220px) / 2)) 72px;
+  flex-direction: column;
+}
+
+.hero-kicker {
+  color: var(--brand-600);
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
+}
+
+.hero h1 {
+  max-width: 660px;
+  margin: 18px 0 16px;
+  color: var(--ink-900);
+  font-family: var(--font);
+  font-size: clamp(42px, 4.6vw, 64px);
+  font-weight: 800;
+  letter-spacing: -0.055em;
+  line-height: 1.08;
+}
+
+.hero h1 span {
+  color: var(--brand-600);
+  white-space: nowrap;
+}
+
+.hero-copy > p {
+  max-width: 520px;
+  color: var(--ink-600);
+  font-size: 15px;
+  line-height: 1.85;
+}
+
+.hero-primary,
+.hero-actions button {
+  min-height: 44px;
+  border-radius: 2px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hero-primary {
+  background: var(--brand-700);
+  color: #fff;
+}
+
+.hero-actions button {
+  border: 1px solid var(--ink-300);
+  background: #fff;
+  color: var(--ink-900);
+}
+
+.hero-trust span {
+  color: var(--ink-500);
+  font-size: 12px;
+}
+
+.hero-photo {
+  position: relative;
+  min-height: 560px;
+  margin: 0;
+  overflow: hidden;
+  background: var(--surface-warm);
+}
+
+.hero-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.85) contrast(0.98);
+}
+
+.hero-photo figcaption {
+  position: absolute;
+  bottom: 18px;
+  left: 20px;
+  padding: 7px 10px;
+  border-left: 3px solid var(--brand-500);
+  background: rgb(247 243 234 / 92%);
+  color: var(--ink-700);
+  font-size: 11.5px;
+}
+
+.hero-visual,
+.hero-shade,
+.hero-invite {
+  display: none;
+}
+
+.intro-strip {
+  padding: 54px max(5vw, calc((100vw - 1220px) / 2)) 48px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  text-align: left;
+}
+
+.intro-strip h2 {
+  max-width: 760px;
+  margin: 12px 0 26px;
+  font-family: var(--font);
+  font-size: clamp(28px, 3.2vw, 38px);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.25;
+}
+
+.intro-points {
+  gap: 0;
+  border: 0;
+  background: transparent;
+}
+
+.intro-points article {
+  min-height: 0;
+  padding: 18px 24px 18px 0;
+  border-top: 2px solid var(--ink-900);
+  background: transparent;
+}
+
+.intro-points i {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+  color: var(--brand-600);
+}
+
+.intro-points strong {
+  font-family: var(--font);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.intro-points small {
+  color: var(--ink-600);
+  font-size: 13px;
+}
+
+.activities-section {
+  padding: 52px 0 56px;
+  border-top: 1px solid var(--line);
+}
+
+.activities-section h2 {
+  font-family: var(--font);
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.activity-grid.is-compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto;
+}
+
+.activity-card {
+  min-height: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: #fff;
+  color: var(--ink-900);
+}
+
+.activity-cover {
+  position: static;
+  width: 100%;
+  height: 190px;
+  object-fit: cover;
+}
+
+.activity-card::before,
+.activity-card::after {
+  display: none;
+}
+
+.activity-type {
+  margin-top: 14px;
+  border-radius: 2px;
+  background: var(--brand-50);
+  color: var(--brand-700);
+  backdrop-filter: none;
+}
+
+.activity-card > div {
+  max-width: none;
+  padding: 12px 0 0;
+  background: transparent;
+}
+
+.activity-card > div > small {
+  color: var(--ink-500);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.activity-card > div > strong {
+  margin-top: 5px;
+  font-family: var(--font);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+.activity-card--1 > div > strong {
+  font-size: 24px;
+}
+
+.activity-card > div > p {
+  margin-top: 7px;
+  font-size: 13px;
+}
+
+.activity-keeps {
+  margin-top: 8px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--brand-700);
+  font-size: 12px;
+}
+
+.activity-card:not(.activity-card--1) > div > p {
+  display: block;
+}
+
+.activity-open {
+  margin-top: 12px;
+  padding: 0;
+  background: transparent;
+  color: var(--brand-700);
+  font-size: 12px;
+}
+
+.nearby-section {
+  gap: 40px;
+  padding: 46px 0;
+  border-top: 1px solid var(--line);
+}
+
+.nearby-copy h2,
+.trace-copy h2,
+.maker-section h2,
+.safety-section h2 {
+  font-family: var(--font);
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.nearby-links {
+  gap: 0;
+  border: 0;
+  background: transparent;
+}
+
+.nearby-links a {
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+}
+
+.nearby-links a > i {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+}
+
+.nearby-links strong {
+  font-size: 14px;
+}
+
+.nearby-links small {
+  color: var(--ink-600);
+  font-size: 12px;
+}
+
+.trace-section {
+  padding: 46px 0 50px;
+  border-top: 1px solid var(--line);
+}
+
+.trace-demo :deep(.pulse) {
+  border-color: var(--line-strong);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.trace-demo > small {
+  color: var(--ink-500);
+}
+
+.safety-section {
+  margin: 0;
+  padding: 46px 0;
+  border-top: 1px solid var(--line);
+}
+
+.safety-list {
+  gap: 0;
+  border: 0;
+  background: transparent;
+}
+
+.safety-list article {
+  padding: 15px 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+}
+
+.safety-list b {
+  color: var(--brand-500);
+  font-family: var(--font);
+  font-size: 12px;
+}
+
+.safety-list strong {
+  font-size: 14px;
+}
+
+.safety-list small {
+  color: var(--ink-600);
+  font-size: 12.5px;
+}
+
+.maker-section {
+  border-radius: 0;
+  background: var(--brand-900);
+}
+
+.maker-section button {
+  border-radius: 2px;
+}
+
+.maker-flow {
+  gap: 0;
+}
+
+.maker-flow article {
+  padding: 14px 0;
+  border: 0;
+  border-top: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 0;
+  background: transparent;
+}
+
+@media (max-width: 900px) {
+  .landing-page .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-page .hero-copy {
+    padding: 56px 24px 44px;
+  }
+
+  .hero-photo {
+    min-height: 340px;
+  }
+
+  .intro-points {
+    grid-template-columns: 1fr;
+  }
+
+  .intro-points article {
+    padding-right: 0;
+  }
+
+  .activity-grid.is-compact {
+    grid-template-columns: 1fr;
+  }
+
+  .activity-cover {
+    height: 210px;
+  }
+}
+
+@media (max-width: 600px) {
+  .hero h1 {
+    font-size: 40px;
+  }
+
+  .hero-photo {
+    min-height: 280px;
+  }
+
+  .hero-photo figcaption {
+    right: 14px;
+    bottom: 14px;
+    left: 14px;
+  }
+
+  .intro-strip,
+  .activities-section,
+  .trace-section,
+  .safety-section,
+  .nearby-section {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .nearby-copy h2,
+  .trace-copy h2,
+  .maker-section h2,
+  .safety-section h2 {
+    font-size: 28px;
   }
 }
 </style>

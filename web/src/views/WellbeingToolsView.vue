@@ -93,20 +93,31 @@ onMounted(() => {
         <h2>感官定位练习</h2>
       </header>
       <div class="grounding-card">
-        <div class="grounding-progress">
-          <i v-for="(_, index) in groundingSteps" :key="index" :class="{ 'is-active': index <= groundingStep }" />
+        <div class="grounding-main">
+          <div class="grounding-progress">
+            <i v-for="(_, index) in groundingSteps" :key="index" :class="{ 'is-active': index <= groundingStep }" />
+          </div>
+          <span class="grounding-count">0{{ groundingStep + 1 }} / 05</span>
+          <div class="grounding-icon"><Icon :name="groundingSteps[groundingStep]?.icon || 'spark'" :size="24" /></div>
+          <h3>{{ groundingSteps[groundingStep]?.title }}</h3>
+          <p>{{ groundingSteps[groundingStep]?.text }}</p>
+          <button
+            type="button"
+            @click="groundingStep = groundingStep >= groundingSteps.length - 1 ? 0 : groundingStep + 1"
+          >
+            {{ groundingStep >= groundingSteps.length - 1 ? '重新开始' : '完成这一步' }}
+            <Icon name="arrow-right" :size="14" />
+          </button>
         </div>
-        <span class="grounding-count">0{{ groundingStep + 1 }} / 05</span>
-        <div class="grounding-icon"><Icon :name="groundingSteps[groundingStep]?.icon || 'spark'" :size="24" /></div>
-        <h3>{{ groundingSteps[groundingStep]?.title }}</h3>
-        <p>{{ groundingSteps[groundingStep]?.text }}</p>
-        <button
-          type="button"
-          @click="groundingStep = groundingStep >= groundingSteps.length - 1 ? 0 : groundingStep + 1"
-        >
-          {{ groundingStep >= groundingSteps.length - 1 ? '重新开始' : '完成这一步' }}
-          <Icon name="arrow-right" :size="14" />
-        </button>
+        <ol class="grounding-steps">
+          <li
+            v-for="(step, index) in groundingSteps"
+            :key="step.title"
+            :class="{ 'is-active': index === groundingStep, 'is-done': index < groundingStep }"
+          >
+            <b>0{{ index + 1 }}</b><span>{{ step.title }}</span>
+          </li>
+        </ol>
       </div>
     </section>
 
@@ -538,6 +549,347 @@ onMounted(() => {
 
   .self-care-list {
     grid-template-columns: 1fr;
+  }
+}
+.tools-page {
+  width: min(1180px, calc(100% - 56px));
+  padding-top: 28px;
+}
+
+.tools-hero {
+  padding: 18px 0 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tools-hero > span,
+.tools-section > header > span,
+.simple-tool-card header > span {
+  color: var(--brand-600);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+
+.tools-hero h1 {
+  margin-top: 10px;
+  color: var(--ink-900);
+  font-family: var(--font);
+  font-size: clamp(40px, 4.5vw, 56px);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+}
+
+.tools-hero > p {
+  max-width: 700px;
+  margin-top: 12px;
+  color: var(--ink-600);
+  font-size: 14.5px;
+  line-height: 1.8;
+}
+
+.tools-hero > div span {
+  color: var(--ink-600);
+  font-size: 12px;
+}
+
+.tools-section {
+  margin-top: 42px;
+  padding-top: 26px;
+  border-top: 1px solid var(--line);
+}
+
+.tools-section h2,
+.simple-tool-card h2 {
+  font-family: var(--font);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.grounding-card {
+  display: grid;
+  max-width: none;
+  align-items: start;
+  gap: 34px;
+  margin: 20px 0 0;
+  padding: 24px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+}
+
+.grounding-main {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  position: relative;
+}
+
+.grounding-count {
+  position: static;
+  margin-top: 8px;
+  color: var(--ink-500);
+  font-family: var(--font);
+  font-size: 12px;
+}
+
+.grounding-steps {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+  flex-direction: column;
+}
+
+.grounding-steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-500);
+  font-size: 12.5px;
+}
+
+.grounding-steps b {
+  color: var(--ink-600);
+  font-family: var(--font);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.grounding-steps li.is-active {
+  color: var(--ink-900);
+  font-weight: 700;
+}
+
+.grounding-steps li.is-done {
+  color: var(--ink-600);
+}
+
+.grounding-icon {
+  width: 34px;
+  height: 34px;
+  margin-top: 20px;
+  border-radius: 2px;
+  background: var(--brand-50);
+}
+
+.grounding-card h3 {
+  margin-top: 12px;
+  font-family: var(--font);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.grounding-card > p {
+  color: var(--ink-600);
+  font-size: 13.5px;
+  line-height: 1.75;
+}
+
+.grounding-card > button {
+  min-height: 40px;
+  border-radius: 2px;
+  font-size: 12px;
+}
+
+.grounding-main > p {
+  max-width: 480px;
+  margin-top: 9px;
+  color: var(--ink-600);
+  font-size: 13.5px;
+  line-height: 1.75;
+}
+
+.grounding-main > button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 2px;
+  background: var(--brand-600);
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tools-two-column {
+  gap: 12px;
+  margin-top: 42px;
+}
+
+.simple-tool-card {
+  padding: 20px 0;
+  border: 0;
+  border-top: 2px solid var(--ink-900);
+  background: transparent;
+}
+
+.simple-tool-card:first-child {
+  padding-right: 24px;
+}
+
+.simple-tool-card + .simple-tool-card {
+  padding-left: 24px;
+  border-left: 1px solid var(--line);
+}
+
+.simple-tool-card p {
+  color: var(--ink-600);
+  font-size: 12.5px;
+}
+
+.tools-boundary {
+  margin-top: 38px;
+  padding: 16px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.tools-boundary strong {
+  color: var(--ink-900);
+  font-size: 14px;
+}
+
+.tools-boundary p {
+  color: var(--ink-600);
+  font-size: 12.5px;
+}
+
+.tools-boundary > a {
+  color: var(--brand-700);
+  font-size: 12.5px;
+}
+
+:deep(.toolkit) {
+  width: 100%;
+  padding: 42px 0 0;
+}
+
+:deep(.toolkit > header) {
+  margin-bottom: 18px;
+}
+
+:deep(.toolkit > header span) {
+  color: var(--brand-600);
+  font-size: 11px;
+}
+
+:deep(.toolkit > header h2) {
+  font-family: var(--font);
+  font-size: 24px;
+  font-weight: 800;
+}
+
+:deep(.toolkit > header p) {
+  max-width: 420px;
+  color: var(--ink-600);
+  font-size: 12.5px;
+}
+
+:deep(.toolkit-grid) {
+  gap: 0;
+}
+
+:deep(.toolkit-grid article) {
+  min-height: 0;
+  padding: 18px 22px 18px 0;
+  border: 0;
+  border-top: 2px solid var(--ink-900);
+  border-radius: 0;
+  background: transparent;
+}
+
+:deep(.toolkit-grid article + article) {
+  padding-left: 22px;
+  border-left: 1px solid var(--line);
+}
+
+:deep(.toolkit-label) {
+  color: var(--brand-600);
+  font-size: 12px;
+}
+
+:deep(.toolkit-grid p) {
+  color: var(--ink-600);
+  font-size: 12.5px;
+}
+
+:deep(.mood-options button),
+:deep(.self-care-list button),
+:deep(.note-tool button) {
+  font-size: 12px;
+}
+
+:deep(.note-tool button) {
+  font-size: 12px;
+  color: var(--ink-600);
+}
+
+:deep(.note-tool .note-save) {
+  color: var(--brand-700);
+}
+
+:deep(.note-tool textarea) {
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+:deep(.prompt-card > button) {
+  font-size: 12px;
+  color: var(--ink-600);
+}
+
+:deep(.breathing-circle) {
+  box-shadow: none;
+}
+
+:deep(.prompt-card strong) {
+  font-family: var(--font);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+@media (max-width: 720px) {
+  .tools-page {
+    width: calc(100% - 32px);
+    padding-top: 18px;
+  }
+
+  .tools-two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .simple-tool-card:first-child {
+    padding-right: 0;
+  }
+
+  .simple-tool-card + .simple-tool-card {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .grounding-card {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  :deep(.toolkit-grid) {
+    grid-template-columns: 1fr;
+  }
+
+  :deep(.toolkit-grid article + article) {
+    padding-left: 0;
+    border-left: 0;
   }
 }
 </style>
