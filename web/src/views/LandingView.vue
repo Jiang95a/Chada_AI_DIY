@@ -889,18 +889,19 @@ onMounted(() => {
   align-items: center;
   gap: 45px;
   padding: 34px;
+  border: 1px solid var(--line);
   border-radius: 0;
-  color: #fff;
-  background: var(--brand-800);
+  color: var(--ink-900);
+  background: var(--surface-mist);
   grid-template-columns: 1fr 0.9fr;
 }
 
 .maker-section > div:first-child > span {
-  color: #b8d8c2;
+  color: var(--brand-700);
 }
 
 .maker-section p {
-  color: rgb(255 255 255 / 62%);
+  color: var(--ink-600);
 }
 
 .maker-section button {
@@ -910,10 +911,10 @@ onMounted(() => {
   gap: 6px;
   margin-top: 20px;
   padding: 0 15px;
-  border: 1px solid rgb(255 255 255 / 22%);
+  border: 1px solid var(--line-strong);
   border-radius: 999px;
-  color: #fff;
-  background: rgb(255 255 255 / 9%);
+  color: var(--brand-700);
+  background: var(--surface);
   font-size: 13px;
   cursor: pointer;
 }
@@ -929,27 +930,27 @@ onMounted(() => {
   align-items: flex-start;
   gap: 13px;
   padding: 15px 16px;
-  border: 1px solid rgb(255 255 255 / 16%);
+  border: 1px solid var(--line);
   border-radius: 8px;
-  background: rgb(255 255 255 / 7%);
+  background: var(--surface);
 }
 
 .maker-flow b {
-  color: #b8d8c2;
+  color: var(--brand-600);
   font-family: var(--font-serif);
   font-size: 13px;
 }
 
 .maker-flow strong {
   display: block;
-  color: #fff;
+  color: var(--ink-900);
   font-size: 13.5px;
 }
 
 .maker-flow small {
   display: block;
   margin-top: 3px;
-  color: rgb(255 255 255 / 62%);
+  color: var(--ink-500);
   font-size: 12px;
   line-height: 1.65;
 }
@@ -1480,7 +1481,7 @@ onMounted(() => {
 
 .maker-section {
   border-radius: 0;
-  background: var(--brand-900);
+  background: var(--surface-mist);
 }
 
 .maker-section button {
@@ -1494,7 +1495,7 @@ onMounted(() => {
 .maker-flow article {
   padding: 14px 0;
   border: 0;
-  border-top: 1px solid rgb(255 255 255 / 18%);
+  border-top: 1px solid var(--line);
   border-radius: 0;
   background: transparent;
 }
@@ -1566,49 +1567,4 @@ onMounted(() => {
   }
 }
 
-[data-theme='dark'] .landing-page {
-  background: var(--bg);
-}
-
-[data-theme='dark'] .hero {
-  background: var(--surface);
-}
-
-[data-theme='dark'] .hero-primary {
-  color: #10241d;
-}
-
-[data-theme='dark'] .hero-actions button {
-  border-color: var(--line);
-  background: var(--surface-soft);
-  color: var(--ink-900);
-}
-
-[data-theme='dark'] .activity-card {
-  border-color: var(--line);
-  background: var(--surface);
-}
-
-[data-theme='dark'] .activity-card > div {
-  color: var(--ink-900);
-}
-
-[data-theme='dark'] .trace-copy > a,
-[data-theme='dark'] .trace-demo :deep(.pulse-suggest > a) {
-  color: #10241d;
-}
-
-[data-theme='dark'] .activity-type {
-  background: var(--brand-50);
-  color: var(--brand-300);
-}
-
-[data-theme='dark'] .trace-demo :deep(.pulse) {
-  background: var(--surface);
-}
-
-[data-theme='dark'] .hero-photo {
-  border-color: var(--line-strong);
-  background: var(--surface-soft);
-}
 </style>

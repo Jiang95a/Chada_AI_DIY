@@ -188,9 +188,9 @@ const journey = [
 }
 
 .topic-card--sage {
-  border-color: transparent;
-  color: #fff;
-  background: var(--brand-500);
+  border-color: var(--brand-300);
+  color: var(--ink-900);
+  background: var(--brand-300);
 }
 
 .topic-top {
@@ -212,8 +212,8 @@ const journey = [
 }
 
 .topic-card--sage .topic-number {
-  border-color: rgb(255 255 255 / 42%);
-  color: #fff;
+  border-color: var(--brand-300);
+  color: var(--brand-700);
 }
 
 .topic-kicker {
@@ -224,7 +224,7 @@ const journey = [
 }
 
 .topic-card--sage .topic-kicker {
-  color: rgb(255 255 255 / 70%);
+  color: var(--brand-700);
 }
 
 .topic-card h2 {
@@ -238,7 +238,7 @@ const journey = [
 }
 
 .topic-card--sage h2 {
-  color: #fff;
+  color: var(--ink-900);
 }
 
 .topic-text {
@@ -249,7 +249,7 @@ const journey = [
 }
 
 .topic-card--sage .topic-text {
-  color: rgb(255 255 255 / 78%);
+  color: var(--ink-600);
 }
 
 .resource-side {
@@ -259,18 +259,20 @@ const journey = [
 
 .support-card {
   padding: 24px;
+  border: 1px solid var(--brand-200);
   border-radius: 18px;
-  color: #fff;
-  background: var(--brand-900);
+  color: var(--ink-900);
+  background: var(--brand-50);
 }
 
 .support-card > span {
-  color: rgb(255 255 255 / 58%);
+  color: var(--brand-700);
   font-size: 11px;
 }
 
 .support-card h2 {
   margin-top: 10px;
+  color: var(--ink-900);
   font-family: var(--font);
   font-size: 30px;
   font-weight: 800;
@@ -290,7 +292,7 @@ const journey = [
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  color: rgb(255 255 255 / 76%);
+  color: var(--ink-600);
   font-size: 12.5px;
   line-height: 1.7;
 }
@@ -298,7 +300,7 @@ const journey = [
 .support-card li svg {
   flex: 0 0 auto;
   margin-top: 3px;
-  color: var(--brand-300);
+  color: var(--brand-600);
 }
 
 .where-card {

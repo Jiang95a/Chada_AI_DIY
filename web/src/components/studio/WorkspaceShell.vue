@@ -39,7 +39,9 @@ const themeOptions: Array<{ value: ThemePreference; label: string }> = [
   { value: 'oat', label: '燕麦米黄' },
   { value: 'mist', label: '雾青' },
   { value: 'slate', label: '雾蓝石板' },
-  { value: 'dark', label: '深色' },
+  { value: 'peach', label: '浅杏桃' },
+  { value: 'butter', label: '奶油黄' },
+  { value: 'sky', label: '晴空蓝' },
 ]
 const themeLabel = computed(
   () => themeOptions.find((item) => item.value === theme.value)?.label ?? '鼠尾草绿'
@@ -452,21 +454,27 @@ onBeforeUnmount(() => {
 }
 
 .workspace-theme-swatch.is-oat {
-  background: #b88c72;
+  background: #c7a77f;
 }
 
 .workspace-theme-swatch.is-mist {
-  background: #527d78;
+  background: #6da49a;
 }
 
 .workspace-theme-swatch.is-slate {
-  background: #546b7a;
+  background: #7293ad;
 }
 
-.workspace-theme-swatch.is-dark {
-  border-color: var(--surface);
-  background: #121815;
-  box-shadow: 0 0 0 1px var(--line-strong);
+.workspace-theme-swatch.is-peach {
+  background: #dda08b;
+}
+
+.workspace-theme-swatch.is-butter {
+  background: #d5bf78;
+}
+
+.workspace-theme-swatch.is-sky {
+  background: #89bedb;
 }
 
 .workspace-identity {

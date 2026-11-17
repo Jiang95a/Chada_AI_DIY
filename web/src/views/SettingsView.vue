@@ -138,6 +138,9 @@ function resetAll(): void {
                     { value: 'oat' as const, label: '燕麦米黄' },
                     { value: 'mist' as const, label: '雾青' },
                     { value: 'slate' as const, label: '雾蓝' },
+                    { value: 'peach' as const, label: '浅杏桃' },
+                    { value: 'butter' as const, label: '奶油黄' },
+                    { value: 'sky' as const, label: '晴空蓝' },
                   ]"
                   :key="item.value"
                   type="button"
@@ -470,6 +473,18 @@ function resetAll(): void {
 
 .theme-choice i.is-slate {
   background: #546b7a;
+}
+
+.theme-choice i.is-peach {
+  background: #d99a84;
+}
+
+.theme-choice i.is-butter {
+  background: #d2bc74;
+}
+
+.theme-choice i.is-sky {
+  background: #84b9d8;
 }
 .diagnostic-list {
   display: grid;

@@ -16,7 +16,9 @@ const themeOptions: Array<{ value: ThemePreference; label: string }> = [
   { value: 'oat', label: '燕麦米黄' },
   { value: 'mist', label: '雾青' },
   { value: 'slate', label: '雾蓝石板' },
-  { value: 'dark', label: '深色' },
+  { value: 'peach', label: '浅杏桃' },
+  { value: 'butter', label: '奶油黄' },
+  { value: 'sky', label: '晴空蓝' },
 ]
 const themeLabel = computed(
   () => themeOptions.find((item) => item.value === theme.value)?.label ?? '鼠尾草绿'
@@ -32,12 +34,6 @@ function cycleTheme(): void {
   if (!next) return
   setTheme(next.value)
   toast.pushToast(`已切换为${next.label}`, 'success')
-}
-
-function toggleDark(): void {
-  const next = theme.value === 'dark' ? 'sage' : 'dark'
-  setTheme(next)
-  toast.pushToast(next === 'dark' ? '已切换到深色' : '已切换到浅色', 'success')
 }
 </script>
 
@@ -67,16 +63,6 @@ function toggleDark(): void {
         </RouterLink>
       </nav>
       <div class="public-nav-actions">
-        <button
-          class="public-dark"
-          type="button"
-          :aria-pressed="theme === 'dark'"
-          :aria-label="theme === 'dark' ? '切换到浅色' : '切换到深色'"
-          :title="theme === 'dark' ? '切换到浅色' : '切换到深色'"
-          @click="toggleDark"
-        >
-          <span :class="{ 'is-dark': theme === 'dark' }" />
-        </button>
         <button
           class="public-theme"
           type="button"
@@ -283,30 +269,6 @@ function toggleDark(): void {
   place-items: center;
 }
 
-.public-dark {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: var(--surface-soft);
-  cursor: pointer;
-  place-items: center;
-}
-
-.public-dark > span {
-  width: 16px;
-  height: 16px;
-  border: 1px solid var(--line-strong);
-  border-radius: 50%;
-  background: linear-gradient(90deg, #f1ede3 50%, #16201b 50%);
-}
-
-.public-dark > span.is-dark {
-  background: #f1ede3;
-}
-
 .public-theme > span {
   width: 16px;
   height: 16px;
@@ -326,9 +288,16 @@ function toggleDark(): void {
   background: #6c8391;
 }
 
-.public-theme > span.is-dark {
-  border: 1px solid var(--line-strong);
-  background: #121815;
+.public-theme > span.is-peach {
+  background: #dfa18d;
+}
+
+.public-theme > span.is-butter {
+  background: #d8c27c;
+}
+
+.public-theme > span.is-sky {
+  background: #8ec2dd;
 }
 
 .public-footer {
@@ -403,10 +372,6 @@ function toggleDark(): void {
     display: none;
   }
 
-  .public-theme {
-    display: none;
-  }
-
   .public-footer {
     width: 100%;
     padding-inline: 24px;
@@ -450,73 +415,5 @@ function toggleDark(): void {
   .public-footer-links {
     flex-wrap: wrap;
   }
-}
-[data-theme='dark'] .public-nav {
-  border-color: rgb(255 255 255 / 9%);
-  color: #fff;
-  background: var(--brand-900);
-  box-shadow: 0 22px 55px -35px rgb(0 0 0 / 70%);
-}
-
-[data-theme='dark'] .public-brand strong {
-  color: #fff;
-}
-
-[data-theme='dark'] .public-brand small {
-  color: rgb(255 255 255 / 55%);
-}
-
-[data-theme='dark'] .public-nav nav a {
-  color: rgb(255 255 255 / 60%);
-}
-
-[data-theme='dark'] .public-nav nav a:hover,
-[data-theme='dark'] .public-nav nav a.is-active {
-  color: #fff;
-}
-
-[data-theme='dark'] .public-nav nav a.is-active {
-  box-shadow: inset 0 -2px var(--brand-300);
-}
-
-[data-theme='dark'] .public-workspace {
-  border-color: rgb(255 255 255 / 17%);
-  color: #fff;
-  background: rgb(255 255 255 / 8%);
-}
-
-[data-theme='dark'] .public-workspace:hover {
-  border-color: rgb(255 255 255 / 28%);
-  color: #fff;
-  background: rgb(255 255 255 / 12%);
-}
-
-[data-theme='dark'] .public-theme,
-[data-theme='dark'] .public-dark {
-  border-color: rgb(255 255 255 / 17%);
-  background: rgb(255 255 255 / 8%);
-}
-
-[data-theme='dark'] .public-dark > span {
-  border-color: rgb(255 255 255 / 35%);
-}
-
-[data-theme='dark'] .public-theme > span.is-dark {
-  border-color: rgb(255 255 255 / 55%);
-}
-
-[data-theme='dark'] .public-mobile-nav {
-  border-color: rgb(255 255 255 / 9%);
-  background: var(--brand-900);
-  box-shadow: 0 18px 45px -24px rgb(0 0 0 / 65%);
-}
-
-[data-theme='dark'] .public-mobile-nav a {
-  color: rgb(255 255 255 / 68%);
-}
-
-[data-theme='dark'] .public-mobile-nav a.is-active {
-  color: #fff;
-  background: rgb(255 255 255 / 9%);
 }
 </style>
