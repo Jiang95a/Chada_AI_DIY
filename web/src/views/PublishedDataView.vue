@@ -11,10 +11,10 @@ import {
   type SubmissionSummary,
 } from '@/services/submissions'
 import { useProjectStore, type ProjectRecord } from '@/stores/projects'
-import coverGarden from '@/assets/activity-cover-garden.svg'
-import coverSelfCare from '@/assets/activity-cover-self-care.svg'
-import coverClub from '@/assets/activity-cover-club.svg'
-import coverQuiet from '@/assets/activity-cover-quiet.svg'
+import coverGarden from '@/assets/photos/activity-garden.jpg'
+import coverSelfCare from '@/assets/photos/activity-selfcare.jpg'
+import coverClub from '@/assets/photos/activity-club.jpg'
+import coverQuiet from '@/assets/photos/activity-workshop.jpg'
 
 const REMOTE_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 

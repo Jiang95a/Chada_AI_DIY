@@ -6,10 +6,14 @@ import BaseModal from '@/components/ui/BaseModal.vue'
 import Icon from '@/components/ui/Icon.vue'
 import { useToast } from '@/composables/useToast'
 import { useProjectStore } from '@/stores/projects'
-import coverGarden from '@/assets/activity-cover-garden.svg'
-import coverSelfCare from '@/assets/activity-cover-self-care.svg'
-import coverClub from '@/assets/activity-cover-club.svg'
-import coverQuiet from '@/assets/activity-cover-quiet.svg'
+import coverGarden from '@/assets/photos/activity-garden.jpg'
+import coverSelfCare from '@/assets/photos/activity-selfcare.jpg'
+import coverClub from '@/assets/photos/activity-club.jpg'
+import coverQuiet from '@/assets/photos/activity-workshop.jpg'
+import coverCareerTalk from '@/assets/photos/career-talk.jpg'
+import coverCareerInterview from '@/assets/photos/career-interview.jpg'
+import coverCareerResume from '@/assets/photos/career-resume.jpg'
+import coverCareerTest from '@/assets/photos/career-test.jpg'
 import {
   loadTemplateCatalog,
   removeCustomTemplate,
@@ -58,11 +62,18 @@ interface TemplateCard {
   coverImage: string
 }
 
-const templateCovers: Record<string, string> = {
-  recruit: coverClub,
-  signup: coverGarden,
-  vote: coverQuiet,
-  checkin: coverSelfCare,
+function coverForTemplate(template: TemplateCatalogItem): string {
+  const name = template.name
+  if (template.kind === 'career') {
+    if (name.includes('面试')) return coverCareerInterview
+    if (name.includes('简历')) return coverCareerResume
+    if (name.includes('兴趣') || name.includes('自测') || name.includes('测评')) return coverCareerTest
+    return coverCareerTalk
+  }
+  if (name.includes('打卡') || name.includes('关怀')) return coverSelfCare
+  if (name.includes('问答') || name.includes('知识')) return coverQuiet
+  if (name.includes('招新') || name.includes('社团')) return coverClub
+  return coverGarden
 }
 
 const cards = computed<TemplateCard[]>(() =>
@@ -80,7 +91,7 @@ const cards = computed<TemplateCard[]>(() =>
       pageCount: build.pages.length,
       blockCount: build.pages.reduce((total, page) => total + page.blocks.length, 0),
       previewPages: build.pages.map((page) => page.name),
-      coverImage: templateCovers[template.id] ?? (template.kind === 'career' ? coverQuiet : coverGarden),
+      coverImage: coverForTemplate(template),
     }
   })
 )
@@ -219,6 +230,7 @@ async function confirmDeleteTemplate(): Promise<void> {
             :class="`template-card__art--${card.id}`"
           >
             <img class="template-card__image" :src="card.coverImage" alt="" loading="lazy" decoding="async" />
+            <span class="template-card__shade" aria-hidden="true" />
             <span class="template-card__scene">{{ card.scene }}</span>
             <span v-if="card.source === 'custom'" class="template-card__custom">我的心晴模板</span>
             <span v-else-if="card.kind === 'career'" class="template-card__kind">生涯</span>
@@ -392,33 +404,21 @@ async function confirmDeleteTemplate(): Promise<void> {
   object-fit: cover;
 }
 
+.template-card__shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgb(20 28 24 / 12%), rgb(20 28 24 / 12%) 42%, rgb(20 28 24 / 62%));
+  pointer-events: none;
+}
+
 .template-card:hover .template-card__image {
   transform: none;
 }
 
-.template-card__art::before {
-  position: absolute;
-  top: 24px;
-  right: 22px;
-  width: 74px;
-  height: 74px;
-  border: 1px solid currentcolor;
-  border-radius: 48% 52% 42% 58%;
-  opacity: 0.18;
-  content: '';
-  transform: rotate(18deg);
-}
-
+.template-card__art::before,
 .template-card__art::after {
-  position: absolute;
-  right: -38px;
-  bottom: -70px;
-  width: 170px;
-  height: 170px;
-  border: 1px solid currentcolor;
-  border-radius: 50%;
-  opacity: 0.12;
-  content: '';
+  display: none;
 }
 
 .template-card__art--recruit {
@@ -448,11 +448,11 @@ async function confirmDeleteTemplate(): Promise<void> {
   top: 12px;
   left: 12px;
   padding: 5px 9px;
-  border: 1px solid rgb(45 80 70 / 13%);
+  border: 1px solid rgb(255 255 255 / 28%);
   border-radius: 999px;
-  color: rgb(31 49 41 / 64%);
-  background: rgb(255 255 255 / 40%);
-  font-size: 9px;
+  color: #fff;
+  background: rgb(20 28 24 / 46%);
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
   backdrop-filter: blur(8px);

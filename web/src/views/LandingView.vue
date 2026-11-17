@@ -7,11 +7,11 @@ import { getAccessToken } from '@/services/http'
 import { listPublicActivities, type PublicActivitySummary } from '@/services/public'
 import { useProjectStore } from '@/stores/projects'
 import { emptyTrace, type ParticipantTrace } from '@/types/trace'
-import coverGarden from '@/assets/activity-cover-garden.svg'
-import coverSelfCare from '@/assets/activity-cover-self-care.svg'
-import coverClub from '@/assets/activity-cover-club.svg'
-import coverQuiet from '@/assets/activity-cover-quiet.svg'
-import campusWalk from '@/assets/campus-walk.jpg'
+import coverGarden from '@/assets/photos/activity-garden.jpg'
+import coverSelfCare from '@/assets/photos/activity-selfcare.jpg'
+import coverClub from '@/assets/photos/activity-club.jpg'
+import coverQuiet from '@/assets/photos/activity-workshop.jpg'
+import campusWalk from '@/assets/photos/hero-campus.jpg'
 
 const router = useRouter()
 const projectStore = useProjectStore()
@@ -169,7 +169,7 @@ onMounted(() => {
 
       <figure class="hero-photo">
         <!-- 替换横版图：建议 1600×1000，保持 16:10，页面会按 cover 裁切。 -->
-        <img :src="campusWalk" alt="学生独自走在校园小路上" />
+        <img :src="campusWalk" alt="两名学生背着书包走在秋日校园里" />
       </figure>
     </section>
 
@@ -324,19 +324,6 @@ onMounted(() => {
   padding: 72px max(7vw, 34px);
   color: #fff;
   grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.55fr);
-}
-
-.hero-visual {
-  position: absolute;
-  inset: 0;
-  background: url('@/assets/heart-island-hero.svg') center / cover no-repeat;
-  transform: scale(1.015);
-}
-
-.hero-shade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgb(18 41 32 / 88%) 0%, rgb(22 50 39 / 68%) 46%, rgb(24 51 42 / 18%) 78%);
 }
 
 .hero-copy {

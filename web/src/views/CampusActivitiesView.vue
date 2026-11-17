@@ -150,7 +150,6 @@ onMounted(load)
       <section v-if="featured" class="featured-section">
         <RouterLink :to="`/p/${featured.slug}`" class="featured-event" :class="`tone-${coverTone(featured)}`">
           <span class="featured-label">本周心晴推荐</span>
-          <div class="featured-art" aria-hidden="true"><i /><i /><i /></div>
           <div class="featured-copy">
             <em>{{ featured.activityType || '心理活动' }}</em>
             <h2>{{ featured.title }}</h2>
