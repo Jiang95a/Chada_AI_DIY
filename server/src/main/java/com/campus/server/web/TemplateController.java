@@ -25,7 +25,7 @@ public class TemplateController {
     @GetMapping
     public ApiResponse.Envelope<List<Dtos.TemplateDto>> list(
             @RequestParam(required = false) String category,
-            /** wellbeing | career | general；不传返回全部。 */
+            /** wellbeing | career；general 模板已下线，不再返回。 */
             @RequestParam(required = false) String kind) {
         return ApiResponse.ok(templateService.list(category, kind));
     }

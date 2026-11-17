@@ -26,7 +26,22 @@ public class TemplateService {
         List<TemplateEntity> rows = templateMapper.listActive(
                 (category == null || category.isBlank()) ? null : category,
                 (kind == null || kind.isBlank()) ? null : kind);
-        return rows.stream().map(this::toDto).toList();
+        return rows.stream()
+                .filter(this::isSupportedKind)
+                .map(this::toDto)
+                .toList();
+    }
+
+    /**
+     * 模板库只服务心理活动和生涯场景。
+     *
+     * <p>数据库里历史遗留的 general 模板（摄影评选、比赛报名、志愿者招募等）
+     * 不再通过接口返回；即使有人显式传 {@code kind=general} 也拿不到。
+     * 已有项目仍然可以打开，因为项目文档已经独立保存。
+     */
+    private boolean isSupportedKind(TemplateEntity entity) {
+        String kind = blankTo(entity.getActivityKind(), "general");
+        return "wellbeing".equals(kind) || "career".equals(kind);
     }
 
     public Dtos.TemplateDto get(String id) {

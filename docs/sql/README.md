@@ -104,3 +104,4 @@ SHOW TABLES;
 | `010_poster_generation.sql` | DDL | `ai_jobs` 的 `kind` 约束加入 `poster_generate` |
 | `011_participant_traces.sql` | DDL | 新增 `participant_traces`：参与端动态参与轨迹，主键 (user_id, project_id) |
 | `012_insight_agent.sql` | DDL | 新增 `tool_records`（能量牌局/三栏落库）与 `insight_runs`（回看调用记录，兼 24h 缓存） |
+| `013_hide_general_templates.sql` | DML | 停用通用模板，模板库只保留心理活动 / 生涯场景 |
