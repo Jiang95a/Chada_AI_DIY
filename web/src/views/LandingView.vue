@@ -1124,8 +1124,8 @@ onMounted(() => {
 }
 .landing-page {
   width: 100%;
-  max-width: 1240px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   color: var(--ink-900);
   background: var(--bg);
 }
@@ -1134,7 +1134,7 @@ onMounted(() => {
   min-height: 0;
   align-items: center;
   gap: 42px;
-  padding: 54px 44px;
+  padding: 54px calc(max(24px, (100vw - 1240px) / 2) + 44px);
   border-bottom: 1px solid var(--line);
   color: var(--ink-900);
   background: var(--surface);
@@ -1226,7 +1226,7 @@ onMounted(() => {
 }
 
 .intro-strip {
-  padding: 46px 44px;
+  padding: 46px calc(max(24px, (100vw - 1240px) / 2) + 44px);
   border: 0;
   border-bottom: 1px solid var(--line);
   background: var(--surface-soft);
@@ -1278,7 +1278,7 @@ onMounted(() => {
 .activities-section {
   width: 100%;
   margin: 0;
-  padding: 50px 44px 54px;
+  padding: 50px calc(max(24px, (100vw - 1240px) / 2) + 44px) 54px;
   border: 0;
   border-bottom: 1px solid var(--line);
   background: var(--surface);
@@ -1379,7 +1379,7 @@ onMounted(() => {
   width: 100%;
   gap: 40px;
   margin: 0;
-  padding: 46px 44px;
+  padding: 46px calc(max(24px, (100vw - 1240px) / 2) + 44px);
   border: 0;
   border-bottom: 1px solid var(--line);
   background: var(--surface);
@@ -1426,7 +1426,7 @@ onMounted(() => {
 .trace-section {
   width: 100%;
   margin: 0;
-  padding: 48px 44px;
+  padding: 48px calc(max(24px, (100vw - 1240px) / 2) + 44px);
   border: 0;
   border-bottom: 1px solid var(--line);
   background: var(--surface-mist);
@@ -1445,7 +1445,7 @@ onMounted(() => {
 .safety-section {
   width: 100%;
   margin: 0;
-  padding: 46px 44px;
+  padding: 46px calc(max(24px, (100vw - 1240px) / 2) + 44px);
   border: 0;
   border-bottom: 1px solid var(--line);
   background: var(--surface-soft);
@@ -1508,6 +1508,15 @@ onMounted(() => {
 
   .landing-page .hero-copy {
     padding: 0;
+  }
+
+  .intro-strip,
+  .activities-section,
+  .trace-section,
+  .safety-section,
+  .nearby-section {
+    padding-right: 32px;
+    padding-left: 32px;
   }
 
   .hero-photo {

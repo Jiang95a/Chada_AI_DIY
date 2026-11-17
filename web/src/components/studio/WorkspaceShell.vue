@@ -39,6 +39,7 @@ const themeOptions: Array<{ value: ThemePreference; label: string }> = [
   { value: 'oat', label: '燕麦米黄' },
   { value: 'mist', label: '雾青' },
   { value: 'slate', label: '雾蓝石板' },
+  { value: 'dark', label: '深色' },
 ]
 const themeLabel = computed(
   () => themeOptions.find((item) => item.value === theme.value)?.label ?? '鼠尾草绿'
@@ -460,6 +461,12 @@ onBeforeUnmount(() => {
 
 .workspace-theme-swatch.is-slate {
   background: #546b7a;
+}
+
+.workspace-theme-swatch.is-dark {
+  border-color: var(--surface);
+  background: #121815;
+  box-shadow: 0 0 0 1px var(--line-strong);
 }
 
 .workspace-identity {

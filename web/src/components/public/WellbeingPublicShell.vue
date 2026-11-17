@@ -236,7 +236,7 @@ function toggleDark(): void {
 }
 
 .public-nav nav a.is-active {
-  box-shadow: inset 0 -2px #b8dac4;
+  box-shadow: inset 0 -2px var(--brand-300);
 }
 
 .public-workspace {
@@ -323,14 +323,14 @@ function toggleDark(): void {
 .public-footer {
   display: grid;
   width: 100%;
-  max-width: 1240px;
+  max-width: none;
   gap: 26px;
-  margin: 56px auto 0;
-  padding: 32px 0 28px;
+  margin: 56px 0 0;
+  padding: 32px max(24px, calc((100vw - 1240px) / 2)) 28px;
   border-top: 1px solid var(--line);
   border-radius: 0;
   color: var(--ink-600);
-  background: transparent;
+  background: var(--surface-soft);
   grid-template-columns: 1fr auto;
 }
 

@@ -180,6 +180,7 @@
   color-scheme: dark;
   --bg: #121815;
   --surface: #1a231e;
+  --surface-raised: #1e2822;
   --surface-soft: #202b25;
   --surface-warm: #27251f;
   --surface-mist: #1b2822;
@@ -210,6 +211,7 @@
   --ink-200: #495950;
   --ink-100: #38473f;
   --ink-50: #2c3933;
+  --muted: #91a198;
 }
 
 @media (prefers-reduced-motion: no-preference) {

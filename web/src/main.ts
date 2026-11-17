@@ -6,6 +6,7 @@ import './assets/studio-new-project.css'
 import './assets/studio-editor.css'
 import './assets/studio-activity.css'
 import './assets/studio-data.css'
+import './assets/studio-dark.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
