@@ -86,6 +86,7 @@ public class TraceService {
         payload.set("tags", arrayOrEmpty(request.tags()));
         payload.set("sessionContext", objectOrEmpty(request.sessionContext()));
         payload.set("notes", arrayOrEmpty(request.notes()));
+        payload.set("history", arrayOrEmpty(request.history()));
         payload.put("updatedAt", updatedAt);
 
         ParticipantTraceEntity entity = new ParticipantTraceEntity();
@@ -167,6 +168,7 @@ public class TraceService {
                 payload.has("tags") ? payload.get("tags") : objectMapper.createArrayNode(),
                 payload.has("sessionContext") ? payload.get("sessionContext") : objectMapper.createObjectNode(),
                 payload.has("notes") ? payload.get("notes") : objectMapper.createArrayNode(),
+                payload.has("history") ? payload.get("history") : objectMapper.createArrayNode(),
                 row.getUpdatedAtMs() == null ? 0L : row.getUpdatedAtMs());
     }
 

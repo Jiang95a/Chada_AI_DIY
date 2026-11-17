@@ -6,6 +6,9 @@ import TracePulseCard from '@/components/public/TracePulseCard.vue'
 import { useToast } from '@/composables/useToast'
 import { useTraceStore } from '@/stores/trace'
 import type { ParticipantTrace } from '@/types/trace'
+import { fetchInsightFacts } from '@/services/insights'
+import { getAccessToken } from '@/services/http'
+import type { InsightFacts } from '@/types/insight'
 
 /**
  * 我的轨迹：只显示用户确认过的摘要、标签变化和未决问题。
@@ -15,10 +18,21 @@ import type { ParticipantTrace } from '@/types/trace'
 const traceStore = useTraceStore()
 const toast = useToast()
 const items = ref<ParticipantTrace[]>([])
+const facts = ref<InsightFacts | null>(null)
 const changesOnly = ref(false)
 const loading = ref(false)
 
 const filtered = computed(() => (changesOnly.value ? items.value.filter((item) => Boolean(item.change)) : items.value))
+const topFactTags = computed(() =>
+  Object.entries(facts.value?.tagCounts ?? {})
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+)
+const factCount = computed(() => {
+  const value = facts.value
+  if (!value) return 0
+  return value.activityCount + value.formCount + (value.toolRecordCount ?? 0)
+})
 
 function refresh(): void {
   items.value = traceStore.list()
@@ -51,6 +65,9 @@ onMounted(async () => {
   loading.value = true
   try {
     await traceStore.syncAll()
+    if (getAccessToken()) {
+      facts.value = await fetchInsightFacts(30)
+    }
   } finally {
     refresh()
     loading.value = false
@@ -75,6 +92,20 @@ onMounted(async () => {
     </section>
 
     <TracePulseCard v-if="items.length" :traces="items" :show-link="false" class="trace-pulse" />
+
+    <section v-if="facts && factCount" class="trace-facts" aria-label="回看数据底稿">
+      <div>
+        <p class="trace-kicker">PERIOD FACTS · 最近 30 天</p>
+        <h2>这段时间留下的底稿</h2>
+        <p>
+          {{ facts.activityCount }} 场活动 · {{ facts.formCount }} 次表单 ·
+          {{ facts.toolRecordCount ?? 0 }} 条工具记录
+        </p>
+      </div>
+      <div v-if="topFactTags.length" class="trace-fact-tags">
+        <span v-for="[tag, count] in topFactTags" :key="tag">{{ tag }} <b>{{ count }}</b></span>
+      </div>
+    </section>
 
     <section v-if="loading && !items.length" class="trace-empty">
       <Icon name="refresh" :size="28" />
@@ -156,6 +187,52 @@ onMounted(async () => {
 
 .trace-pulse {
   margin-top: 22px;
+}
+
+.trace-facts {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+  margin-top: 20px;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.trace-facts h2 {
+  margin: 5px 0 4px;
+  color: var(--ink-900);
+  font-family: var(--font);
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.trace-facts p:last-child {
+  color: var(--ink-500);
+  font-size: 12px;
+}
+
+.trace-fact-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.trace-fact-tags span {
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  color: var(--ink-600);
+  background: var(--surface);
+  font-size: 11px;
+}
+
+.trace-fact-tags b {
+  margin-left: 3px;
+  color: var(--brand-600);
+  font-weight: 700;
 }
 
 .trace-kicker {
@@ -424,6 +501,15 @@ onMounted(async () => {
 @media (max-width: 640px) {
   .trace-page {
     padding-top: 22px;
+  }
+
+  .trace-facts {
+    display: block;
+  }
+
+  .trace-fact-tags {
+    justify-content: flex-start;
+    margin-top: 12px;
   }
 
   .trace-meta {

@@ -9,6 +9,8 @@ interface ToolRecord {
   title: string
   meta: string
   time: string
+  at?: number
+  tags?: string[]
 }
 
 interface EnergyCard {
@@ -223,6 +225,8 @@ function saveEnergy(event: MouseEvent): void {
       ? `${energyReasonsPicked.value.join(' / ')}${energyNote.value.trim() ? ` · ${energyNote.value.trim().slice(0, 30)}` : ''}`
       : energyNote.value.trim().slice(0, 42) || `今天留下 ${selectedCards.value.length} 件事，还剩 ${remainingEnergy.value} 格。`,
     time: savedAt,
+    at: Date.now(),
+    tags: [...energyReasonsPicked.value],
   }
   addTrace(record)
   flyToTrace(button, record)
@@ -251,6 +255,8 @@ function saveThought(event: MouseEvent): void {
     title: (thought.thought || thought.fact || '三栏记录').slice(0, 18),
     meta: thought.feeling.trim() ? `感受：${thought.feeling.trim().slice(0, 36)}` : '事实、想法和感受已经分开。',
     time: savedAt,
+    at: Date.now(),
+    tags: [],
   }
   addTrace(record)
   flyToTrace(button, record)

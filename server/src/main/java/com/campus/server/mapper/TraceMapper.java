@@ -43,6 +43,21 @@ public interface TraceMapper {
             """)
     List<java.util.Map<String, Object>> listByUser(@Param("userId") String userId, @Param("limit") int limit);
 
+    /** 聚合接口只取一段时间内的轨迹；仍按 user_id 隔离。 */
+    @Select("""
+            SELECT t.user_id, t.project_id, t.domain, t.semester, t.summary, t.payload,
+                   t.updated_at_ms, t.created_at, t.updated_at,
+                   p.title AS activity_title, p.public_slug
+              FROM participant_traces t
+              JOIN projects p ON p.id = t.project_id
+             WHERE t.user_id = #{userId} AND t.updated_at_ms >= #{sinceMs}
+             ORDER BY t.updated_at_ms ASC
+             LIMIT #{limit}
+            """)
+    List<java.util.Map<String, Object>> listByUserSince(@Param("userId") String userId,
+                                                        @Param("sinceMs") long sinceMs,
+                                                        @Param("limit") int limit);
+
     /**
      * 写入或整条覆盖。前端 PUT 是「整条轨迹覆盖」，不是增量补丁
      * （web/src/services/traces.ts:37 直接把整个 trace 当 body），

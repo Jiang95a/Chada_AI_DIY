@@ -95,7 +95,7 @@ export async function getPublicPrivacy(slug: string): Promise<Partial<ActivityPr
 }
 
 export async function recordConsent(slug: string, consentText?: string) {
-  return readData<{ consentId: string; consentAt: string }>(
+  return readData<{ consentId: string; consentAt: string; consentRequired?: boolean }>(
     await apiRequest(
       `/public/activities/${encodeURIComponent(slug)}/consents`,
       {

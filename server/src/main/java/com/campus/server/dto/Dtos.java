@@ -378,7 +378,8 @@ public final class Dtos {
     }
 
     /** POST /public/activities/{slug}/consents 的结果。 */
-    public record ConsentResult(String consentId, String privacyMode, Integer retentionDays,
+    public record ConsentResult(String consentId, String privacyMode, Boolean consentRequired,
+                                Integer retentionDays,
                                 String consentText, String recordExpiresAt) {
     }
 
@@ -487,6 +488,7 @@ public final class Dtos {
             com.fasterxml.jackson.databind.JsonNode tags,
             com.fasterxml.jackson.databind.JsonNode sessionContext,
             com.fasterxml.jackson.databind.JsonNode notes,
+            com.fasterxml.jackson.databind.JsonNode history,
             /** 前端毫秒时间戳，原样回传。 */
             long updatedAt
     ) {
@@ -511,6 +513,7 @@ public final class Dtos {
             com.fasterxml.jackson.databind.JsonNode tags,
             com.fasterxml.jackson.databind.JsonNode sessionContext,
             com.fasterxml.jackson.databind.JsonNode notes,
+            com.fasterxml.jackson.databind.JsonNode history,
             /** 可选：不传则由服务端补当前时间。 */
             Long updatedAt
     ) {
@@ -520,6 +523,69 @@ public final class Dtos {
     public record TraceListItemDto(
             String activityId, String activityTitle, String domain, String semester,
             String summary, int tagCount, long updatedAt
+    ) {
+    }
+
+    // ================================================================ 回看数据聚合
+
+    /**
+     * GET /insights/facts 的返回体。
+     *
+     * <p>只给「做分析所需的底稿」，不返回表单答案原文，也不做诊断。
+     * 智能体如果要引用原话，只能引用用户明确同意保留的 summary/change；
+     * 原始输入文本从未落库。
+     */
+    public record InsightFactsDto(
+            String periodStart,
+            String periodEnd,
+            String generatedAt,
+            long activityCount,
+            long formCount,
+            long traceCount,
+            long eventCount,
+            List<InsightActivityDto> activities,
+            List<InsightEventDto> events,
+            List<InsightFormDto> forms,
+            Map<String, Long> tagCounts
+    ) {
+    }
+
+    /** 聚合里的活动摘要：不返回 UUID，只返回公开 slug。 */
+    public record InsightActivityDto(
+            String activityId,
+            String activityTitle,
+            String domain,
+            long lastAt,
+            int eventCount,
+            List<String> tags,
+            String summary
+    ) {
+    }
+
+    /** 聚合里的时间点。activity 事件来自 trace.history；form 事件只给提交事实。 */
+    public record InsightEventDto(
+            String source,
+            String activityId,
+            String activityTitle,
+            long at,
+            String kind,
+            List<String> tags,
+            String summary,
+            String change
+    ) {
+    }
+
+    /**
+     * 表单提交事实：不含 answers。
+     *
+     * <p>报名答案是参与者交给组织者的内容，不是成长档案；
+     * 聚合接口只证明「发生过一次提交」，不把答案喂给分析。
+     */
+    public record InsightFormDto(
+            String activityId,
+            String activityTitle,
+            String submittedAt,
+            String status
     ) {
     }
 }

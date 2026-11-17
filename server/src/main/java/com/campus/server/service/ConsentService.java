@@ -41,6 +41,7 @@ public class ConsentService {
         ProjectEntity project = requirePublished(slug);
         Dtos.PrivacySettings privacy = privacyService.read(project);
         return new Dtos.ConsentResult(null, privacy.getPrivacyMode(),
+                Boolean.TRUE.equals(privacy.getConsentRequired()),
                 privacy.getRetentionDays(), privacy.getConsentText(), null);
     }
 
@@ -80,6 +81,7 @@ public class ConsentService {
         wellbeingMapper.insertConsent(consent);
 
         return new Dtos.ConsentResult(consent.getId(), privacy.getPrivacyMode(),
+                Boolean.TRUE.equals(privacy.getConsentRequired()),
                 privacy.getRetentionDays(), text, Ids.iso(consent.getPurgeAfter()));
     }
 

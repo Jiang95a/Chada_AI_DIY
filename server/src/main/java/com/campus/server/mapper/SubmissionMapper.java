@@ -75,6 +75,25 @@ public interface SubmissionMapper {
     @Select("SELECT COUNT(*) FROM form_submissions WHERE project_id = #{projectId} AND status = 'valid'")
     long countValid(@Param("projectId") String projectId);
 
+    /**
+     * 回看聚合：只返回「我提交过」这件事，不返回 answers。
+     * user_id 只给本人查询；组织者接口仍然不带这一列。
+     */
+    @Select("""
+            SELECT s.project_id, s.status, s.submitted_at,
+                   p.title AS activity_title, p.public_slug
+              FROM form_submissions s
+              JOIN projects p ON p.id = s.project_id
+             WHERE s.user_id = #{userId}
+               AND s.status = 'valid'
+               AND s.submitted_at >= #{since}
+             ORDER BY s.submitted_at ASC
+             LIMIT #{limit}
+            """)
+    List<java.util.Map<String, Object>> listMineSince(@Param("userId") String userId,
+                                                      @Param("since") java.time.LocalDateTime since,
+                                                      @Param("limit") int limit);
+
     // ---------------------------------------------------------------- 隐私统计
 
     @Select("SELECT COUNT(*) FROM form_submissions WHERE project_id = #{projectId} AND anonymous = 1")
