@@ -16,6 +16,11 @@ const showPassword = ref(false)
 const displayName = ref('')
 const localError = ref('')
 
+function switchMode(): void {
+  localError.value = ''
+  mode.value = mode.value === 'login' ? 'register' : 'login'
+}
+
 async function submit(): Promise<void> {
   localError.value = ''
   try {
@@ -34,8 +39,12 @@ async function submit(): Promise<void> {
 
 <template>
   <AuthShell
-    :title="mode === 'login' ? '登录心屿运营台' : '创建心屿账号'"
-    description="登录后可组织心理活动、使用页面工坊、发布页面并查看参与数据。"
+    :title="mode === 'login' ? '进入运营台' : '创建心屿账号'"
+    :description="
+      mode === 'login'
+        ? '用更轻的方式管理校园心理活动。'
+        : '创建账号后可以组织活动、使用页面工坊并查看参与数据。'
+    "
   >
     <form class="auth-form" @submit.prevent="submit">
       <label v-if="mode === 'register'" class="auth-field">
@@ -68,17 +77,21 @@ async function submit(): Promise<void> {
         </span>
       </label>
       <p v-if="localError || auth.error" class="auth-error">{{ localError || auth.error }}</p>
-      <button class="auth-submit" type="submit" :disabled="auth.loading">
-        {{ auth.loading ? '处理中…' : mode === 'login' ? '登录' : '注册' }}
-      </button>
+
+      <div class="auth-actions">
+        <button class="auth-submit" type="submit" :disabled="auth.loading">
+          {{ auth.loading ? '处理中…' : mode === 'login' ? '登录' : '创建账号' }}
+        </button>
+        <button class="auth-secondary" type="button" @click="switchMode">
+          {{ mode === 'login' ? '创建账号' : '返回登录' }}
+        </button>
+      </div>
     </form>
 
-    <div class="auth-links">
-      <button class="auth-link" type="button" @click="mode = mode === 'login' ? 'register' : 'login'">
-        {{ mode === 'login' ? '创建账号' : '返回登录' }}
-      </button>
-      <RouterLink v-if="mode === 'login'" class="auth-link" to="/forgot-password">忘记密码？</RouterLink>
+    <div v-if="mode === 'login'" class="auth-forgot">
+      <RouterLink class="auth-link" to="/forgot-password">忘记密码？</RouterLink>
     </div>
+
     <p class="auth-footer-note">心屿同行 · 校园心理活动运营平台</p>
   </AuthShell>
 </template>
