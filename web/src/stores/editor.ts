@@ -248,6 +248,24 @@ export const useEditorStore = defineStore('editor', () => {
     doc.value.updatedAt = Date.now()
   }
 
+  /** 复制页面，保留组件内容和样式，但重新生成页面 id / 组件 id，避免同页冲突。 */
+  function duplicatePage(pageId: string): Page | null {
+    const source = doc.value.pages.find((page) => page.id === pageId)
+    if (!source) return null
+    mark(true)
+    const copy = JSON.parse(JSON.stringify(source)) as Page
+    copy.id = uid('page')
+    copy.name = `${source.name} 副本`
+    copy.role = 'content'
+    copy.blocks = copy.blocks.map((block) => ({ ...block, id: uid('blk') }))
+    const index = doc.value.pages.findIndex((page) => page.id === pageId)
+    doc.value.pages.splice(index + 1, 0, copy)
+    doc.value.updatedAt = Date.now()
+    currentPageId.value = copy.id
+    selectedBlockId.value = null
+    return copy
+  }
+
   /* ----------------------------- 组件 ----------------------------- */
 
   function addBlock(type: BlockType, index?: number): Block {
@@ -501,6 +519,7 @@ export const useEditorStore = defineStore('editor', () => {
     renamePage,
     setPageRole,
     movePage,
+    duplicatePage,
     addBlock,
     removeBlock,
     duplicateBlock,

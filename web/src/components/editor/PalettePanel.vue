@@ -54,7 +54,10 @@ function onDragStart(event: DragEvent, type: BlockType): void {
             @click="emit('add', item.type)"
           >
             <span class="pitem__icon"><Icon :name="item.icon" :size="16" /></span>
-            <span class="pitem__label">{{ item.label }}</span>
+            <span class="pitem__body">
+              <span class="pitem__label">{{ item.label }}</span>
+              <small class="pitem__desc">{{ item.desc }}</small>
+            </span>
             <span class="pitem__drag"><Icon name="grip" :size="12" /></span>
           </button>
         </div>
@@ -139,7 +142,7 @@ function onDragStart(event: DragEvent, type: BlockType): void {
 .pitem {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 7px;
   padding: 9px 8px;
   border: 1px solid var(--line);
@@ -154,6 +157,24 @@ function onDragStart(event: DragEvent, type: BlockType): void {
     border-color 0.14s ease,
     box-shadow 0.14s ease,
     transform 0.14s ease;
+}
+
+.pitem__body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pitem__desc {
+  overflow: hidden;
+  color: var(--ink-400);
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pitem:hover {

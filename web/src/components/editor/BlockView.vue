@@ -5,6 +5,7 @@ import Icon from '@/components/ui/Icon.vue'
 import QrCode from '@/components/ui/QrCode.vue'
 import { FORM_CONTEXT } from '@/composables/formContext'
 import { INFO_ICON_MAP } from '@/data/blockCatalog'
+import bannerFallback from '@/assets/photos/activity-garden.jpg'
 import { isDarkColor, mixColor } from '@/utils/theme'
 import { parseDate } from '@/utils/misc'
 
@@ -56,12 +57,10 @@ const bodySize = computed(() => (p.value.size === 'sm' ? '12.5px' : '14px'))
 
 const bannerStyle = computed(() => {
   const height = Number(p.value.height) || 220
-  const image = String(p.value.image ?? '').trim()
+  const image = String(p.value.image ?? '').trim() || bannerFallback
   return {
     height: `${height}px`,
-    backgroundImage: image
-      ? `linear-gradient(180deg, rgba(9,12,20,0.12), rgba(9,12,20,0.62)), url(${JSON.stringify(image)})`
-      : `linear-gradient(135deg, ${props.theme.primary}, ${props.theme.accent})`,
+    backgroundImage: `linear-gradient(180deg, rgba(9,12,20,0.12), rgba(9,12,20,0.62)), url(${JSON.stringify(image)})`,
   }
 })
 

@@ -8,18 +8,23 @@ import {
   saveCustomTemplate,
   type SaveCustomTemplateInput,
   type TemplateCatalogItem,
-  type TemplateKind,
 } from '@/services/templates'
 import { useEditorStore } from '@/stores/editor'
+import coverGarden from '@/assets/photos/activity-garden.jpg'
+import coverSelfCare from '@/assets/photos/activity-selfcare.jpg'
+import coverClub from '@/assets/photos/activity-club.jpg'
+import coverWorkshop from '@/assets/photos/activity-workshop.jpg'
+import coverCareerTalk from '@/assets/photos/career-talk.jpg'
+import coverCareerInterview from '@/assets/photos/career-interview.jpg'
+import coverCareerResume from '@/assets/photos/career-resume.jpg'
+import coverCareerTest from '@/assets/photos/career-test.jpg'
 
 const emit = defineEmits<{ use: [id: string]; openCreate: [] }>()
 const store = useEditorStore()
 const toast = useToast()
 const templates = ref<TemplateCatalogItem[]>([])
-const activeKind = ref<TemplateKind | 'all'>('all')
-const visibleTemplates = computed(() =>
-  activeKind.value === 'all' ? templates.value : templates.value.filter((item) => item.kind === activeKind.value)
-)
+const activeKind = ref<'wellbeing' | 'career'>('wellbeing')
+const visibleTemplates = computed(() => templates.value.filter((item) => item.kind === activeKind.value))
 const saveOpen = ref(false)
 const saving = ref(false)
 const templateName = ref('')
@@ -27,7 +32,22 @@ const templateCategory = ref<SaveCustomTemplateInput['category']>('recruitment')
 const templateDescription = ref('')
 
 async function load(): Promise<void> {
-  templates.value = await loadTemplateCatalog()
+  const all = await loadTemplateCatalog()
+  templates.value = all.filter((template) => template.kind === 'wellbeing' || template.kind === 'career')
+}
+
+function coverForTemplate(template: TemplateCatalogItem): string {
+  const name = template.name
+  if (template.kind === 'career') {
+    if (name.includes('面试')) return coverCareerInterview
+    if (name.includes('简历')) return coverCareerResume
+    if (name.includes('兴趣') || name.includes('自测') || name.includes('测评')) return coverCareerTest
+    return coverCareerTalk
+  }
+  if (name.includes('打卡') || name.includes('关怀')) return coverSelfCare
+  if (name.includes('问答') || name.includes('知识')) return coverWorkshop
+  if (name.includes('招新') || name.includes('社团')) return coverClub
+  return coverGarden
 }
 
 function openSave(): void {
@@ -89,7 +109,6 @@ onMounted(load)
     </p>
 
     <div class="tpl__kinds">
-      <button type="button" :class="{ 'is-active': activeKind === 'all' }" @click="activeKind = 'all'">全部</button>
       <button type="button" :class="{ 'is-active': activeKind === 'wellbeing' }" @click="activeKind = 'wellbeing'">
         心理活动
       </button>
@@ -105,6 +124,7 @@ onMounted(load)
           background: `linear-gradient(135deg, ${template.gradient[0]}, ${template.gradient[1]})`,
         }"
       >
+        <img class="tcard__image" :src="coverForTemplate(template)" alt="" loading="lazy" decoding="async" />
         <Icon :name="template.icon" :size="22" />
         <span class="tcard__scene">{{ template.scene }}</span>
         <span v-if="template.source === 'custom'" class="tcard__custom">我的心晴模板</span>
@@ -301,7 +321,7 @@ onMounted(load)
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--ink-50);
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .tpl__kinds button {
@@ -343,12 +363,38 @@ onMounted(load)
 }
 
 .tcard__cover {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 62px;
+  height: 76px;
+  overflow: hidden;
   padding: 0 13px;
   color: #fff;
+}
+
+.tcard__image {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tcard__cover::after {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(180deg, rgb(18 30 24 / 16%), rgb(18 30 24 / 58%));
+  content: '';
+  pointer-events: none;
+}
+
+.tcard__cover > svg,
+.tcard__scene {
+  position: relative;
+  z-index: 1;
 }
 
 .tcard__scene {
@@ -362,13 +408,14 @@ onMounted(load)
 
 .tcard__custom {
   position: absolute;
+  z-index: 2;
   right: 10px;
   bottom: 9px;
   padding: 2px 6px;
   border-radius: 99px;
   color: #fff;
-  background: rgb(0 0 0 / 18%);
-  font-size: 7px;
+  background: rgb(0 0 0 / 28%);
+  font-size: 8px;
   font-weight: 700;
   backdrop-filter: blur(5px);
 }

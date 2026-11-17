@@ -117,6 +117,14 @@ function updateCapacity(event: Event): void {
           </button>
           <button
             type="button"
+            class="icon-btn icon-btn--sm"
+            title="复制页面"
+            @click="store.duplicatePage(page.id)"
+          >
+            <Icon name="copy" :size="12" />
+          </button>
+          <button
+            type="button"
             class="icon-btn icon-btn--sm icon-btn--danger"
             title="删除页面"
             :disabled="pages.length <= 1"
