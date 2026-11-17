@@ -192,8 +192,8 @@ function cycleTheme(): void {
 
 .public-brand small {
   margin-top: 2px;
-  color: rgb(255 255 255 / 38%);
-  font-size: 9px;
+  color: rgb(255 255 255 / 55%);
+  font-size: 11px;
 }
 
 .public-nav nav {

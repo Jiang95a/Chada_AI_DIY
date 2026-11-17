@@ -2,9 +2,11 @@
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import Icon from '@/components/ui/Icon.vue'
+import TracePulseCard from '@/components/public/TracePulseCard.vue'
 import { getAccessToken } from '@/services/http'
 import { listPublicActivities, type PublicActivitySummary } from '@/services/public'
 import { useProjectStore } from '@/stores/projects'
+import { emptyTrace, type ParticipantTrace } from '@/types/trace'
 import coverGarden from '@/assets/activity-cover-garden.svg'
 import coverSelfCare from '@/assets/activity-cover-self-care.svg'
 import coverClub from '@/assets/activity-cover-club.svg'
@@ -49,13 +51,53 @@ const demoActivities: PublicActivitySummary[] = [
 ]
 
 const visibleActivities = computed(() => activities.value.slice(0, 3))
-const featuredActivity = computed(() => visibleActivities.value[0])
 const coverImages: Record<string, string> = {
   read: coverGarden,
   photo: coverSelfCare,
   volunteer: coverClub,
   music: coverQuiet,
 }
+
+function keepsFor(activity: PublicActivitySummary): string {
+  const text = `${activity.title} ${activity.description ?? ''} ${activity.activityType ?? ''}`
+  if (/招新|加入|社团/.test(text)) return '一次被看见的选择'
+  if (/打卡|21 天|练习|连续/.test(text)) return '一段连续记录'
+  if (/问答|知识|科普|测试/.test(text)) return '一次自我校准'
+  if (/游园|压力|放松|心晴/.test(text)) return '一张压力地图'
+  if (/职规|生涯|职业|方向/.test(text)) return '一条方向线索'
+  return '一段只属于你的记录'
+}
+
+const demoNow = Date.now()
+const demoTraces: ParticipantTrace[] = [
+  {
+    ...emptyTrace('demo', '', 'mental'),
+    summary: '最近睡眠不太好，想先把自己缓下来。',
+    change: '从「压力」到「睡眠」',
+    tags: [
+      { content: '压力', source: 'auto' as const, createdAt: demoNow - 9 * 86400000 },
+      { content: '睡眠', source: 'auto' as const, createdAt: demoNow - 2 * 86400000 },
+      { content: '家庭', source: 'auto' as const, createdAt: demoNow - 3600000 },
+    ],
+    sessionContext: {
+      currentHint: '今晚先只改一件事：把手机放到够不着的地方。',
+      availablePaths: ['sleep', 'breathe', 'note'],
+    },
+    history: [
+      { at: demoNow - 9 * 86400000, kind: 'input' as const, tags: ['压力'], summary: '期末压力很大' },
+      { at: demoNow - 5 * 86400000, kind: 'input' as const, tags: ['压力', '睡眠'], summary: '晚上老是睡不着' },
+      { at: demoNow - 2 * 86400000, kind: 'input' as const, tags: ['睡眠'], summary: '睡得不太好' },
+      {
+        at: demoNow - 3600000,
+        kind: 'input' as const,
+        tags: ['睡眠', '家庭'],
+        summary: '家里问起来有点烦',
+        change: '从「压力」到「睡眠」',
+      },
+    ],
+    updatedAt: demoNow,
+  },
+]
 
 function coverImageFor(tone: string | undefined): string {
   return coverImages[tone ?? ''] ?? coverGarden
@@ -64,13 +106,13 @@ function coverImageFor(tone: string | undefined): string {
 async function loadActivities(): Promise<void> {
   try {
     const remote = await listPublicActivities({ pageSize: 12 })
-    const wellbeing = remote.filter((item) =>
-      /心理|心晴|关怀|情绪|正念|匿名|团辅|游园/.test(
+    const relevant = remote.filter((item) =>
+      /心理|心晴|关怀|情绪|正念|匿名|团辅|游园|职规|生涯|职业|成长/.test(
         `${item.title} ${item.description ?? ''} ${item.activityType ?? ''}`
       )
     )
-    if (wellbeing.length) {
-      activities.value = wellbeing
+    if (relevant.length) {
+      activities.value = relevant
       return
     }
   } catch {
@@ -108,50 +150,61 @@ onMounted(() => {
       <div class="hero-visual" aria-hidden="true" />
       <div class="hero-shade" />
       <div class="hero-copy">
-        <span class="hero-kicker"><i />CAMPUS ACTIVITY WORKFLOW</span>
-        <h1>把心理活动，<br />组织得<span>更清楚一点</span>。</h1>
-        <p>心屿同行帮助心理社团和班级心理委员发起活动、制作页面与海报，并统一管理报名和参与数据。</p>
+        <span class="hero-kicker"><i />CAMPUS WELLBEING · ACTIVITY TO TRACE</span>
+        <h1>让每次参与，<br />都留下一点<span>回响</span>。</h1>
+        <p>心屿同行帮社团搭建、发布心理与成长活动，也帮参与者记住自己是怎么想过来的。</p>
         <div class="hero-actions">
           <RouterLink class="hero-primary" to="/campus">
             发现近期活动 <Icon name="arrow-right" :size="17" />
           </RouterLink>
-          <button type="button" @click="goProtected('/projects/new')">
-            <Icon name="plus" :size="16" />发起心理活动
+          <button type="button" @click="router.push('/trace')">
+            <Icon name="clock" :size="16" />看看我的轨迹
           </button>
         </div>
         <div class="hero-trust">
-          <span><Icon name="layout" :size="13" />页面与海报</span>
-          <span><Icon name="users" :size="13" />匿名参与</span>
-          <span><Icon name="chart" :size="13" />参与数据</span>
+          <span><Icon name="calendar" :size="13" />一场活动</span>
+          <span><Icon name="layers" :size="13" />一条轨迹</span>
+          <span><Icon name="lock" :size="13" />匿名可控</span>
         </div>
       </div>
 
-      <RouterLink v-if="featuredActivity" :to="`/p/${featuredActivity.slug}`" class="hero-invite">
-        <span>WEEKLY INVITATION</span>
-        <strong>{{ featuredActivity.title }}</strong>
-        <p>{{ featuredActivity.description }}</p>
-        <div>
-          <em>{{ featuredActivity.activityType || '心晴活动' }}</em
-          ><Icon name="arrow-right" :size="16" />
-        </div>
+      <RouterLink to="/trace" class="hero-invite hero-trace">
+        <span>TRACE PREVIEW · 变化卡</span>
+        <strong>从「压力」到「睡眠」</strong>
+        <p>4 次记录，只有你自己能看到。下次打开，先看到上次那句话。</p>
+        <svg class="hero-trace-spark" viewBox="0 0 220 44" aria-hidden="true">
+          <rect x="4" y="24" width="10" height="20" rx="4" fill="rgb(255 255 255 / 24%)" />
+          <rect x="22" y="10" width="10" height="34" rx="4" fill="rgb(255 255 255 / 62%)" />
+          <rect x="40" y="20" width="10" height="24" rx="4" fill="rgb(255 255 255 / 24%)" />
+          <rect x="58" y="14" width="10" height="30" rx="4" fill="rgb(255 255 255 / 62%)" />
+          <rect x="76" y="26" width="10" height="18" rx="4" fill="rgb(255 255 255 / 24%)" />
+          <rect x="94" y="18" width="10" height="26" rx="4" fill="rgb(255 255 255 / 24%)" />
+          <rect x="112" y="8" width="10" height="36" rx="4" fill="rgb(255 255 255 / 62%)" />
+          <rect x="130" y="22" width="10" height="22" rx="4" fill="rgb(255 255 255 / 24%)" />
+          <rect x="148" y="16" width="10" height="28" rx="4" fill="rgb(255 255 255 / 24%)" />
+          <rect x="166" y="6" width="10" height="38" rx="4" fill="rgb(255 255 255 / 62%)" />
+          <rect x="184" y="20" width="10" height="24" rx="4" fill="rgb(255 255 255 / 24%)" />
+          <rect x="202" y="12" width="10" height="32" rx="4" fill="rgb(255 255 255 / 62%)" />
+        </svg>
+        <div><em>看看变化卡</em><Icon name="arrow-right" :size="16" /></div>
       </RouterLink>
     </section>
 
     <section class="intro-strip">
-      <span>社团日常运营</span>
-      <h2>把重复的活动组织工作，收进一套流程里。</h2>
+      <span>从活动到轨迹</span>
+      <h2>一场活动，不该只留下签到表。</h2>
       <div class="intro-points">
         <article>
-          <i><Icon name="calendar" :size="19" /></i>
-          <div><strong>活动发布</strong><small>统一填写时间、地点、名额、报名与隐私说明。</small></div>
+          <i><Icon name="spark" :size="19" /></i>
+          <div><strong>进来时</strong><small>选一个此刻的状态，不是先填一张问卷。</small></div>
         </article>
         <article>
-          <i><Icon name="layout" :size="19" /></i>
-          <div><strong>页面与海报</strong><small>从模板或页面工坊快速生成活动页面和传播素材。</small></div>
+          <i><Icon name="cursor" :size="19" /></i>
+          <div><strong>参与中</strong><small>每写一句，提示和可走的路径跟着变。</small></div>
         </article>
         <article>
-          <i><Icon name="chart" :size="19" /></i>
-          <div><strong>参与数据</strong><small>按活动查看报名、签到、匿名比例与反馈汇总。</small></div>
+          <i><Icon name="layers" :size="19" /></i>
+          <div><strong>结束后</strong><small>带走一张变化卡，下次打开还能接上。</small></div>
         </article>
       </div>
     </section>
@@ -160,8 +213,8 @@ onMounted(() => {
       <header>
         <div>
           <span>UPCOMING TOGETHER</span>
-          <h2>近期心理活动</h2>
-          <p>查看活动时间、参与方式和剩余报名信息。</p>
+          <h2>近期活动</h2>
+          <p>先看看这场会留下什么，再决定参不参加。</p>
         </div>
         <RouterLink to="/campus">查看全部 <Icon name="arrow-right" :size="15" /></RouterLink>
       </header>
@@ -180,9 +233,39 @@ onMounted(() => {
             <small>0{{ index + 1 }}</small>
             <strong>{{ activity.title }}</strong>
             <p>{{ activity.description || '查看活动详情与参与方式。' }}</p>
+            <span class="activity-keeps">会留下：{{ keepsFor(activity) }}</span>
           </div>
           <span class="activity-open">了解活动 <Icon name="arrow-right" :size="14" /></span>
         </RouterLink>
+      </div>
+    </section>
+
+    <section class="trace-section">
+      <div class="trace-copy">
+        <span>MY TRACE · 个人轨迹</span>
+        <h2>你不是每场活动，<br />都从零开始。</h2>
+        <p>
+          参加过的活动会留下标签、摘要和变化。下次打开，先看到上次那句话；想回看时，也知道自己是怎么走过来的。
+        </p>
+        <RouterLink to="/trace">看看我的轨迹 <Icon name="arrow-right" :size="15" /></RouterLink>
+      </div>
+      <div class="trace-demo">
+        <TracePulseCard :traces="demoTraces" :show-link="false" />
+        <small>示意：一名参与者 14 天的记录，只有本人能看到。</small>
+      </div>
+    </section>
+
+    <section class="safety-section">
+      <div>
+        <span>PLATFORM BOUNDARY</span>
+        <h2>平台边界。</h2>
+      </div>
+      <div class="safety-list">
+        <article>
+          <b>01</b><span><strong>不做心理诊断</strong><small>平台只支持活动组织，不提供诊断或治疗结论。</small></span>
+        </article>
+        <article><b>02</b><strong>只收集必要信息</strong><small>活动开始前就能看到信息用途和查看范围。</small></article>
+        <article><b>03</b><strong>匿名只用于单场活动</strong><small>不建立跨活动身份关联，也不用于个体追踪。</small></article>
       </div>
     </section>
 
@@ -203,6 +286,11 @@ onMounted(() => {
           <div><strong>心理资源</strong><small>校内咨询、危机电话与科普内容</small></div>
           <Icon name="arrow-right" :size="16" />
         </RouterLink>
+        <RouterLink to="/trace">
+          <i><Icon name="clock" :size="20" /></i>
+          <div><strong>我的轨迹</strong><small>回看记录、变化和下一步</small></div>
+          <Icon name="arrow-right" :size="16" />
+        </RouterLink>
         <RouterLink to="/about">
           <i><Icon name="users" :size="20" /></i>
           <div><strong>关于心屿</strong><small>平台功能、使用流程与服务边界</small></div>
@@ -215,31 +303,24 @@ onMounted(() => {
       <div>
         <span>FOR ORGANIZERS</span>
         <h2>一场活动，从创建到发布。</h2>
-        <p>填写基础信息后，在页面工坊完成 H5、海报、报名表单和隐私说明。</p>
+        <p>模板、页面、报名和隐私说明一次配好；发布后，参与者从活动页进入自己的轨迹。</p>
         <button type="button" @click="goProtected('/projects/new')">
           打开页面工坊 <Icon name="arrow-right" :size="16" />
         </button>
       </div>
-      <div class="maker-preview">
-        <div class="maker-window-bar"><i /><i /><i /></div>
-        <span>活动草稿</span>
-        <strong>考试周心晴游园会</strong>
-        <div class="maker-blocks"><i /><i /><i /></div>
-        <small>页面说明、报名与隐私提示已准备</small>
-      </div>
-    </section>
-
-    <section class="safety-section">
-      <div>
-        <span>PLATFORM BOUNDARY</span>
-        <h2>平台边界。</h2>
-      </div>
-      <div class="safety-list">
+      <div class="maker-flow">
         <article>
-          <b>01</b><span><strong>不做心理诊断</strong><small>平台只支持活动组织，不提供诊断或治疗结论。</small></span>
+          <b>01</b>
+          <div><strong>选模板</strong><small>心理、生涯、招新，先定主题和流程。</small></div>
         </article>
-        <article><b>02</b><strong>只收集必要信息</strong><small>活动开始前就能看到信息用途和查看范围。</small></article>
-        <article><b>03</b><strong>匿名只用于单场活动</strong><small>不建立跨活动身份关联，也不用于个体追踪。</small></article>
+        <article>
+          <b>02</b>
+          <div><strong>改页面</strong><small>页面、海报、报名和隐私说明一起配。</small></div>
+        </article>
+        <article>
+          <b>03</b>
+          <div><strong>发布并留下轨迹</strong><small>参与者从活动页进入，记录自动接上。</small></div>
+        </article>
       </div>
     </section>
   </main>
@@ -285,8 +366,8 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: rgb(229 245 235 / 72%);
-  font-size: 10px;
+  color: rgb(229 245 235 / 82%);
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.16em;
 }
@@ -299,11 +380,13 @@ onMounted(() => {
 
 .hero h1 {
   margin: 20px 0 18px;
+  max-width: 760px;
   font-family: var(--font-serif);
-  font-size: clamp(48px, 6.2vw, 84px);
+  font-size: clamp(48px, 5.6vw, 72px);
   font-weight: 650;
   letter-spacing: -0.075em;
-  line-height: 1.08;
+  line-height: 1.1;
+  text-wrap: balance;
 }
 
 .hero h1 span {
@@ -312,8 +395,8 @@ onMounted(() => {
 
 .hero-copy > p {
   max-width: 620px;
-  color: rgb(255 255 255 / 72%);
-  font-size: 14px;
+  color: rgb(255 255 255 / 82%);
+  font-size: 15px;
   line-height: 1.9;
 }
 
@@ -358,8 +441,8 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: rgb(255 255 255 / 58%);
-  font-size: 10px;
+  color: rgb(255 255 255 / 74%);
+  font-size: 12px;
 }
 
 .hero-invite {
@@ -377,8 +460,8 @@ onMounted(() => {
 }
 
 .hero-invite > span {
-  color: rgb(255 255 255 / 70%);
-  font-size: 10px;
+  color: rgb(255 255 255 / 72%);
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.14em;
 }
@@ -387,14 +470,14 @@ onMounted(() => {
   display: block;
   margin-top: 13px;
   font-family: var(--font-serif);
-  font-size: 22px;
+  font-size: 23px;
   letter-spacing: -0.04em;
 }
 
 .hero-invite p {
   margin-top: 8px;
-  color: rgb(255 255 255 / 80%);
-  font-size: 12px;
+  color: rgb(255 255 255 / 82%);
+  font-size: 13px;
   line-height: 1.7;
 }
 
@@ -406,16 +489,24 @@ onMounted(() => {
 }
 
 .hero-invite em {
-  padding: 4px 7px;
+  padding: 4px 8px;
   border-radius: 999px;
   color: #d7eadc;
   background: rgb(255 255 255 / 10%);
-  font-size: 7px;
+  font-size: 11px;
   font-style: normal;
+}
+
+.hero-trace-spark {
+  display: block;
+  width: 100%;
+  height: 40px;
+  margin-top: 14px;
 }
 
 .intro-strip,
 .activities-section,
+.trace-section,
 .nearby-section,
 .maker-section,
 .safety-section {
@@ -433,10 +524,11 @@ onMounted(() => {
 .intro-strip > span,
 .activities-section > header span,
 .nearby-copy > span,
+.trace-copy > span,
 .maker-section > div:first-child > span,
 .safety-section > div > span {
   color: var(--brand-500);
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.14em;
 }
@@ -448,6 +540,7 @@ onMounted(() => {
   font-size: clamp(31px, 4vw, 46px);
   letter-spacing: -0.055em;
   line-height: 1.35;
+  text-wrap: balance;
 }
 
 .intro-points {
@@ -483,14 +576,14 @@ onMounted(() => {
 
 .intro-points strong {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .intro-points small {
   display: block;
   margin-top: 7px;
-  color: var(--ink-500);
-  font-size: 12px;
+  color: var(--ink-600);
+  font-size: 12.5px;
   line-height: 1.7;
 }
 
@@ -515,8 +608,8 @@ onMounted(() => {
 
 .activities-section header p {
   margin-top: 7px;
-  color: var(--ink-400);
-  font-size: 9px;
+  color: var(--ink-600);
+  font-size: 13px;
 }
 
 .activities-section > header > a {
@@ -524,7 +617,7 @@ onMounted(() => {
   align-items: center;
   gap: 5px;
   color: var(--brand-600);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .activity-grid {
@@ -536,15 +629,14 @@ onMounted(() => {
 }
 
 .activity-grid.is-compact {
-  grid-template-rows: repeat(2, 190px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: 330px;
 }
 
-.activity-grid.is-compact .activity-card--1 {
-  grid-row: span 2;
-}
-
+.activity-grid.is-compact .activity-card--1,
 .activity-grid.is-compact .activity-card--2 {
-  grid-row: span 2;
+  grid-column: auto;
+  grid-row: auto;
 }
 
 .activity-card {
@@ -612,7 +704,7 @@ onMounted(() => {
   padding: 4px 8px;
   border-radius: 999px;
   background: rgb(255 255 255 / 15%);
-  font-size: 10px;
+  font-size: 11px;
   backdrop-filter: blur(6px);
 }
 
@@ -624,7 +716,7 @@ onMounted(() => {
 }
 
 .activity-card > div > small {
-  color: var(--ink-400);
+  color: var(--ink-500);
   font-family: var(--font-serif);
   font-size: 22px;
 }
@@ -646,8 +738,19 @@ onMounted(() => {
   max-width: 420px;
   margin-top: 10px;
   color: var(--ink-600);
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.75;
+}
+
+.activity-keeps {
+  display: inline-flex;
+  margin-top: 9px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--brand-50);
+  color: var(--brand-700);
+  font-size: 11.5px;
+  font-weight: 600;
 }
 
 .activity-card:not(.activity-card--1) > div > p {
@@ -663,7 +766,7 @@ onMounted(() => {
   padding: 5px 8px;
   color: #fff;
   background: rgb(20 42 33 / 76%);
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .nearby-section {
@@ -674,7 +777,64 @@ onMounted(() => {
   grid-template-columns: 0.8fr 1.2fr;
 }
 
+.trace-section {
+  display: grid;
+  align-items: center;
+  gap: 46px;
+  margin-top: 46px;
+  padding: 44px 0 48px;
+  border-top: 1px solid var(--line);
+  grid-template-columns: 0.72fr 1.28fr;
+}
+
+.trace-copy h2 {
+  margin: 12px 0 0;
+  font-family: var(--font-serif);
+  font-size: clamp(30px, 3.4vw, 42px);
+  line-height: 1.3;
+  letter-spacing: -0.05em;
+}
+
+.trace-copy p {
+  max-width: 440px;
+  margin: 15px 0 0;
+  color: var(--ink-600);
+  font-size: 13.5px;
+  line-height: 1.85;
+}
+
+.trace-copy > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  padding: 9px 14px;
+  border-radius: var(--radius-button);
+  background: var(--brand-600);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.trace-copy > a:hover {
+  background: var(--brand-700);
+}
+
+.trace-demo {
+  min-width: 0;
+}
+
+.trace-demo > small {
+  display: block;
+  margin-top: 8px;
+  color: var(--ink-500);
+  font-size: 11.5px;
+  text-align: right;
+}
+
 .nearby-copy h2,
+.trace-copy h2,
 .maker-section h2,
 .safety-section h2 {
   margin-top: 10px;
@@ -682,13 +842,14 @@ onMounted(() => {
   font-size: 37px;
   letter-spacing: -0.05em;
   line-height: 1.3;
+  text-wrap: balance;
 }
 
 .nearby-copy p,
 .maker-section p {
   margin-top: 13px;
-  color: var(--ink-500);
-  font-size: 10px;
+  color: var(--ink-600);
+  font-size: 13.5px;
   line-height: 1.8;
 }
 
@@ -727,13 +888,13 @@ onMounted(() => {
 }
 
 .nearby-links strong {
-  font-size: 11px;
+  font-size: 13.5px;
 }
 
 .nearby-links small {
   margin-top: 4px;
-  color: var(--ink-400);
-  font-size: 8px;
+  color: var(--ink-500);
+  font-size: 12px;
 }
 
 .nearby-links a > svg {
@@ -761,71 +922,53 @@ onMounted(() => {
 
 .maker-section button {
   display: inline-flex;
-  min-height: 39px;
+  min-height: 40px;
   align-items: center;
   gap: 6px;
   margin-top: 20px;
-  padding: 0 14px;
+  padding: 0 15px;
   border: 1px solid rgb(255 255 255 / 22%);
   border-radius: 999px;
   color: #fff;
   background: rgb(255 255 255 / 9%);
-  font-size: 9px;
+  font-size: 13px;
   cursor: pointer;
 }
 
-.maker-preview {
-  padding: 18px;
-  border: 1px solid rgb(255 255 255 / 18%);
-  border-radius: 10px;
-  background: rgb(255 255 255 / 10%);
-  backdrop-filter: blur(10px);
-}
-
-.maker-window-bar {
+.maker-flow {
   display: flex;
-  gap: 4px;
-  margin-bottom: 18px;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.maker-window-bar i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: rgb(255 255 255 / 32%);
+.maker-flow article {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 15px 16px;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 7%);
 }
 
-.maker-preview > span {
-  color: rgb(255 255 255 / 40%);
-  font-size: 7px;
-}
-
-.maker-preview > strong {
-  display: block;
-  margin-top: 6px;
+.maker-flow b {
+  color: #b8d8c2;
   font-family: var(--font-serif);
-  font-size: 20px;
+  font-size: 13px;
 }
 
-.maker-blocks {
-  display: grid;
-  gap: 5px;
-  margin: 16px 0;
+.maker-flow strong {
+  display: block;
+  color: #fff;
+  font-size: 13.5px;
 }
 
-.maker-blocks i {
-  height: 24px;
-  border-radius: 6px;
-  background: rgb(255 255 255 / 9%);
-}
-
-.maker-blocks i:nth-child(2) {
-  height: 42px;
-}
-
-.maker-preview > small {
-  color: rgb(255 255 255 / 44%);
-  font-size: 7px;
+.maker-flow small {
+  display: block;
+  margin-top: 3px;
+  color: rgb(255 255 255 / 62%);
+  font-size: 12px;
+  line-height: 1.65;
 }
 
 .safety-section {
@@ -866,12 +1009,12 @@ onMounted(() => {
 }
 
 .safety-list strong {
-  font-size: 10px;
+  font-size: 13px;
 }
 
 .safety-list small {
-  color: var(--ink-400);
-  font-size: 8px;
+  color: var(--ink-600);
+  font-size: 12px;
   line-height: 1.65;
 }
 
@@ -908,6 +1051,26 @@ onMounted(() => {
   }
 
   .activity-grid.is-compact {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  .activity-grid.is-compact .activity-card--1,
+  .activity-grid.is-compact .activity-card--2 {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .trace-section {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .trace-demo > small {
+    text-align: left;
+  }
+
+  .activity-grid.is-compact {
     grid-template-rows: none;
   }
 
@@ -930,7 +1093,19 @@ onMounted(() => {
   }
 
   .hero h1 {
-    font-size: 46px;
+    font-size: 40px;
+    letter-spacing: -0.06em;
+  }
+
+  .nearby-copy h2,
+  .trace-copy h2,
+  .maker-section h2,
+  .safety-section h2 {
+    font-size: 30px;
+  }
+
+  .maker-section h2 {
+    font-size: 28px;
   }
 
   .hero-actions {

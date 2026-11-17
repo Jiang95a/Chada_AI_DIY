@@ -412,7 +412,7 @@ const axisStartLabel = computed(() => {
   justify-content: space-between;
   padding: 2px 18px 8px;
   color: var(--ink-500);
-  font-size: 10.5px;
+  font-size: 11.5px;
 }
 
 .pulse-tags {
