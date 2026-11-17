@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useEditorStore } from '@/stores/editor'
 import type { ButtonAction, FieldDef, FormField, InfoItem, PageRole, Theme } from '@/types/editor'
@@ -10,6 +10,7 @@ import FormFieldsEditor from './fields/FormFieldsEditor.vue'
 import InfoItemsEditor from './fields/InfoItemsEditor.vue'
 import ActionEditor from './fields/ActionEditor.vue'
 import PrivacySettingsPanel from './PrivacySettingsPanel.vue'
+import ImagePickerModal from './ImagePickerModal.vue'
 
 const props = defineProps<{ tab: 'props' | 'style' }>()
 
@@ -17,7 +18,20 @@ const store = useEditorStore()
 const { doc } = storeToRefs(store)
 
 const block = computed(() => store.selectedBlock)
-const fields = computed<FieldDef[]>(() => (block.value ? fieldsFor(block.value.type) : []))
+const imageFieldKey = computed(() => {
+  if (!block.value) return ''
+  if (block.value.type === 'banner') return 'image'
+  if (block.value.type === 'image') return 'url'
+  return ''
+})
+const currentImage = computed(() =>
+  imageFieldKey.value && block.value ? str(block.value.props[imageFieldKey.value]) : ''
+)
+const imageOpen = ref(false)
+const fields = computed<FieldDef[]>(() => {
+  if (!block.value) return []
+  return fieldsFor(block.value.type).filter((field) => field.key !== imageFieldKey.value)
+})
 const theme = computed(() => doc.value.theme)
 const page = computed(() => store.currentPage)
 
@@ -35,6 +49,16 @@ function str(value: unknown): string {
 function setProp(key: string, value: unknown, immediate = false): void {
   if (!block.value) return
   store.updateProps(block.value.id, { [key]: value }, immediate)
+}
+
+function selectImage(url: string): void {
+  if (!imageFieldKey.value) return
+  setProp(imageFieldKey.value, url, true)
+}
+
+function clearImage(): void {
+  if (!imageFieldKey.value) return
+  setProp(imageFieldKey.value, '', true)
 }
 
 function onText(key: string, event: Event): void {
@@ -130,6 +154,22 @@ function onPageRole(event: Event): void {
       </header>
 
       <div v-if="tab === 'props'" class="insp__body">
+        <div v-if="imageFieldKey" class="insp-image">
+          <div class="insp-image__preview">
+            <img v-if="currentImage" :src="currentImage" alt="当前图片预览" />
+            <span v-else>当前使用默认封面</span>
+          </div>
+          <div class="insp-image__actions">
+            <button type="button" class="btn btn--sm" @click="imageOpen = true">
+              <Icon name="image" :size="14" />从图库选择
+            </button>
+            <button v-if="currentImage" type="button" class="btn btn--sm btn--ghost" @click="clearImage">
+              移除
+            </button>
+          </div>
+          <small>也可以直接上传自己的活动照片</small>
+        </div>
+
         <template v-for="field in fields" :key="field.key">
           <label v-if="field.kind === 'text'" class="field">
             <span class="field__label">{{ field.label }}</span>
@@ -510,6 +550,13 @@ function onPageRole(event: Event): void {
         <p class="hint">示例文档包含四页完整流程，适合演示。</p>
       </div>
     </div>
+
+    <ImagePickerModal
+      :open="imageOpen"
+      :current="currentImage"
+      @close="imageOpen = false"
+      @select="selectImage"
+    />
   </div>
 </template>
 
@@ -734,5 +781,45 @@ function onPageRole(event: Event): void {
 .insp__quick {
   display: flex;
   gap: 6px;
+}
+
+.insp-image {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface-soft);
+}
+
+.insp-image__preview {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  min-height: 112px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--muted);
+  background: var(--surface);
+  font-size: 11px;
+  place-items: center;
+}
+
+.insp-image__preview img {
+  width: 100%;
+  height: 112px;
+  object-fit: cover;
+}
+
+.insp-image__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.insp-image > small {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 </style>
