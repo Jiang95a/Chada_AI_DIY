@@ -3,7 +3,6 @@ import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import Icon from '@/components/ui/Icon.vue'
 import TracePulseCard from '@/components/public/TracePulseCard.vue'
-import { getAccessToken } from '@/services/http'
 import { listPublicActivities, type PublicActivitySummary } from '@/services/public'
 import { useProjectStore } from '@/stores/projects'
 import { emptyTrace, type ParticipantTrace } from '@/types/trace'
@@ -16,7 +15,6 @@ import campusWalk from '@/assets/photos/hero-campus.jpg'
 const router = useRouter()
 const projectStore = useProjectStore()
 const activities = ref<PublicActivitySummary[]>([])
-const authenticated = computed(() => Boolean(getAccessToken()))
 
 const demoActivities: PublicActivitySummary[] = [
   {
@@ -135,10 +133,6 @@ async function loadActivities(): Promise<void> {
   activities.value = local.length ? local : demoActivities
 }
 
-function goProtected(path: string): void {
-  void router.push(authenticated.value ? path : { path: '/login', query: { redirect: path } })
-}
-
 onMounted(() => {
   activities.value = demoActivities
   void loadActivities()
@@ -171,25 +165,6 @@ onMounted(() => {
         <!-- 替换横版图：建议 1600×1000，保持 16:10，页面会按 cover 裁切。 -->
         <img :src="campusWalk" alt="两名学生背着书包走在秋日校园里" />
       </figure>
-    </section>
-
-    <section class="intro-strip">
-      <span>从活动到轨迹</span>
-      <h2>一场活动，不该只留下签到表。</h2>
-      <div class="intro-points">
-        <article>
-          <i><Icon name="spark" :size="19" /></i>
-          <div><strong>进来时</strong><small>选一个此刻的状态，不是先填一张问卷。</small></div>
-        </article>
-        <article>
-          <i><Icon name="cursor" :size="19" /></i>
-          <div><strong>参与中</strong><small>每写一句，提示和可走的路径跟着变。</small></div>
-        </article>
-        <article>
-          <i><Icon name="layers" :size="19" /></i>
-          <div><strong>结束后</strong><small>带走一张变化卡，下次打开还能接上。</small></div>
-        </article>
-      </div>
     </section>
 
     <section class="activities-section">
@@ -238,74 +213,6 @@ onMounted(() => {
       </div>
     </section>
 
-    <section class="safety-section">
-      <div>
-        <span>PLATFORM BOUNDARY</span>
-        <h2>平台边界。</h2>
-      </div>
-      <div class="safety-list">
-        <article>
-          <b>01</b><span><strong>不做心理诊断</strong><small>平台只支持活动组织，不提供诊断或治疗结论。</small></span>
-        </article>
-        <article><b>02</b><strong>只收集必要信息</strong><small>活动开始前就能看到信息用途和查看范围。</small></article>
-        <article><b>03</b><strong>匿名只用于单场活动</strong><small>不建立跨活动身份关联，也不用于个体追踪。</small></article>
-      </div>
-    </section>
-
-    <section class="nearby-section">
-      <div class="nearby-copy">
-        <span>常用入口</span>
-        <h2>工具、资源与社团信息。</h2>
-        <p>直接进入需要使用的模块，不再用额外说明包住每个入口。</p>
-      </div>
-      <div class="nearby-links">
-        <RouterLink to="/tools">
-          <i><Icon name="spark" :size="20" /></i>
-          <div><strong>心晴工具</strong><small>呼吸计时、情绪记录与本地便签</small></div>
-          <Icon name="arrow-right" :size="16" />
-        </RouterLink>
-        <RouterLink to="/resources">
-          <i><Icon name="help" :size="20" /></i>
-          <div><strong>心理资源</strong><small>校内咨询、危机电话与科普内容</small></div>
-          <Icon name="arrow-right" :size="16" />
-        </RouterLink>
-        <RouterLink to="/trace">
-          <i><Icon name="clock" :size="20" /></i>
-          <div><strong>我的轨迹</strong><small>回看记录、变化和下一步</small></div>
-          <Icon name="arrow-right" :size="16" />
-        </RouterLink>
-        <RouterLink to="/about">
-          <i><Icon name="users" :size="20" /></i>
-          <div><strong>关于心屿</strong><small>平台功能、使用流程与服务边界</small></div>
-          <Icon name="arrow-right" :size="16" />
-        </RouterLink>
-      </div>
-    </section>
-
-    <section class="maker-section">
-      <div>
-        <span>FOR ORGANIZERS</span>
-        <h2>一场活动，从创建到发布。</h2>
-        <p>模板、页面、报名和隐私说明一次配好；发布后，参与者从活动页进入自己的轨迹。</p>
-        <button type="button" @click="goProtected('/projects/new')">
-          打开页面工坊 <Icon name="arrow-right" :size="16" />
-        </button>
-      </div>
-      <div class="maker-flow">
-        <article>
-          <b>01</b>
-          <div><strong>选模板</strong><small>心理、生涯、招新，先定主题和流程。</small></div>
-        </article>
-        <article>
-          <b>02</b>
-          <div><strong>改页面</strong><small>页面、海报、报名和隐私说明一起配。</small></div>
-        </article>
-        <article>
-          <b>03</b>
-          <div><strong>发布并留下轨迹</strong><small>参与者从活动页进入，记录自动接上。</small></div>
-        </article>
-      </div>
-    </section>
   </main>
 </template>
 
