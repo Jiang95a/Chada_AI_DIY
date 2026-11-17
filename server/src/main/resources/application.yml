@@ -69,6 +69,18 @@ app:
     max-mb: ${UPLOAD_MAX_MB:10}
     # 本地开发用磁盘兜底，生产替换为阿里云 OSS
     dir: ${UPLOAD_DIR:./uploads}
+  # ---------------------------------------------------------------- 回看智能体
+  # 施工需求 2.3：模型配置只能从这里读，禁止写进前端、禁止提交进 git、禁止打日志。
+  # 全部留空 = 未配置：POST /insights/analyze 会返回 analysis_error 并说明没配模型，
+  # 不会假装分析成功，也不会返回编造的结论。
+  # 走 OpenAI 兼容的 POST {base-url}/chat/completions，deepseek / 通义 / 智谱都能用。
+  ai:
+    provider: ${AI_PROVIDER:}
+    base-url: ${AI_BASE_URL:}
+    api-key: ${AI_API_KEY:}
+    model: ${AI_MODEL:}
+    # 回看要生成一段结构化 JSON，60 秒够；超时返回 analysis_error 让用户重试
+    timeout-ms: ${AI_TIMEOUT_MS:60000}
 
 logging:
   level:

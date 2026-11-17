@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { createToolRecord } from '@/services/toolRecords'
 
 type ToolName = 'energy' | 'thought'
 
@@ -122,6 +123,33 @@ function switchTool(name: ToolName): void {
 function addTrace(record: ToolRecord): void {
   traces.value = [record, ...traces.value].slice(0, 6)
   persistTraces()
+  // 已登录时同步到后端（换设备也能看到）；未登录或后端不可用就只留本机。
+  // 刻意不 await、不弹错：保存动作在本地已经成功了，同步失败不该打扰用户。
+  void syncTraceToServer(record)
+}
+
+/**
+ * 把一条工具记录同步到后端。
+ *
+ * <p>三条约束来自施工需求 2.1：
+ * <ul>
+ *   <li>已登录：写后端；失败再退回本机（本机那一份已经写了，这里只补云端）；</li>
+ *   <li>未登录：401，静默忽略——<b>绝不能因为它阻断本地记录</b>；</li>
+ *   <li>本机旧记录保留读取能力：不回写、不迁移，回看时由 mergeLocalToolRecords 合并。</li>
+ * </ul>
+ */
+async function syncTraceToServer(record: ToolRecord): Promise<void> {
+  try {
+    await createToolRecord({
+      type: record.type === '能量牌局' ? 'energy' : 'thought',
+      title: record.title,
+      summary: record.meta,
+      tags: Array.isArray(record.tags) ? record.tags : [],
+      createdAtMs: typeof record.at === 'number' && record.at > 0 ? record.at : Date.now(),
+    })
+  } catch {
+    // 未登录（401）/ 后端未就绪 / 网络失败：本机记录已经在了，这里什么都不做
+  }
 }
 
 function setTargetReceiving(): void {

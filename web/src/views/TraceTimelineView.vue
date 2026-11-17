@@ -6,9 +6,9 @@ import TracePulseCard from '@/components/public/TracePulseCard.vue'
 import { useToast } from '@/composables/useToast'
 import { useTraceStore } from '@/stores/trace'
 import type { ParticipantTrace } from '@/types/trace'
-import { fetchInsightFacts } from '@/services/insights'
+import { fetchInsightFacts, analyzeInsight } from '@/services/insights'
 import { getAccessToken } from '@/services/http'
-import type { InsightFacts } from '@/types/insight'
+import type { InsightAnalyzeResponse, InsightFacts } from '@/types/insight'
 
 /**
  * 我的轨迹：只显示用户确认过的摘要、标签变化和未决问题。
@@ -21,6 +21,60 @@ const items = ref<ParticipantTrace[]>([])
 const facts = ref<InsightFacts | null>(null)
 const changesOnly = ref(false)
 const loading = ref(false)
+
+/* ------------------------------ 让 AI 回看 ------------------------------ */
+const analyzing = ref(false)
+const analysis = ref<InsightAnalyzeResponse | null>(null)
+const analysisFailed = ref(false)
+
+const loggedIn = computed(() => Boolean(getAccessToken()))
+
+/**
+ * 让 AI 回看这段时间。
+ *
+ * 服务端对这四种结局都返回 200，所以这里不靠 HTTP 状态码分支，
+ * 一律看 `analysis.status`：ok / insufficient_data / crisis / analysis_error。
+ * 只有网络层失败（连不上、401）才走 analysisFailed。
+ */
+async function runAnalyze(): Promise<void> {
+  if (analyzing.value) return
+  if (!loggedIn.value) {
+    toast.pushToast('登录后可以跨设备回看', 'warn')
+    return
+  }
+  analyzing.value = true
+  analysisFailed.value = false
+  try {
+    analysis.value = await analyzeInsight(30, { allowQuote: true })
+  } catch {
+    analysisFailed.value = true
+  } finally {
+    analyzing.value = false
+  }
+}
+
+/** 复制回看正文。回看卡不走图片模型——中文交给图片模型必然糊，这里直接给纯文本。 */
+async function copyReview(): Promise<void> {
+  const body = analysis.value?.insight
+  if (!body) return
+  const lines: string[] = [body.title]
+  for (const finding of body.findings) {
+    lines.push(`· ${finding.text}`)
+    for (const evidence of finding.evidence) {
+      lines.push(`  ${evidence.at} · ${evidence.activityTitle}${evidence.quote ? `：${evidence.quote}` : ''}`)
+    }
+  }
+  if (body.change) lines.push(`变化：${body.change}`)
+  lines.push(`下一步：${body.nextStep}`)
+  lines.push(`问题：${body.question}`)
+  lines.push(body.limits)
+  try {
+    await navigator.clipboard.writeText(lines.join('\n'))
+    toast.pushToast('已复制这段回看')
+  } catch {
+    toast.pushToast('复制失败，可以手动选中文字', 'warn')
+  }
+}
 
 const filtered = computed(() => (changesOnly.value ? items.value.filter((item) => Boolean(item.change)) : items.value))
 const topFactTags = computed(() =>
@@ -105,6 +159,82 @@ onMounted(async () => {
       <div v-if="topFactTags.length" class="trace-fact-tags">
         <span v-for="[tag, count] in topFactTags" :key="tag">{{ tag }} <b>{{ count }}</b></span>
       </div>
+    </section>
+
+    <!-- 让 AI 回看：入口状态严格按产品文档（未登录 / 0 条 / 1-2 条 / 正常） -->
+    <section v-if="items.length || facts" class="trace-review" aria-label="让 AI 回看">
+      <div class="trace-review-head">
+        <div>
+          <p class="trace-kicker">REVIEW · 让 AI 回看</p>
+          <h2>把这段时间读一遍</h2>
+          <p class="trace-review-hint">只看你留下的记录，不做评估，也不替你下结论。</p>
+        </div>
+        <button v-if="!loggedIn" type="button" class="trace-review-btn" disabled>
+          登录后可跨设备回看
+        </button>
+        <button v-else-if="!factCount" type="button" class="trace-review-btn" disabled>
+          先留下一条记录
+        </button>
+        <button v-else type="button" class="trace-review-btn" :disabled="analyzing" @click="runAnalyze">
+          {{ analyzing ? '正在回看…' : '让 AI 回看这段时间' }}
+        </button>
+      </div>
+
+      <!-- ok：回看正文 -->
+      <article v-if="analysis && analysis.status === 'ok' && analysis.insight" class="trace-review-card">
+        <h3>{{ analysis.insight.title }}</h3>
+        <ul class="trace-review-findings">
+          <li v-for="(finding, index) in analysis.insight.findings" :key="index">
+            <p>{{ finding.text }}</p>
+            <div class="trace-review-evidence">
+              <span v-for="(evidence, eIndex) in finding.evidence" :key="eIndex">
+                {{ evidence.at }} · {{ evidence.activityTitle }}
+              </span>
+            </div>
+          </li>
+        </ul>
+        <dl class="trace-review-meta">
+          <template v-if="analysis.insight.change">
+            <dt>这段时间的变化</dt>
+            <dd>{{ analysis.insight.change }}</dd>
+          </template>
+          <dt>下一步</dt>
+          <dd>{{ analysis.insight.nextStep }}</dd>
+          <dt>留个问题</dt>
+          <dd>{{ analysis.insight.question }}</dd>
+        </dl>
+        <p class="trace-review-limits">{{ analysis.insight.limits }}</p>
+        <div class="trace-review-actions">
+          <button type="button" @click="copyReview">复制这段回看</button>
+        </div>
+      </article>
+
+      <!-- insufficient_data -->
+      <article v-else-if="analysis && analysis.status === 'insufficient_data'" class="trace-review-note">
+        <p>{{ analysis.message }}</p>
+      </article>
+
+      <!-- crisis：只给资源，不给任何分析 -->
+      <article v-else-if="analysis && analysis.status === 'crisis'" class="trace-review-note is-crisis">
+        <p>{{ analysis.message }}</p>
+        <ul>
+          <li v-for="resource in analysis.resources ?? []" :key="resource.label">
+            <b>{{ resource.label }}</b> {{ resource.value }}
+          </li>
+        </ul>
+      </article>
+
+      <!-- analysis_error -->
+      <article v-else-if="analysis && analysis.status === 'analysis_error'" class="trace-review-note">
+        <p>{{ analysis.message }}</p>
+        <button type="button" @click="runAnalyze">再试一次</button>
+      </article>
+
+      <!-- 网络层失败（连不上 / 401） -->
+      <article v-else-if="analysisFailed" class="trace-review-note">
+        <p>这次没连上服务，稍后再试一次。你的记录都还在。</p>
+        <button type="button" @click="runAnalyze">再试一次</button>
+      </article>
     </section>
 
     <section v-if="loading && !items.length" class="trace-empty">
@@ -520,5 +650,139 @@ onMounted(async () => {
   .trace-meta dd + dt {
     margin-top: 8px;
   }
+}
+</style>
+
+<!-- 让 AI 回看。单独一段是为了不改上面那坨既有样式，
+     出问题时也能一眼定位是「新加的那块」。 -->
+<style scoped>
+.trace-review {
+  margin-top: 28px;
+  padding: 22px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.trace-review-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.trace-review-head h2 {
+  font-size: 18px;
+  margin: 4px 0 6px;
+}
+
+.trace-review-hint {
+  margin: 0;
+  font-size: 13px;
+  color: #667085;
+}
+
+.trace-review-btn {
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid #bfd1ff;
+  background: #eef3ff;
+  color: #2542a8;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.trace-review-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.trace-review-card,
+.trace-review-note {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.trace-review-card h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.trace-review-findings {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+
+.trace-review-findings p {
+  margin: 0 0 6px;
+  line-height: 1.75;
+}
+
+.trace-review-evidence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.trace-review-evidence span {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.trace-review-meta {
+  margin: 16px 0 0;
+}
+
+.trace-review-meta dt {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #667085;
+}
+
+.trace-review-meta dd {
+  margin: 2px 0 0;
+  line-height: 1.75;
+}
+
+.trace-review-limits {
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: #98a2b3;
+}
+
+.trace-review-actions {
+  margin-top: 12px;
+}
+
+.trace-review-actions button,
+.trace-review-note button {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #fff;
+  cursor: pointer;
+}
+
+.trace-review-note.is-crisis {
+  background: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.trace-review-note ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  line-height: 1.9;
 }
 </style>

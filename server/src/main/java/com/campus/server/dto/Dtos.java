@@ -546,7 +546,14 @@ public final class Dtos {
             List<InsightActivityDto> activities,
             List<InsightEventDto> events,
             List<InsightFormDto> forms,
-            Map<String, Long> tagCounts
+            Map<String, Long> tagCounts,
+            /**
+             * 工具记录（能量牌局 / 三栏）条数。
+             *
+             * <p>单独计数、<b>不计入 activityCount</b>：工具记录不是"参加了一场活动"，
+             * 把它混进去会让「这一个月参加了 7 场活动」这种说法变成假话。
+             */
+            long toolRecordCount
     ) {
     }
 
@@ -586,6 +593,97 @@ public final class Dtos {
             String activityTitle,
             String submittedAt,
             String status
+    ) {
+    }
+
+    // ================================================================ 回看智能体
+
+    /**
+     * 新建工具记录。客户端只给内容，id 与 userId 由服务端生成——
+     * 请求体里出现 userId 会被忽略，越权写别人名下是不可能的。
+     */
+    public record ToolRecordCreateRequest(
+            String type,
+            String title,
+            String summary,
+            java.util.List<String> tags,
+            Long createdAtMs
+    ) {
+    }
+
+    /** 工具记录（对外）。 */
+    public record ToolRecordDto(
+            String id,
+            String type,
+            String title,
+            String summary,
+            java.util.List<String> tags,
+            long createdAtMs
+    ) {
+    }
+
+    /** 回看分析请求。days 会被服务端夹到 1~365，其余字段只影响「能不能引用原话」。 */
+    public record InsightAnalyzeRequest(
+            Integer days,
+            Boolean allowQuote,
+            String locale
+    ) {
+    }
+
+    /** 一条证据：日期 + 活动名（可选原话）。模型给的这两项必须能在 facts 里找到。 */
+    public record InsightEvidenceDto(
+            String at,
+            String activityTitle,
+            String quote
+    ) {
+    }
+
+    /** 一条发现。没有 evidence 的发现会被服务端丢掉，不进响应。 */
+    public record InsightFindingDto(
+            String text,
+            java.util.List<InsightEvidenceDto> evidence
+    ) {
+    }
+
+    /** 回看正文。 */
+    public record InsightBodyDto(
+            String title,
+            java.util.List<InsightFindingDto> findings,
+            String change,
+            String nextStep,
+            String question,
+            String confidence,
+            String visualPreset,
+            String limits
+    ) {
+    }
+
+    /** 危机时要给的具体资源。 */
+    public record InsightResourceDto(
+            String label,
+            String value
+    ) {
+    }
+
+    /**
+     * 回看分析响应。
+     *
+     * <p>四种结局共用这一个结构，靠 {@code status} 区分：
+     * {@code ok} 带 insight；{@code insufficient_data} 带 message；
+     * {@code crisis} 带 message + resources；{@code analysis_error} 带 message。
+     *
+     * <p>不用四个类，是因为全局 Jackson 配了 {@code default-property-inclusion: non_null}，
+     * 空字段会直接不出现——前端拿到的 JSON 形状和契约文档逐字一致。
+     */
+    public record InsightAnalyzeResponseDto(
+            String status,
+            String insightId,
+            String generatedAt,
+            String model,
+            String promptVersion,
+            InsightBodyDto insight,
+            String message,
+            java.util.List<InsightResourceDto> resources
     ) {
     }
 }

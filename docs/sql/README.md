@@ -24,19 +24,19 @@ mysql -u root -p --default-character-set=utf8mb4 < docs/sql/00_create_database.s
 for f in 001_init 002_seed 003_cover_fields 003_seed_fix 004_more_templates \
          004_projects_cover_columns 005_demo_data 006_feedback \
          007_wellbeing_privacy 008_wellbeing_templates 009_career_and_referral \
-         010_poster_generation 011_participant_traces; do
+         010_poster_generation 011_participant_traces 012_insight_agent; do
   mysql -u campus_app -p --default-character-set=utf8mb4 campus_diy < "docs/sql/$f.sql"
 done
 ```
 
-跑完自查，应该是 **17 张表**：
+跑完自查，应该是 **19 张表**：
 
 ```sql
 SHOW TABLES;
 -- 期望：activity_consents activity_events activity_feedback ai_jobs ai_proposals
---       auth_sessions export_jobs feedback_reports form_submissions page_versions
---       participant_traces project_assets projects referral_requests templates
---       user_notifications users
+--       auth_sessions export_jobs feedback_reports form_submissions insight_runs
+--       page_versions participant_traces project_assets projects referral_requests
+--       templates tool_records user_notifications users
 ```
 
 ## 二、旧库（已经建好，只想补缺的）
@@ -103,3 +103,4 @@ SHOW TABLES;
 | `009_career_and_referral.sql` | DDL | `referral_requests` + 模板 `activity_kind` + 提交归属 `user_id` |
 | `010_poster_generation.sql` | DDL | `ai_jobs` 的 `kind` 约束加入 `poster_generate` |
 | `011_participant_traces.sql` | DDL | 新增 `participant_traces`：参与端动态参与轨迹，主键 (user_id, project_id) |
+| `012_insight_agent.sql` | DDL | 新增 `tool_records`（能量牌局/三栏落库）与 `insight_runs`（回看调用记录，兼 24h 缓存） |

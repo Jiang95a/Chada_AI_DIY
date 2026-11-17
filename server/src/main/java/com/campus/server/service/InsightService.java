@@ -1,8 +1,10 @@
 package com.campus.server.service;
 
 import com.campus.server.dto.Dtos;
+import com.campus.server.entity.ToolRecordEntity;
 import com.campus.server.mapper.InsightMapper;
 import com.campus.server.mapper.SubmissionMapper;
+import com.campus.server.mapper.ToolRecordMapper;
 import com.campus.server.mapper.TraceMapper;
 import com.campus.server.security.CurrentUser;
 import com.campus.server.support.Ids;
@@ -43,17 +45,21 @@ public class InsightService {
     private static final int MAX_TRACES = 500;
     private static final int MAX_FORMS = 500;
     private static final int MAX_EVENTS = 400;
+    private static final int MAX_TOOL_RECORDS = 500;
 
     private final TraceMapper traceMapper;
     private final SubmissionMapper submissionMapper;
     private final InsightMapper insightMapper;
+    private final ToolRecordMapper toolRecordMapper;
     private final ObjectMapper objectMapper;
 
     public InsightService(TraceMapper traceMapper, SubmissionMapper submissionMapper,
-                          InsightMapper insightMapper, ObjectMapper objectMapper) {
+                          InsightMapper insightMapper, ToolRecordMapper toolRecordMapper,
+                          ObjectMapper objectMapper) {
         this.traceMapper = traceMapper;
         this.submissionMapper = submissionMapper;
         this.insightMapper = insightMapper;
+        this.toolRecordMapper = toolRecordMapper;
         this.objectMapper = objectMapper;
     }
 
@@ -133,6 +139,28 @@ public class InsightService {
             activity.touch(at, "");
         }
 
+        // ---- 工具记录（能量牌局 / 三栏）----
+        // 它们不是「参加了一场活动」，所以：
+        //   * 不进 activityMap（否则 activityCount 会虚高，"这月参加了 7 场"就变成假话）；
+        //   * 单列为 source="tool"，用工具记录自己的标题当 activityTitle；
+        //   * 标签照样计入 tagCounts，回看才能看到「反复出现的词」。
+        List<ToolRecordEntity> toolRows =
+                toolRecordMapper.listByUserSince(current.userId(), sinceMs, MAX_TOOL_RECORDS);
+        for (ToolRecordEntity row : toolRows) {
+            long at = row.getCreatedAtMs() == null ? 0L : row.getCreatedAtMs();
+            List<String> tags = readToolTags(row);
+            events.add(new Dtos.InsightEventDto(
+                    "tool",
+                    row.getId(),
+                    toolRecordLabel(row),
+                    at,
+                    text(row.getType()),
+                    tags,
+                    blankToNull(row.getSummary()),
+                    null));
+            countTags(tagCounts, tags);
+        }
+
         events.sort(Comparator.comparingLong(Dtos.InsightEventDto::at));
         if (events.size() > MAX_EVENTS) {
             events = new ArrayList<>(events.subList(events.size() - MAX_EVENTS, events.size()));
@@ -164,8 +192,33 @@ public class InsightService {
                 activities,
                 events,
                 forms,
-                topTags
+                topTags,
+                toolRows.size()
         );
+    }
+
+    /** 工具记录的标题：用户没写标题时退化成类型名，别让时间线上出现一条空白事件。 */
+    private static String toolRecordLabel(ToolRecordEntity row) {
+        String title = row.getTitle() == null ? "" : row.getTitle().trim();
+        if (!title.isEmpty()) {
+            return title;
+        }
+        return "energy".equals(row.getType()) ? "能量牌局" : "三栏记录";
+    }
+
+    /** tool_records.tags 是 JSON 数组；解析规则与 trace 里的 tags 保持一致。 */
+    private List<String> readToolTags(ToolRecordEntity row) {
+        JsonNode node = row.getTags();
+        if (node == null || !node.isArray()) {
+            return List.of();
+        }
+        List<String> tags = new ArrayList<>();
+        for (JsonNode item : node) {
+            if (item.isTextual() && !item.asText().isBlank()) {
+                tags.add(item.asText());
+            }
+        }
+        return tags;
     }
 
     private static void countTags(Map<String, Long> counts, List<String> tags) {
