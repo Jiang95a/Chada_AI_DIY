@@ -240,7 +240,7 @@ onMounted(load)
 
 .tpl__ai-text em {
   font-style: normal;
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.5;
   color: var(--ink-500);
 }
@@ -290,12 +290,12 @@ onMounted(load)
 }
 
 .tpl__save strong {
-  font-size: 10.5px;
+  font-size: 11px;
 }
 
 .tpl__save small {
   color: var(--ink-400);
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .tpl__save > svg {
@@ -307,7 +307,7 @@ onMounted(load)
   align-items: center;
   gap: 6px;
   margin: 16px 0 9px;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--ink-400);
@@ -330,7 +330,7 @@ onMounted(load)
   border-radius: 7px;
   color: var(--ink-500);
   background: transparent;
-  font-size: 9px;
+  font-size: 11px;
   cursor: pointer;
 }
 
@@ -401,7 +401,7 @@ onMounted(load)
   padding: 3px 8px;
   border-radius: 99px;
   background: rgba(255, 255, 255, 0.2);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   backdrop-filter: blur(6px);
 }
@@ -415,7 +415,7 @@ onMounted(load)
   border-radius: 99px;
   color: #fff;
   background: rgb(0 0 0 / 28%);
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 700;
   backdrop-filter: blur(5px);
 }
@@ -447,7 +447,7 @@ onMounted(load)
 
 .tpl__hint {
   margin-top: 4px;
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.6;
   color: var(--ink-400);
 }
@@ -465,7 +465,7 @@ onMounted(load)
 
 .save-template-form label > span {
   color: var(--ink-600);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 650;
 }
 
@@ -503,7 +503,7 @@ onMounted(load)
   border-radius: 9px;
   color: var(--ink-500);
   background: var(--ink-50);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .save-template-summary span {

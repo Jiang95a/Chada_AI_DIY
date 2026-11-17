@@ -273,7 +273,7 @@ function dismissSuggestion(id: string): void {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--ink-400);
 }
 
@@ -357,7 +357,7 @@ function dismissSuggestion(id: string): void {
 .ai__generate em {
   display: block;
   font-style: normal;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--ink-500);
 }
 
@@ -460,7 +460,7 @@ function dismissSuggestion(id: string): void {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--ink-400);
@@ -498,7 +498,7 @@ function dismissSuggestion(id: string): void {
   gap: 5px;
   flex-wrap: wrap;
   margin-top: 7px;
-  font-size: 10.5px;
+  font-size: 11px;
 }
 
 .sug__before {
@@ -530,7 +530,7 @@ function dismissSuggestion(id: string): void {
 
 .sugs__empty {
   padding: 8px 2px;
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--ink-400);
 }
 
@@ -560,7 +560,7 @@ function dismissSuggestion(id: string): void {
   border-radius: 99px;
   background: #fff;
   color: var(--ink-500);
-  font-size: 10.5px;
+  font-size: 11px;
   cursor: pointer;
   transition:
     border-color 0.14s ease,

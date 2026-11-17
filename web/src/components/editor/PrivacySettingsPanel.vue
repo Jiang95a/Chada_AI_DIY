@@ -120,7 +120,7 @@ onMounted(load)
   align-items: center;
   gap: 5px;
   color: var(--brand-700);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 750;
 }
 
@@ -129,7 +129,7 @@ onMounted(load)
   border-radius: 99px;
   color: var(--brand-600);
   background: #e6f1e9;
-  font-size: 7px;
+  font-size: 11px;
   font-style: normal;
 }
 
@@ -147,7 +147,7 @@ onMounted(load)
   justify-content: space-between;
   gap: 8px;
   color: var(--ink-600);
-  font-size: 9px;
+  font-size: 11px;
 }
 
 .privacy-switches input {
@@ -164,7 +164,7 @@ onMounted(load)
   border-radius: 8px;
   color: #fff;
   background: var(--brand-600);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
 }

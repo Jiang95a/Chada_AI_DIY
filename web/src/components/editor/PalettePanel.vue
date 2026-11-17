@@ -119,7 +119,7 @@ function onDragStart(event: DragEvent, type: BlockType): void {
   align-items: center;
   gap: 6px;
   margin-bottom: 7px;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--ink-400);
@@ -170,7 +170,7 @@ function onDragStart(event: DragEvent, type: BlockType): void {
 .pitem__desc {
   overflow: hidden;
   color: var(--ink-400);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 400;
   line-height: 1.45;
   text-overflow: ellipsis;
@@ -220,7 +220,7 @@ function onDragStart(event: DragEvent, type: BlockType): void {
 .palette__hint {
   padding: 10px 14px 12px;
   border-top: 1px dashed var(--line);
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.6;
   color: var(--ink-400);
 }

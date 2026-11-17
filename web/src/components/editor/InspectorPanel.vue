@@ -551,7 +551,7 @@ function onPageRole(event: Event): void {
 }
 
 .insp__desc {
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--ink-400);
 }
 
@@ -589,7 +589,7 @@ function onPageRole(event: Event): void {
 }
 
 .insp__sec-title {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--ink-400);

@@ -242,7 +242,7 @@ function updateCapacity(event: Event): void {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--ink-400);
@@ -286,7 +286,7 @@ function updateCapacity(event: Event): void {
 }
 
 .pitem__index {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--ink-300);
   font-variant-numeric: tabular-nums;
@@ -326,7 +326,7 @@ function updateCapacity(event: Event): void {
 }
 
 .pitem__meta {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--ink-400);
 }
 
@@ -356,7 +356,7 @@ function updateCapacity(event: Event): void {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--ink-400);
