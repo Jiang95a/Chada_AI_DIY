@@ -58,9 +58,21 @@ public class AuthInterceptor implements HandlerInterceptor {
             path = path.substring(contextPath.length());
         }
         if (isPublic(path)) {
+            // 公开接口允许匿名，但如果浏览器带了登录 token，仍然要认出当前用户。
+            // 例如公开报名页：登录用户提交后，这条表单才能计入他的个人回看数据。
+            try {
+                authenticate(request);
+            } catch (RuntimeException ignored) {
+                CurrentUser.clear();
+            }
             return true;
         }
 
+        authenticate(request);
+        return true;
+    }
+
+    private void authenticate(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         if (header == null || !header.startsWith("Bearer ")) {
             throw BizException.unauthenticated("缺少 Authorization 头");
@@ -89,7 +101,6 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         CurrentUser current = new CurrentUser(claims.getSubject(), claims.get("email", String.class));
         CurrentUser.set(current);
-        return true;
     }
 
     @Override
