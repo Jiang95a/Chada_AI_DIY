@@ -120,14 +120,37 @@ describe('工作台外框入口', () => {
     wrapper.unmount()
   })
 
-  it('心晴工具箱无需登录也能使用', async () => {
+  it('心理工具无需登录也能使用', async () => {
     localStorage.clear()
     const wrapper = await mountAt('/tools')
 
     expect(wrapper.find('.tools-page').exists()).toBe(true)
     expect(wrapper.find('.public-shell').exists()).toBe(true)
-    await wrapper.find('.grounding-main > button').trigger('click')
-    expect(wrapper.find('.grounding-count').text()).toContain('02 / 05')
+    expect(wrapper.find('.dilemma-grid').exists()).toBe(true)
+    expect(wrapper.find('.trace-rail').exists()).toBe(true)
+
+    await wrapper.findAll('.tool-tab')[1]?.trigger('click')
+    await new Promise((resolve) => setTimeout(resolve, 220))
+    expect(wrapper.find('#panel-thought').attributes('style') ?? '').not.toContain('display: none')
+    wrapper.unmount()
+  })
+
+  it('两难梳理能完成并保存到本页轨迹', async () => {
+    localStorage.clear()
+    const wrapper = await mountAt('/tools')
+    const fields = wrapper.findAll('#panel-dilemma textarea')
+
+    await fields[0]?.setValue('离家近，节奏稳定。')
+    await fields[1]?.setValue('怕自己后悔。')
+    await fields[2]?.setValue('更像我想成为的人。')
+    await fields[3]?.setValue('怕不稳定。')
+
+    expect(wrapper.findAll('.choice-card.is-complete').length).toBe(2)
+    await wrapper.find('#panel-dilemma .btn--primary').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.trace-count').text()).toBe('1')
+    expect(wrapper.find('.trace-entry').exists()).toBe(true)
     wrapper.unmount()
   })
 
