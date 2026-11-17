@@ -35,7 +35,7 @@ const projectStore = useProjectStore()
 const creatingId = ref('')
 const deletingTemplate = ref<TemplateCard | null>(null)
 const catalog = ref<TemplateCatalogItem[]>([])
-const activeKind = ref<TemplateKind | 'all'>('all')
+const activeKind = ref<'wellbeing' | 'career'>('wellbeing')
 const aiPrompt = ref('')
 const aiExamples = [
   '心理协会秋季招新，包含社团介绍、活动方向和报名表',
@@ -87,11 +87,13 @@ const cards = computed<TemplateCard[]>(() =>
 
 const customCount = computed(() => cards.value.filter((card) => card.source === 'custom').length)
 const visibleCards = computed(() =>
-  activeKind.value === 'all' ? cards.value : cards.value.filter((card) => card.kind === activeKind.value)
+  cards.value.filter((card) => card.kind === activeKind.value)
 )
 
 async function loadTemplates(): Promise<void> {
-  catalog.value = await loadTemplateCatalog()
+  // 模板库只展示心理活动和生涯场景；通用活动模板留在页面工坊，避免把摄影、比赛等混进心晴模板。
+  const all = await loadTemplateCatalog()
+  catalog.value = all.filter((template) => template.kind === 'wellbeing' || template.kind === 'career')
 }
 
 onMounted(loadTemplates)
@@ -137,7 +139,7 @@ async function confirmDeleteTemplate(): Promise<void> {
       <header class="templates-head">
         <div>
           <h1>模板库</h1>
-          <p class="templates-sub">从四种高频心晴场景开始，进入页面工坊替换文案、图片和组件。</p>
+          <p class="templates-sub">从心理活动和生涯场景开始，进入页面工坊替换文案、图片和组件。</p>
         </div>
         <button class="app-button app-button--primary" type="button" @click="askAi()">
           <Icon name="wand" :size="16" />让 AI 帮我做页面
@@ -192,7 +194,7 @@ async function confirmDeleteTemplate(): Promise<void> {
       <div class="templates-list-heading">
         <div>
           <h2>从心晴场景开始</h2>
-          <p>心理社团、团辅活动、知识问答和自我关怀都有成熟结构。</p>
+          <p>心理社团、团辅活动、知识问答和自我关怀都有成熟结构；生涯场景可单独切换。</p>
         </div>
         <span
           >{{ cards.length }} 个模板<template v-if="customCount"> · 我的心晴 {{ customCount }}</template></span
@@ -200,16 +202,17 @@ async function confirmDeleteTemplate(): Promise<void> {
       </div>
 
       <div class="templates-kinds">
-        <button type="button" :class="{ 'is-active': activeKind === 'all' }" @click="activeKind = 'all'">全部</button>
         <button type="button" :class="{ 'is-active': activeKind === 'wellbeing' }" @click="activeKind = 'wellbeing'">
           心理活动
         </button>
         <button type="button" :class="{ 'is-active': activeKind === 'career' }" @click="activeKind = 'career'">
-          生涯发展
+          生涯场景
         </button>
       </div>
 
-      <section class="templates-grid">
+      <p v-if="!visibleCards.length" class="templates-empty">这个分类暂时没有模板。心理活动模板仍可使用。</p>
+
+      <section v-else class="templates-grid">
         <article v-for="card in visibleCards" :key="card.id" class="template-card">
           <div
             class="template-card__art"
@@ -320,6 +323,12 @@ async function confirmDeleteTemplate(): Promise<void> {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
+}
+
+.templates-empty {
+  padding: 28px 0;
+  color: var(--ink-500);
+  font-size: 13px;
 }
 
 .templates-kinds {

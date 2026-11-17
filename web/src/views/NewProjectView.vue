@@ -22,7 +22,9 @@ const prompt = ref(
 let pendingProjectId = ''
 
 onMounted(async () => {
-  templates.value = await loadTemplateCatalog()
+  // 新建心晴活动只展示心理模板；生涯和通用活动模板不在这里重复出现。
+  const all = await loadTemplateCatalog()
+  templates.value = all.filter((item) => item.kind === 'wellbeing')
   if (!templates.value.some((item) => item.id === selectedTemplate.value)) {
     selectedTemplate.value = templates.value[0]?.id ?? ''
   }
