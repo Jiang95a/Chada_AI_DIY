@@ -24,7 +24,8 @@ mysql -u root -p --default-character-set=utf8mb4 < docs/sql/00_create_database.s
 for f in 001_init 002_seed 003_cover_fields 003_seed_fix 004_more_templates \
          004_projects_cover_columns 005_demo_data 006_feedback \
          007_wellbeing_privacy 008_wellbeing_templates 009_career_and_referral \
-         010_poster_generation 011_participant_traces 012_insight_agent; do
+         010_poster_generation 011_participant_traces 012_insight_agent \
+         013_hide_general_templates; do
   mysql -u campus_app -p --default-character-set=utf8mb4 campus_diy < "docs/sql/$f.sql"
 done
 ```
