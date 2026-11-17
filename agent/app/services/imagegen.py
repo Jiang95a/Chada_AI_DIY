@@ -147,6 +147,25 @@ def _extract_image(payload: dict[str, Any]) -> tuple[str, str]:
     return b64 or url, revised
 
 
+# 上游的「额度用完」在 HTTP 状态码上和普通失败长得很像（常见 403，OpenAI 系是 429），
+# 但语义完全不同：**重试没有用**，得去充值或改用上传。
+# 所以必须在 429 分支之前识别它，否则用户会一直点重试，而每次点都在计费。
+_QUOTA_HINTS = (
+    "insufficient_quota",
+    "insufficient balance",
+    "free quota",
+    "quota exhausted",
+    "allocationquota",
+    "arrearage",
+)
+
+
+def _looks_like_quota_exhausted(response: "httpx.Response") -> bool:
+    """看响应体判断是不是「钱不够」，而不是「现在太忙」。"""
+    text = (response.text or "").lower()
+    return any(hint in text for hint in _QUOTA_HINTS)
+
+
 def generate_poster(
     prompt: str,
     aspect_ratio: str | None = "3:4",
@@ -201,8 +220,18 @@ def generate_poster(
 
     latency_ms = int((time.perf_counter() - started) * 1000)
 
+    # 额度用完要优先判：它的语义是「这件事现在做不了」，不是「等一会再来」。
+    # 必须放在 429 之前——OpenAI 系把 insufficient_quota 报成 429，
+    # 混进限流里会让用户一直点重试，而每点一次都在计费。
+    if resp.status_code >= 400 and _looks_like_quota_exhausted(resp):
+        raise ImageNotConfigured(
+            "图像模型的额度已用完。请到供应商控制台充值，或关闭「仅使用免费额度」模式后重启服务；"
+            "在那之前请使用「上传已有海报」"
+        )
+
     if resp.status_code == 429:
         raise ImageFailed("图像服务限流了，请过一会儿再试（每次生成都会产生费用，不要连点）")
+
     if resp.status_code >= 400:
         detail = ""
         try:
