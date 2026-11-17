@@ -1,4 +1,4 @@
-﻿# 数据库迁移顺序（唯一权威）
+# 数据库迁移顺序（唯一权威）
 
 > 这份文件回答一个问题：**一个新库 / 一个旧库，到底该按什么顺序跑哪些脚本。**
 > 根目录 `README.md` 和其它文档里的说法如果和这里冲突，以这里为准。
@@ -94,7 +94,7 @@ SHOW TABLES;
 | `002_seed.sql` | DML | 演示用户 / 模板 |
 | `003_cover_fields.sql` | DDL | `projects` 补封面四列（宽松版，可空） |
 | `003_seed_fix.sql` | DML | 修 002 的坏数据（BCrypt 占位、组件属性名、空页面） |
-| `004_more_templates.sql` | DML | 模板补到 7 条 |
+| `004_more_templates.sql` | DML | 再补 6 套模板（UUID 105~110；**不要用 101~104，那是 003_seed_fix 的号段**） |
 | `004_projects_cover_columns.sql` | DDL | 封面四列（严格版，NOT NULL）—— 与 `003_cover_fields` 二选一 |
 | `005_demo_data.sql` | DML | 演示项目 |
 | `006_feedback.sql` | DDL | `feedback_reports`（老库必补） |

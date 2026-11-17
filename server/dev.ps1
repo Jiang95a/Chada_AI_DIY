@@ -25,11 +25,21 @@ function Resolve-Jdk21 {
   $candidates += 'D:\2025\java\IntelliJ IDEA 2025.1\jbr'
   if ($env:JAVA_HOME) { $candidates += $env:JAVA_HOME }
 
-  $searchRoots = @('C:\Program Files\Eclipse Adoptium', 'C:\Program Files\Microsoft', 'C:\Program Files\Java')
+  # USERPROFILE\.jdks 是 IDEA「Download JDK」装 JDK 的位置，也是本机最常见的一种。
+  # 少了这一条，凡是 JDK 由 IDEA 托管、又没设 JAVA_HOME 的机器都会报「未找到 JDK 21」。
+  $searchRoots = @(
+    "$env:USERPROFILE\.jdks",
+    'C:\Program Files\Eclipse Adoptium',
+    'C:\Program Files\Microsoft',
+    'C:\Program Files\Java'
+  )
   foreach ($root in $searchRoots) {
     if (Test-Path $root) {
+      # 过滤用 *21* 而不是 jdk*21*：IDEA 托管的 JDK 目录常叫 ms-21.0.13.0.2（Microsoft 版）
+      # 或 corretto-21.x，不一定以 jdk 开头。真正是不是 21 由后面的 javac -version 复核，
+      # 所以这里宽松一点没有风险。
       $candidates += @(
-        Get-ChildItem $root -Directory -Filter 'jdk*21*' -ErrorAction SilentlyContinue |
+        Get-ChildItem $root -Directory -Filter '*21*' -ErrorAction SilentlyContinue |
           Select-Object -ExpandProperty FullName
       )
     }
@@ -66,13 +76,18 @@ function Resolve-Maven {
   foreach ($candidate in $candidates) {
     if ($candidate -and (Test-Path $candidate)) { return $candidate }
   }
+
+  # 最后兜底：仓库自带 Maven Wrapper（server/mvnw.cmd），第一次跑会自己下 Maven。
+  # 这样没装独立 Maven 的机器也能起服务，不用先去装一个。
+  $wrapper = Join-Path $PSScriptRoot 'mvnw.cmd'
+  if (Test-Path $wrapper) { return $wrapper }
+
   throw '未找到 Maven。请安装 Maven，或把 MAVEN_HOME 指向 Maven 安装目录。'
 }
 
 $env:JAVA_HOME = Resolve-Jdk21
 $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 $maven = Resolve-Maven
-$repoArg = "-Dmaven.repo.local=$($mavenRepo.Replace('\', '/'))"
 $mavenArgs = if ($MavenArguments.Count -gt 0) { $MavenArguments } else {
   # 默认激活 dev profile：application.yml 里 DB_PASSWORD / JWT_SECRET 已经没有默认值，
   # 不激活 dev 会直接启动失败（这是刻意的，见 application-dev.yml 顶部注释）。
@@ -80,14 +95,23 @@ $mavenArgs = if ($MavenArguments.Count -gt 0) { $MavenArguments } else {
   @('spring-boot:run', '-Dspring-boot.run.profiles=dev')
 }
 
+# 有 .maven-repo 才用它（内网/离线场景）；没有就走默认的 ~/.m2。
+# 强行指向一个不存在的目录，会让 Maven 把所有依赖从头下一遍——第一次启动要等十几分钟。
+$effectiveArgs = @()
+if (Test-Path $mavenRepo) {
+  $effectiveArgs += "-Dmaven.repo.local=$($mavenRepo.Replace('\', '/'))"
+}
+$effectiveArgs += $mavenArgs
+
 Write-Host "JAVA_HOME: $env:JAVA_HOME"
 Write-Host "Maven: $maven"
-Write-Host "Maven repository: $mavenRepo"
-Write-Host "Maven args: $($mavenArgs -join ' ')"
+Write-Host "Maven repository: $(if (Test-Path $mavenRepo) { $mavenRepo } else { '默认（~/.m2）' })"
+Write-Host "Maven args: $($effectiveArgs -join ' ')"
 
 Push-Location $serverRoot
 try {
-  & $maven $repoArg ($mavenArgs -join ' ')
+  # 参数用数组展开，别拼成一个字符串：拼字符串时 "-Dxxx=dev" 会被当成一个带空格的整串
+  & $maven @effectiveArgs
   exit $LASTEXITCODE
 } finally {
   Pop-Location

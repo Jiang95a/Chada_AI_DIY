@@ -6,6 +6,13 @@
 --
 -- 用固定 UUID，可重复执行（ON DUPLICATE KEY UPDATE）。
 --
+-- ⚠ UUID 号段：本文件只用 105~110。
+--   原来这里写的是 102/103/104，而 003_seed_fix 已经占用了 101~104——
+--   按 docs/sql/README.md 的顺序（003_seed_fix 在 004 之前）跑，
+--   ON DUPLICATE KEY UPDATE 会按主键把那三行模板的 name/description/document
+--   全改成这里的“志愿者招募/讲座报名/比赛报名”，但 code 不变，导致 code 与名字对不上。
+--   已改为 108/109/110。以后新增模板请往 110 之后排，别再碰 101~104。
+--
 -- 注意：模板的 pages/blocks 刻意不写 id —— id 是运行时由编辑器生成的，
 -- 后端 ProjectService.fillIds() 在实例化时会自动补齐 pg-xxx / blk-xxx。
 --
@@ -21,7 +28,7 @@ SET NAMES utf8mb4;
 -- ---------------------------------------------------------------- 招募类
 INSERT INTO templates (id, code, name, category, description, document)
 VALUES (
-  '00000000-0000-4000-8000-000000000102',
+  '00000000-0000-4000-8000-000000000108',
   'recruitment-volunteer',
   '志愿者招募',
   'recruitment',
@@ -73,7 +80,7 @@ ON DUPLICATE KEY UPDATE document = VALUES(document), description = VALUES(descri
 -- ---------------------------------------------------------------- 报名类
 INSERT INTO templates (id, code, name, category, description, document)
 VALUES (
-  '00000000-0000-4000-8000-000000000103',
+  '00000000-0000-4000-8000-000000000109',
   'registration-lecture',
   '讲座报名',
   'registration',
@@ -123,7 +130,7 @@ ON DUPLICATE KEY UPDATE document = VALUES(document), description = VALUES(descri
 
 INSERT INTO templates (id, code, name, category, description, document)
 VALUES (
-  '00000000-0000-4000-8000-000000000104',
+  '00000000-0000-4000-8000-000000000110',
   'registration-competition',
   '比赛报名',
   'registration',
