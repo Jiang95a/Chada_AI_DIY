@@ -1006,4 +1006,24 @@ onMounted(load)
     padding: 16px;
   }
 }
+[data-theme='dark'] .featured-event,
+[data-theme='dark'] .campus-card {
+  border-color: var(--line);
+  background: var(--surface) !important;
+}
+
+[data-theme='dark'] .campus-search {
+  background: var(--surface);
+}
+
+[data-theme='dark'] .hero-copy > div > a {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--ink-900);
+}
+
+[data-theme='dark'] .campus-types button.is-active {
+  background: var(--brand-50);
+  color: var(--brand-300);
+}
 </style>

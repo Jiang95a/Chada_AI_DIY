@@ -283,7 +283,7 @@ const axisStartLabel = computed(() => {
   padding: 20px 22px 18px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: #fff;
+  background: var(--surface);
 }
 
 .pulse.is-compact {
@@ -496,7 +496,7 @@ const axisStartLabel = computed(() => {
   flex: none;
   place-items: center;
   border-radius: 50%;
-  background: #fff;
+  background: var(--surface);
   color: var(--brand-600);
 }
 

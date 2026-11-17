@@ -3,7 +3,7 @@ import { ref, watch } from 'vue'
 export type DensityPreference = 'comfortable' | 'compact'
 export type MotionPreference = 'full' | 'reduced'
 export type LandingPreference = '/projects' | '/templates'
-export type ThemePreference = 'sage' | 'oat' | 'mist' | 'slate'
+export type ThemePreference = 'sage' | 'oat' | 'mist' | 'slate' | 'dark'
 
 const STORAGE_KEY = 'diy-campus:preferences:v1'
 
@@ -27,7 +27,7 @@ function write(key: string, value: string): void {
 const density = ref<DensityPreference>(read('density', 'comfortable', ['comfortable', 'compact']))
 const motion = ref<MotionPreference>(read('motion', 'full', ['full', 'reduced']))
 const landing = ref<LandingPreference>(read('landing', '/projects', ['/projects', '/templates']))
-const theme = ref<ThemePreference>(read('theme', 'sage', ['sage', 'oat', 'mist', 'slate']))
+const theme = ref<ThemePreference>(read('theme', 'sage', ['sage', 'oat', 'mist', 'slate', 'dark']))
 
 function apply(): void {
   if (typeof document === 'undefined') return

@@ -892,4 +892,25 @@ onMounted(() => {
     border-left: 0;
   }
 }
+[data-theme='dark'] .grounding-main > button {
+  color: #10241d;
+}
+
+[data-theme='dark'] .self-care-list button,
+[data-theme='dark'] :deep(.mood-options button) {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--ink-600);
+}
+
+[data-theme='dark'] :deep(.mood-options button.is-active) {
+  background: var(--brand-50);
+  color: var(--brand-300);
+}
+
+[data-theme='dark'] .note-tool textarea {
+  border-color: var(--line);
+  background: var(--surface-soft);
+  color: var(--ink-900);
+}
 </style>

@@ -168,8 +168,8 @@ onMounted(() => {
       </div>
 
       <figure class="hero-photo">
+        <!-- 替换横版图：建议 1600×1000，保持 16:10，页面会按 cover 裁切。 -->
         <img :src="campusWalk" alt="学生独自走在校园小路上" />
-        <figcaption>校园里的一段路，也可以慢一点走。</figcaption>
       </figure>
     </section>
 
@@ -1122,20 +1122,30 @@ onMounted(() => {
     padding: 26px 20px;
   }
 }
-.landing-page .hero {
-  min-height: 0;
-  align-items: stretch;
-  padding: 0;
+.landing-page {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
   color: var(--ink-900);
   background: var(--bg);
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.landing-page .hero {
+  min-height: 0;
+  align-items: center;
+  gap: 42px;
+  padding: 54px 44px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-900);
+  background: var(--surface);
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
 }
 
 .landing-page .hero-copy {
   display: flex;
   max-width: none;
   justify-content: center;
-  padding: 86px max(5vw, calc((100vw - 1220px) / 2)) 72px;
+  padding: 32px 0;
   flex-direction: column;
 }
 
@@ -1193,11 +1203,12 @@ onMounted(() => {
 }
 
 .hero-photo {
-  position: relative;
-  min-height: 560px;
+  width: 100%;
+  aspect-ratio: 16 / 10;
   margin: 0;
-  overflow: hidden;
-  background: var(--surface-warm);
+  padding: 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-soft);
 }
 
 .hero-photo img {
@@ -1208,17 +1219,6 @@ onMounted(() => {
   filter: saturate(0.85) contrast(0.98);
 }
 
-.hero-photo figcaption {
-  position: absolute;
-  bottom: 18px;
-  left: 20px;
-  padding: 7px 10px;
-  border-left: 3px solid var(--brand-500);
-  background: rgb(247 243 234 / 92%);
-  color: var(--ink-700);
-  font-size: 11.5px;
-}
-
 .hero-visual,
 .hero-shade,
 .hero-invite {
@@ -1226,10 +1226,10 @@ onMounted(() => {
 }
 
 .intro-strip {
-  padding: 54px max(5vw, calc((100vw - 1220px) / 2)) 48px;
-  border-top: 1px solid var(--line);
+  padding: 46px 44px;
+  border: 0;
   border-bottom: 1px solid var(--line);
-  background: var(--bg);
+  background: var(--surface-soft);
   text-align: left;
 }
 
@@ -1276,8 +1276,12 @@ onMounted(() => {
 }
 
 .activities-section {
-  padding: 52px 0 56px;
-  border-top: 1px solid var(--line);
+  width: 100%;
+  margin: 0;
+  padding: 50px 44px 54px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
 }
 
 .activities-section h2 {
@@ -1372,9 +1376,13 @@ onMounted(() => {
 }
 
 .nearby-section {
+  width: 100%;
   gap: 40px;
-  padding: 46px 0;
-  border-top: 1px solid var(--line);
+  margin: 0;
+  padding: 46px 44px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
 }
 
 .nearby-copy h2,
@@ -1416,8 +1424,12 @@ onMounted(() => {
 }
 
 .trace-section {
-  padding: 46px 0 50px;
-  border-top: 1px solid var(--line);
+  width: 100%;
+  margin: 0;
+  padding: 48px 44px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-mist);
 }
 
 .trace-demo :deep(.pulse) {
@@ -1431,9 +1443,12 @@ onMounted(() => {
 }
 
 .safety-section {
+  width: 100%;
   margin: 0;
-  padding: 46px 0;
-  border-top: 1px solid var(--line);
+  padding: 46px 44px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-soft);
 }
 
 .safety-list {
@@ -1486,15 +1501,17 @@ onMounted(() => {
 
 @media (max-width: 900px) {
   .landing-page .hero {
+    gap: 28px;
+    padding: 36px 24px 42px;
     grid-template-columns: 1fr;
   }
 
   .landing-page .hero-copy {
-    padding: 56px 24px 44px;
+    padding: 0;
   }
 
   .hero-photo {
-    min-height: 340px;
+    min-height: 0;
   }
 
   .intro-points {
@@ -1520,13 +1537,7 @@ onMounted(() => {
   }
 
   .hero-photo {
-    min-height: 280px;
-  }
-
-  .hero-photo figcaption {
-    right: 14px;
-    bottom: 14px;
-    left: 14px;
+    min-height: 0;
   }
 
   .intro-strip,
@@ -1544,5 +1555,51 @@ onMounted(() => {
   .safety-section h2 {
     font-size: 28px;
   }
+}
+
+[data-theme='dark'] .landing-page {
+  background: var(--bg);
+}
+
+[data-theme='dark'] .hero {
+  background: var(--surface);
+}
+
+[data-theme='dark'] .hero-primary {
+  color: #10241d;
+}
+
+[data-theme='dark'] .hero-actions button {
+  border-color: var(--line);
+  background: var(--surface-soft);
+  color: var(--ink-900);
+}
+
+[data-theme='dark'] .activity-card {
+  border-color: var(--line);
+  background: var(--surface);
+}
+
+[data-theme='dark'] .activity-card > div {
+  color: var(--ink-900);
+}
+
+[data-theme='dark'] .trace-copy > a,
+[data-theme='dark'] .trace-demo :deep(.pulse-suggest > a) {
+  color: #10241d;
+}
+
+[data-theme='dark'] .activity-type {
+  background: var(--brand-50);
+  color: var(--brand-300);
+}
+
+[data-theme='dark'] .trace-demo :deep(.pulse) {
+  background: var(--surface);
+}
+
+[data-theme='dark'] .hero-photo {
+  border-color: var(--line-strong);
+  background: var(--surface-soft);
 }
 </style>

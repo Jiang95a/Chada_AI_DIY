@@ -16,6 +16,7 @@ const themeOptions: Array<{ value: ThemePreference; label: string }> = [
   { value: 'oat', label: '燕麦米黄' },
   { value: 'mist', label: '雾青' },
   { value: 'slate', label: '雾蓝石板' },
+  { value: 'dark', label: '深色' },
 ]
 const themeLabel = computed(
   () => themeOptions.find((item) => item.value === theme.value)?.label ?? '鼠尾草绿'
@@ -31,6 +32,12 @@ function cycleTheme(): void {
   if (!next) return
   setTheme(next.value)
   toast.pushToast(`已切换为${next.label}`, 'success')
+}
+
+function toggleDark(): void {
+  const next = theme.value === 'dark' ? 'sage' : 'dark'
+  setTheme(next)
+  toast.pushToast(next === 'dark' ? '已切换到深色' : '已切换到浅色', 'success')
 }
 </script>
 
@@ -60,6 +67,16 @@ function cycleTheme(): void {
         </RouterLink>
       </nav>
       <div class="public-nav-actions">
+        <button
+          class="public-dark"
+          type="button"
+          :aria-pressed="theme === 'dark'"
+          :aria-label="theme === 'dark' ? '切换到浅色' : '切换到深色'"
+          :title="theme === 'dark' ? '切换到浅色' : '切换到深色'"
+          @click="toggleDark"
+        >
+          <span :class="{ 'is-dark': theme === 'dark' }" />
+        </button>
         <button
           class="public-theme"
           type="button"
@@ -255,6 +272,30 @@ function cycleTheme(): void {
   place-items: center;
 }
 
+.public-dark {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 17%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 8%);
+  cursor: pointer;
+  place-items: center;
+}
+
+.public-dark > span {
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgb(255 255 255 / 35%);
+  border-radius: 50%;
+  background: linear-gradient(90deg, #f1ede3 50%, #16201b 50%);
+}
+
+.public-dark > span.is-dark {
+  background: #f1ede3;
+}
+
 .public-theme > span {
   width: 16px;
   height: 16px;
@@ -274,27 +315,38 @@ function cycleTheme(): void {
   background: #6c8391;
 }
 
+.public-theme > span.is-dark {
+  border: 1px solid rgb(255 255 255 / 55%);
+  background: #121815;
+}
+
 .public-footer {
   display: grid;
   width: 100%;
-  max-width: none;
-  gap: 28px;
-  margin-top: 30px;
-  padding: 54px max(34px, calc((100vw - 1320px) / 2)) 38px;
-  border-radius: 30px 30px 0 0;
-  color: rgb(255 255 255 / 46%);
-  background: var(--brand-900);
+  max-width: 1240px;
+  gap: 26px;
+  margin: 56px auto 0;
+  padding: 32px 0 28px;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--ink-600);
+  background: transparent;
   grid-template-columns: 1fr auto;
 }
 
-.public-mobile-nav {
-  display: none;
+.public-footer .public-brand strong {
+  color: var(--ink-900);
+}
+
+.public-footer .public-brand small {
+  color: var(--ink-500);
 }
 
 .public-footer > div:first-child > p {
   max-width: 520px;
-  margin-top: 19px;
-  font-size: 11px;
+  margin-top: 14px;
+  color: var(--ink-600);
+  font-size: 12.5px;
   line-height: 1.8;
 }
 
@@ -305,8 +357,12 @@ function cycleTheme(): void {
 }
 
 .public-footer-links a {
-  color: rgb(255 255 255 / 58%);
-  font-size: 11px;
+  color: var(--ink-600);
+  font-size: 12px;
+}
+
+.public-footer-links a:hover {
+  color: var(--brand-700);
 }
 
 .public-emergency {
@@ -314,12 +370,16 @@ function cycleTheme(): void {
   align-items: center;
   gap: 7px;
   grid-column: 1 / -1;
-  padding: 10px 12px;
-  border: 1px solid rgb(255 255 255 / 9%);
-  border-radius: 10px;
-  color: rgb(255 255 255 / 54%);
-  background: rgb(255 255 255 / 5%);
-  font-size: 11px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--ink-600);
+  background: transparent;
+  font-size: 12px;
+}
+
+.public-mobile-nav {
+  display: none;
 }
 
 @media (max-width: 820px) {
@@ -329,6 +389,10 @@ function cycleTheme(): void {
   }
 
   .public-nav nav {
+    display: none;
+  }
+
+  .public-theme {
     display: none;
   }
 

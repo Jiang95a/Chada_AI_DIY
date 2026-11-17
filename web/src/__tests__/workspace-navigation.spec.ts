@@ -126,7 +126,7 @@ describe('工作台外框入口', () => {
 
     expect(wrapper.find('.tools-page').exists()).toBe(true)
     expect(wrapper.find('.public-shell').exists()).toBe(true)
-    await wrapper.find('.grounding-card > button').trigger('click')
+    await wrapper.find('.grounding-main > button').trigger('click')
     expect(wrapper.find('.grounding-count').text()).toContain('02 / 05')
     wrapper.unmount()
   })

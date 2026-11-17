@@ -603,4 +603,13 @@ const companionTips = [
     padding: 20px;
   }
 }
+[data-theme='dark'] .resources-hero aside,
+[data-theme='dark'] .where-card {
+  border-color: var(--line);
+  background: var(--surface);
+}
+
+[data-theme='dark'] .support-card {
+  background: var(--brand-900);
+}
 </style>
