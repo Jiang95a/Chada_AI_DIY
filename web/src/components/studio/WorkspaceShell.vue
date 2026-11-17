@@ -27,7 +27,6 @@ const searchText = ref('')
 const showOrgMenu = ref(false)
 const showNotifications = ref(false)
 const showUserMenu = ref(false)
-const showHelp = ref(false)
 const workspaceName = computed(() => currentWorkspace.value.name)
 const workspaceType = computed(() => currentWorkspace.value.type)
 const workspaceAvatar = computed(() => currentWorkspace.value.avatar)
@@ -179,7 +178,6 @@ function onDocumentClick(event: MouseEvent): void {
     showOrgMenu.value = false
     showNotifications.value = false
     showUserMenu.value = false
-    showHelp.value = false
   }
 }
 
@@ -287,29 +285,10 @@ onBeforeUnmount(() => {
       </nav>
 
       <div class="workspace-sidebar-bottom">
-        <button
-          class="workspace-nav-item workspace-help-trigger"
-          type="button"
-          :aria-expanded="showHelp"
-          @click="showHelp = !showHelp"
-        >
+        <RouterLink class="workspace-nav-item workspace-help-link" to="/help">
           <Icon name="help" :size="17" />
-          <span>使用帮助</span>
-        </button>
-        <div v-if="showHelp" class="workspace-popover workspace-help-popover">
-          <div class="workspace-help-heading">
-            <strong>使用帮助</strong>
-            <button type="button" aria-label="关闭使用帮助" @click="showHelp = false">
-              <Icon name="close" :size="13" />
-            </button>
-          </div>
-          <strong>快速开始</strong>
-          <p>从心晴模板开始，在页面工坊中调整内容，再发布给同学参与。</p>
-          <div class="workspace-help-actions">
-            <RouterLink to="/projects/new" @click="showHelp = false">制作第一个活动页</RouterLink>
-            <RouterLink to="/help" @click="showHelp = false">进入帮助中心</RouterLink>
-          </div>
-        </div>
+          <span>帮助与反馈</span>
+        </RouterLink>
         <button class="workspace-profile" type="button" @click="showUserMenu = !showUserMenu">
           <span class="workspace-profile-avatar">{{ avatarText }}</span>
           <span>
