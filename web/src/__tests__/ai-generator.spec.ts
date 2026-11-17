@@ -58,9 +58,15 @@ describe('心晴模板与 AI 生成页面', () => {
     const aiButton = wrapper.find('.workspace-nav-item.is-ai')
     expect(aiButton.exists()).toBe(true)
     await aiButton.trigger('click')
-    await flushPromises()
 
-    expect(wrapper.find('.ai-page').exists()).toBe(true)
+    // 路由是懒加载的（studio.routes.ts 里 component 写成 () => import(...)），
+    // 点一下不会同步渲染：动态 import 还没 resolve 时 DOM 是空的。
+    // 单靠 flushPromises 只能冲掉微任务，等不到模块加载完成，
+    // 所以这里必须用 waitFor 重试到组件真正挂上为止。
+    await vi.waitFor(() => {
+      expect(wrapper.find('.ai-page').exists()).toBe(true)
+    })
+
     expect(wrapper.text()).toContain('让 AI 一起构思心晴活动')
 
     wrapper.unmount()
