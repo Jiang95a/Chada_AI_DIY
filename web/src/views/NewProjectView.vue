@@ -6,6 +6,10 @@ import Icon from '@/components/ui/Icon.vue'
 import { useToast } from '@/composables/useToast'
 import { useProjectStore } from '@/stores/projects'
 import { loadTemplateCatalog, type TemplateCatalogItem } from '@/services/templates'
+import coverGarden from '@/assets/photos/activity-garden.jpg'
+import coverSelfCare from '@/assets/photos/activity-selfcare.jpg'
+import coverClub from '@/assets/photos/activity-club.jpg'
+import coverWorkshop from '@/assets/photos/activity-workshop.jpg'
 
 const router = useRouter()
 const projectStore = useProjectStore()
@@ -80,6 +84,14 @@ function templateTone(id: string): string {
     ] ?? 'event'
   )
 }
+
+function templateImage(template: TemplateCatalogItem): string {
+  const name = template.name
+  if (name.includes('打卡') || name.includes('关怀')) return coverSelfCare
+  if (name.includes('问答') || name.includes('知识')) return coverWorkshop
+  if (name.includes('招新') || name.includes('社团')) return coverClub
+  return coverGarden
+}
 </script>
 
 <template>
@@ -142,6 +154,7 @@ function templateTone(id: string): string {
               :class="`template-option--${templateTone(template.id)}`"
             >
               <input v-model="selectedTemplate" name="template" type="radio" :value="template.id" />
+              <img class="template-option__image" :src="templateImage(template)" alt="" loading="lazy" decoding="async" />
               <span class="template-check"><Icon name="check" :size="12" /></span>
               <span class="template-code">{{ template.scene }}</span>
               <span class="template-art" aria-hidden="true"><i /><i /><i /></span>
