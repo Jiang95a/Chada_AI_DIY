@@ -155,11 +155,11 @@ function toggleDark(): void {
   align-items: center;
   gap: 22px;
   padding: 0 24px;
-  border: 1px solid rgb(255 255 255 / 9%);
+  border: 1px solid var(--line);
   border-radius: 10px;
-  color: #fff;
-  background: var(--brand-900);
-  box-shadow: 0 22px 55px -35px rgb(14 31 23 / 72%);
+  color: var(--ink-900);
+  background: var(--surface);
+  box-shadow: 0 16px 40px -32px rgb(24 24 27 / 28%);
   backdrop-filter: blur(20px);
   transform: translateX(-50%);
   grid-template-columns: auto 1fr auto;
@@ -204,12 +204,13 @@ function toggleDark(): void {
 }
 
 .public-brand strong {
+  color: var(--ink-900);
   font-size: 15px;
 }
 
 .public-brand small {
   margin-top: 2px;
-  color: rgb(255 255 255 / 55%);
+  color: var(--ink-500);
   font-size: 11px;
 }
 
@@ -225,18 +226,18 @@ function toggleDark(): void {
   gap: 5px;
   min-height: 34px;
   padding: 0 2px;
-  color: rgb(255 255 255 / 60%);
+  color: var(--ink-600);
   font-size: 12px;
   font-weight: 650;
 }
 
 .public-nav nav a:hover,
 .public-nav nav a.is-active {
-  color: #fff;
+  color: var(--ink-900);
 }
 
 .public-nav nav a.is-active {
-  box-shadow: inset 0 -2px var(--brand-300);
+  box-shadow: inset 0 -2px var(--brand-500);
 }
 
 .public-workspace {
@@ -245,13 +246,23 @@ function toggleDark(): void {
   align-items: center;
   gap: 6px;
   padding: 0 13px;
-  border: 1px solid rgb(255 255 255 / 17%);
+  border: 1px solid var(--line);
   border-radius: 999px;
-  color: #fff;
-  background: rgb(255 255 255 / 8%);
+  color: var(--ink-700);
+  background: var(--surface-soft);
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.public-workspace:hover {
+  border-color: var(--line-strong);
+  color: var(--brand-700);
+  background: var(--brand-50);
 }
 
 .public-nav-actions {
@@ -265,9 +276,9 @@ function toggleDark(): void {
   width: 36px;
   height: 36px;
   padding: 0;
-  border: 1px solid rgb(255 255 255 / 17%);
+  border: 1px solid var(--line);
   border-radius: 50%;
-  background: rgb(255 255 255 / 8%);
+  background: var(--surface-soft);
   cursor: pointer;
   place-items: center;
 }
@@ -277,9 +288,9 @@ function toggleDark(): void {
   width: 36px;
   height: 36px;
   padding: 0;
-  border: 1px solid rgb(255 255 255 / 17%);
+  border: 1px solid var(--line);
   border-radius: 50%;
-  background: rgb(255 255 255 / 8%);
+  background: var(--surface-soft);
   cursor: pointer;
   place-items: center;
 }
@@ -287,7 +298,7 @@ function toggleDark(): void {
 .public-dark > span {
   width: 16px;
   height: 16px;
-  border: 1px solid rgb(255 255 255 / 35%);
+  border: 1px solid var(--line-strong);
   border-radius: 50%;
   background: linear-gradient(90deg, #f1ede3 50%, #16201b 50%);
 }
@@ -316,7 +327,7 @@ function toggleDark(): void {
 }
 
 .public-theme > span.is-dark {
-  border: 1px solid rgb(255 255 255 / 55%);
+  border: 1px solid var(--line-strong);
   background: #121815;
 }
 
@@ -411,10 +422,10 @@ function toggleDark(): void {
     left: 12px;
     display: grid;
     padding: 6px;
-    border: 1px solid rgb(255 255 255 / 9%);
+    border: 1px solid var(--line);
     border-radius: 10px;
-    background: var(--brand-900);
-    box-shadow: 0 18px 45px -24px rgb(14 31 23 / 60%);
+    background: var(--surface);
+    box-shadow: 0 18px 45px -28px rgb(24 24 27 / 32%);
     backdrop-filter: blur(20px);
     grid-template-columns: repeat(6, 1fr);
   }
@@ -426,18 +437,86 @@ function toggleDark(): void {
     justify-content: center;
     gap: 3px;
     border-radius: 8px;
-    color: rgb(255 255 255 / 68%);
+    color: var(--ink-500);
     font-size: 11px;
     flex-direction: column;
   }
 
   .public-mobile-nav a.is-active {
-    color: #fff;
-    background: rgb(255 255 255 / 9%);
+    color: var(--brand-700);
+    background: var(--brand-50);
   }
 
   .public-footer-links {
     flex-wrap: wrap;
   }
+}
+[data-theme='dark'] .public-nav {
+  border-color: rgb(255 255 255 / 9%);
+  color: #fff;
+  background: var(--brand-900);
+  box-shadow: 0 22px 55px -35px rgb(0 0 0 / 70%);
+}
+
+[data-theme='dark'] .public-brand strong {
+  color: #fff;
+}
+
+[data-theme='dark'] .public-brand small {
+  color: rgb(255 255 255 / 55%);
+}
+
+[data-theme='dark'] .public-nav nav a {
+  color: rgb(255 255 255 / 60%);
+}
+
+[data-theme='dark'] .public-nav nav a:hover,
+[data-theme='dark'] .public-nav nav a.is-active {
+  color: #fff;
+}
+
+[data-theme='dark'] .public-nav nav a.is-active {
+  box-shadow: inset 0 -2px var(--brand-300);
+}
+
+[data-theme='dark'] .public-workspace {
+  border-color: rgb(255 255 255 / 17%);
+  color: #fff;
+  background: rgb(255 255 255 / 8%);
+}
+
+[data-theme='dark'] .public-workspace:hover {
+  border-color: rgb(255 255 255 / 28%);
+  color: #fff;
+  background: rgb(255 255 255 / 12%);
+}
+
+[data-theme='dark'] .public-theme,
+[data-theme='dark'] .public-dark {
+  border-color: rgb(255 255 255 / 17%);
+  background: rgb(255 255 255 / 8%);
+}
+
+[data-theme='dark'] .public-dark > span {
+  border-color: rgb(255 255 255 / 35%);
+}
+
+[data-theme='dark'] .public-theme > span.is-dark {
+  border-color: rgb(255 255 255 / 55%);
+}
+
+[data-theme='dark'] .public-mobile-nav {
+  border-color: rgb(255 255 255 / 9%);
+  background: var(--brand-900);
+  box-shadow: 0 18px 45px -24px rgb(0 0 0 / 65%);
+}
+
+[data-theme='dark'] .public-mobile-nav a {
+  color: rgb(255 255 255 / 68%);
+}
+
+[data-theme='dark'] .public-mobile-nav a.is-active {
+  color: #fff;
+  background: rgb(255 255 255 / 9%);
 }
 </style>
