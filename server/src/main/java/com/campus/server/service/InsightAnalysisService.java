@@ -588,7 +588,6 @@ public class InsightAnalysisService {
     private Dtos.InsightAnalyzeResponseDto crisisResponse() {
         List<Dtos.InsightResourceDto> resources = List.of(
                 new Dtos.InsightResourceDto("紧急情况", "120 / 110"),
-                new Dtos.InsightResourceDto("学校心理健康教育中心", "工作日可预约"),
                 new Dtos.InsightResourceDto("全国心理援助热线", "12356"));
         return new Dtos.InsightAnalyzeResponseDto("crisis", null, Ids.nowIso(), null, null,
                 null, "如果你现在可能伤害自己或别人，请先联系一个可信任的人，或者直接打下面的电话。",
