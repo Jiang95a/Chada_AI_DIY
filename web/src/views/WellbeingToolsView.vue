@@ -2,7 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
-type ToolName = 'dilemma' | 'thought'
+type ToolName = 'energy' | 'thought'
 
 interface ToolRecord {
   type: string
@@ -11,8 +11,31 @@ interface ToolRecord {
   time: string
 }
 
+interface EnergyCard {
+  id: string
+  title: string
+  note: string
+  cost: number
+  fixed?: boolean
+}
+
+const ENERGY_TOTAL = 5
 const TRACE_KEY = 'diy-campus:tools-trace:v1'
-const activeTool = ref<ToolName>('dilemma')
+
+const energyCards: EnergyCard[] = [
+  { id: 'rest', title: '吃饭和睡觉', note: '不是可选项', cost: 2, fixed: true },
+  { id: 'class', title: '上课 / 作业', note: '必须到场的那部分', cost: 2 },
+  { id: 'group', title: '小组任务', note: '别人在等你', cost: 2 },
+  { id: 'club', title: '社团活动', note: '已经答应了', cost: 1 },
+  { id: 'friend', title: '朋友倾诉', note: '不好意思拒绝', cost: 2 },
+  { id: 'family', title: '家里电话', note: '不打会惦记', cost: 1 },
+  { id: 'rumination', title: '反复想一件事', note: '停不下来，但很耗电', cost: 2 },
+  { id: 'own', title: '自己的事', note: '一直往后放', cost: 1 },
+]
+
+const energyReasons = ['怕别人失望', '不做会出事', '我自己想做', '只是习惯了']
+
+const activeTool = ref<ToolName>('energy')
 const leaving = ref(false)
 const entrance = ref(false)
 const clearing = ref(false)
@@ -22,41 +45,30 @@ const traces = ref<ToolRecord[]>([])
 const traceTarget = ref<HTMLElement | null>(null)
 const traceRail = ref<HTMLElement | null>(null)
 
-const dilemma = reactive({
-  aWant: '',
-  aWorry: '',
-  bWant: '',
-  bWorry: '',
-  nonneg: '',
-})
+const selectedEnergy = ref<string[]>(['rest'])
+const reviewing = ref(false)
+const energyFocus = ref('')
+const energyReasonsPicked = ref<string[]>([])
+const energyNote = ref('')
+const energyShake = ref('')
+const splitContext = ref('')
+
 const thought = reactive({ fact: '', thought: '', feeling: '' })
 
-const aComplete = computed(() => Boolean(dilemma.aWant.trim() && dilemma.aWorry.trim()))
-const bComplete = computed(() => Boolean(dilemma.bWant.trim() && dilemma.bWorry.trim()))
-const nonnegComplete = computed(() => Boolean(dilemma.nonneg.trim()))
+const selectedCards = computed(() => energyCards.filter((card) => selectedEnergy.value.includes(card.id)))
+const usedEnergy = computed(() => selectedCards.value.reduce((total, card) => total + card.cost, 0))
+const remainingEnergy = computed(() => Math.max(0, ENERGY_TOTAL - usedEnergy.value))
+const droppedCards = computed(() => energyCards.filter((card) => !selectedEnergy.value.includes(card.id)))
+const focusCard = computed(() => energyCards.find((card) => card.id === energyFocus.value) ?? null)
 const thoughtFilled = computed(() => [
   Boolean(thought.fact.trim()),
   Boolean(thought.thought.trim()),
   Boolean(thought.feeling.trim()),
 ])
-const dilemmaStyle = computed(() => {
-  const a = dilemma.aWant.length + dilemma.aWorry.length
-  const b = dilemma.bWant.length + dilemma.bWorry.length
-  const total = a + b
-  const ratio = total ? a / total : 0.5
-  return {
-    '--a-weight': `${(18 + ratio * 44).toFixed(1)}%`,
-    '--b-weight': `${(18 + (1 - ratio) * 44).toFixed(1)}%`,
-  }
-})
-const balanceCaption = computed(() =>
-  dilemma.aWant || dilemma.aWorry || dilemma.bWant || dilemma.bWorry
-    ? '只是示意图，不计分'
-    : '写一点，两边的分量会慢慢显出来'
-)
 
 let toastTimer: number | undefined
 let entranceTimer: number | undefined
+let shakeTimer: number | undefined
 
 function readTraces(): ToolRecord[] {
   try {
@@ -144,63 +156,122 @@ function flyToTrace(button: HTMLElement, record: ToolRecord): void {
   setTargetReceiving()
 }
 
-function saveTool(name: ToolName, event: MouseEvent): void {
-  const button = event.currentTarget
-  if (!(button instanceof HTMLElement)) return
-  const isDilemma = name === 'dilemma'
-  const hasContent = isDilemma
-    ? Boolean(dilemma.aWant || dilemma.aWorry || dilemma.bWant || dilemma.bWorry || dilemma.nonneg)
-    : Boolean(thought.fact || thought.thought || thought.feeling)
-
-  if (!hasContent) {
-    showToast('先写一点，再保存')
-    document.querySelector<HTMLTextAreaElement>('.tool-panel.is-active textarea')?.focus()
+function toggleEnergy(card: EnergyCard): void {
+  if (card.fixed) {
+    showToast('吃饭和睡觉是基础，不用省')
     return
   }
-
-  let record: ToolRecord
-  const savedAt = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-  if (isDilemma) {
-    const a = dilemma.aWant.trim()
-    const b = dilemma.bWant.trim()
-    record = {
-      type: '两难梳理',
-      title: a || b ? `${a.slice(0, 12)} / ${b.slice(0, 12)}` : '两难梳理',
-      meta: dilemma.nonneg.trim().slice(0, 42) || '两边都写了一点，还没写到最不能接受的地方。',
-      time: savedAt,
-    }
-  } else {
-    record = {
-      type: '想法捕捉',
-      title: (thought.thought || thought.fact || '三栏记录').slice(0, 18),
-      meta: thought.feeling.trim() ? `感受：${thought.feeling.trim().slice(0, 36)}` : '事实、想法和感受已经分开。',
-      time: savedAt,
-    }
+  if (selectedEnergy.value.includes(card.id)) {
+    selectedEnergy.value = selectedEnergy.value.filter((id) => id !== card.id)
+    reviewing.value = false
+    energyFocus.value = ''
+    return
   }
-
-  addTrace(record)
-  flyToTrace(button, record)
-  showToast(isDilemma ? '已收进我的轨迹' : '已归档到我的轨迹')
+  if (usedEnergy.value + card.cost > ENERGY_TOTAL) {
+    energyShake.value = card.id
+    window.clearTimeout(shakeTimer)
+    shakeTimer = window.setTimeout(() => {
+      energyShake.value = ''
+    }, 380)
+    showToast('今天只有 5 格，先放下一张再拿')
+    return
+  }
+  selectedEnergy.value = [...selectedEnergy.value, card.id]
+  reviewing.value = false
+  energyFocus.value = ''
 }
 
-function resetForms(): void {
-  dilemma.aWant = ''
-  dilemma.aWorry = ''
-  dilemma.bWant = ''
-  dilemma.bWorry = ''
-  dilemma.nonneg = ''
+function resetEnergy(): void {
+  selectedEnergy.value = ['rest']
+  reviewing.value = false
+  energyFocus.value = ''
+  energyReasonsPicked.value = []
+  energyNote.value = ''
+}
+
+async function reviewEnergy(): Promise<void> {
+  reviewing.value = true
+  await nextTick()
+  document.querySelector('.energy-review')?.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' })
+}
+
+function chooseFocus(card: EnergyCard): void {
+  energyFocus.value = card.id
+  energyReasonsPicked.value = []
+  energyNote.value = ''
+}
+
+function toggleReason(reason: string): void {
+  energyReasonsPicked.value = energyReasonsPicked.value.includes(reason)
+    ? energyReasonsPicked.value.filter((item) => item !== reason)
+    : [...energyReasonsPicked.value, reason]
+}
+
+function saveEnergy(event: MouseEvent): void {
+  const button = event.currentTarget
+  if (!(button instanceof HTMLElement)) return
+  if (!focusCard.value) {
+    showToast('先选一张准备放下的牌')
+    return
+  }
+  const savedAt = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  const card = focusCard.value
+  const record: ToolRecord = {
+    type: '能量牌局',
+    title: `今天先放下：${card.title}`,
+    meta: energyReasonsPicked.value.length
+      ? `${energyReasonsPicked.value.join(' / ')}${energyNote.value.trim() ? ` · ${energyNote.value.trim().slice(0, 30)}` : ''}`
+      : energyNote.value.trim().slice(0, 42) || `今天留下 ${selectedCards.value.length} 件事，还剩 ${remainingEnergy.value} 格。`,
+    time: savedAt,
+  }
+  addTrace(record)
+  flyToTrace(button, record)
+  showToast('已收进我的轨迹')
+}
+
+function splitEnergy(): void {
+  if (!focusCard.value) return
+  splitContext.value = focusCard.value.title
+  switchTool('thought')
+  showToast('把这张牌拆到三栏里')
+}
+
+function saveThought(event: MouseEvent): void {
+  const button = event.currentTarget
+  if (!(button instanceof HTMLElement)) return
+  const hasContent = Boolean(thought.fact || thought.thought || thought.feeling)
+  if (!hasContent) {
+    showToast('先写一点，再保存')
+    document.querySelector<HTMLTextAreaElement>('#panel-thought textarea')?.focus()
+    return
+  }
+  const savedAt = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  const record: ToolRecord = {
+    type: '想法捕捉',
+    title: (thought.thought || thought.fact || '三栏记录').slice(0, 18),
+    meta: thought.feeling.trim() ? `感受：${thought.feeling.trim().slice(0, 36)}` : '事实、想法和感受已经分开。',
+    time: savedAt,
+  }
+  addTrace(record)
+  flyToTrace(button, record)
+  splitContext.value = ''
+  showToast('已归档到我的轨迹')
+}
+
+function resetThought(): void {
   thought.fact = ''
   thought.thought = ''
   thought.feeling = ''
 }
 
-function clearTool(): void {
+function clearThought(): void {
   clearing.value = true
   window.setTimeout(() => {
-    resetForms()
+    resetThought()
     clearing.value = false
     triggerEntrance()
-    showToast('画布已清空')
+    splitContext.value = ''
+    showToast('三栏已清空')
   }, 290)
 }
 
@@ -212,6 +283,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.clearTimeout(toastTimer)
   window.clearTimeout(entranceTimer)
+  window.clearTimeout(shakeTimer)
 })
 </script>
 
@@ -222,22 +294,22 @@ onBeforeUnmount(() => {
         <p class="eyebrow">TOOLS FOR THINKING</p>
         <h1>把卡住的地方，<br /><span>摊开来看。</span></h1>
         <p class="lede">
-          不用马上做决定。先把两边的分量写下来，或者把事实、想法和感受分开。写下来的东西，只有你自己看得见。
+          不用马上做决定。先把今天的电量摆上桌，看看哪些可以先放下；或者把一件事拆成事实、想法和感受。
         </p>
         <div class="tool-switch" role="tablist" aria-label="选择工具">
           <button
-            id="tools-dilemma-tab"
+            id="tools-energy-tab"
             class="tool-tab"
-            :class="{ 'is-active': activeTool === 'dilemma' }"
+            :class="{ 'is-active': activeTool === 'energy' }"
             type="button"
             role="tab"
-            :aria-selected="activeTool === 'dilemma'"
-            aria-controls="panel-dilemma"
-            @click="switchTool('dilemma')"
+            :aria-selected="activeTool === 'energy'"
+            aria-controls="panel-energy"
+            @click="switchTool('energy')"
           >
             <span>01</span>
-            <strong>两难梳理</strong>
-            <small>左右对比</small>
+            <strong>能量牌局</strong>
+            <small>5 格电量 · 今天怎么不硬撑</small>
           </button>
           <button
             id="tools-thought-tab"
@@ -250,7 +322,7 @@ onBeforeUnmount(() => {
             @click="switchTool('thought')"
           >
             <span>02</span>
-            <strong>想法捕捉器</strong>
+            <strong>把一件事拆开</strong>
             <small>事实 / 想法 / 感受</small>
           </button>
         </div>
@@ -259,117 +331,134 @@ onBeforeUnmount(() => {
       <div class="workspace">
         <div class="tool-area">
           <section
-            id="panel-dilemma"
-            v-show="activeTool === 'dilemma'"
+            id="panel-energy"
+            v-show="activeTool === 'energy'"
             class="tool-panel"
             :class="{
-              'is-active': activeTool === 'dilemma',
-              'is-leaving': leaving && activeTool === 'dilemma',
-              'is-clearing': clearing,
+              'is-active': activeTool === 'energy',
+              'is-leaving': leaving && activeTool === 'energy',
               'is-entering': entrance,
             }"
             role="tabpanel"
-            aria-labelledby="tools-dilemma-tab"
-            :style="dilemmaStyle"
+            aria-labelledby="tools-energy-tab"
           >
             <header class="panel-head">
               <div>
-                <p class="panel-index">01 / DILEMMA CANVAS</p>
-                <h2>两难梳理画布</h2>
+                <p class="panel-index">01 / ENERGY DECK</p>
+                <h2>今天的能量牌局</h2>
               </div>
-              <p class="panel-note">约 5 分钟 · 不是打分，也不替你做决定</p>
+              <p class="panel-note">5 格电量 · 不是时间管理，是今天怎么不硬撑</p>
             </header>
-            <p class="panel-intro">先把 A 和 B 各自的“想要”和“担心”写完整，再回到最下面那一句。</p>
+            <p class="panel-intro">吃饭睡觉已经占掉 2 格。剩下的 3 格，看看今天真正要花在哪里。</p>
 
-            <div class="balance-zone" aria-hidden="true">
-              <span class="balance-side">A</span>
-              <div class="balance-line">
-                <span class="balance-block balance-block--a"></span>
-                <span class="balance-mark"></span>
-                <span class="balance-block balance-block--b"></span>
+            <div class="energy-meter">
+              <div class="energy-pips" aria-hidden="true">
+                <i v-for="n in 5" :key="n" :class="{ 'is-filled': n <= usedEnergy }"></i>
               </div>
-              <span class="balance-side">B</span>
-              <small class="balance-caption">{{ balanceCaption }}</small>
+              <div>
+                <strong>{{ remainingEnergy }} 格</strong>
+                <small>已占用 {{ usedEnergy }} / 5</small>
+              </div>
             </div>
 
-            <div class="dilemma-grid" :class="{ 'is-entering': entrance }">
-              <article class="choice-card" :class="{ 'is-complete': aComplete }">
-                <header>
-                  <span class="choice-letter">A</span>
-                  <div><strong>先选这个</strong><small>选择 A</small></div>
-                  <span class="complete-dot" aria-hidden="true"></span>
-                </header>
-                <label class="field">
-                  <span>它吸引我的是</span>
-                  <textarea
-                    v-model="dilemma.aWant"
-                    rows="3"
-                    maxlength="240"
-                    placeholder="比如：离家近、节奏稳、爸妈会放心…"
-                  ></textarea>
-                </label>
-                <label class="field">
-                  <span>我担心的是</span>
-                  <textarea
-                    v-model="dilemma.aWorry"
-                    rows="3"
-                    maxlength="240"
-                    placeholder="比如：我会不会后悔、是不是把自己关小了…"
-                  ></textarea>
-                </label>
-                <p class="card-state">{{ aComplete ? '这一栏写完了，可以看看另一边' : '写完后，这一栏会亮一下' }}</p>
-              </article>
-
-              <article class="choice-card" :class="{ 'is-complete': bComplete }">
-                <header>
-                  <span class="choice-letter">B</span>
-                  <div><strong>先选那个</strong><small>选择 B</small></div>
-                  <span class="complete-dot" aria-hidden="true"></span>
-                </header>
-                <label class="field">
-                  <span>它吸引我的是</span>
-                  <textarea
-                    v-model="dilemma.bWant"
-                    rows="3"
-                    maxlength="240"
-                    placeholder="比如：更像我想成为的人、机会更多…"
-                  ></textarea>
-                </label>
-                <label class="field">
-                  <span>我担心的是</span>
-                  <textarea
-                    v-model="dilemma.bWorry"
-                    rows="3"
-                    maxlength="240"
-                    placeholder="比如：不稳定、会让家里失望…"
-                  ></textarea>
-                </label>
-                <p class="card-state">{{ bComplete ? '这一栏写完了，可以看看另一边' : '写完后，这一栏会亮一下' }}</p>
-              </article>
+            <div class="energy-deck">
+              <button
+                v-for="(card, index) in energyCards"
+                :key="card.id"
+                class="energy-card"
+                :class="{
+                  'is-selected': selectedEnergy.includes(card.id),
+                  'is-fixed': card.fixed,
+                  'is-shaking': energyShake === card.id,
+                }"
+                :style="{ animationDelay: index * 36 + 'ms' }"
+                type="button"
+                :data-energy="card.id"
+                :aria-pressed="selectedEnergy.includes(card.id)"
+                @click="toggleEnergy(card)"
+              >
+                <span class="energy-cost">{{ card.cost }}<small>格</small></span>
+                <span class="energy-card-copy">
+                  <strong>{{ card.title }}</strong>
+                  <small>{{ card.note }}</small>
+                </span>
+                <span class="energy-state">{{ card.fixed ? '基础' : selectedEnergy.includes(card.id) ? '已占用' : '点一下加入' }}</span>
+              </button>
             </div>
 
-            <div class="nonnegotiables" :class="{ 'is-complete': nonnegComplete, 'is-entering': entrance }">
-              <label class="field field--wide">
-                <span>如果只能选一个，我最不能接受的是…</span>
-                <textarea
-                  v-model="dilemma.nonneg"
-                  rows="3"
-                  maxlength="300"
-                  placeholder="不是“哪个更好”，而是“哪一种后悔我更承受不了”。"
-                ></textarea>
-              </label>
+            <div class="energy-tray">
+              <header>
+                <span>今天先拿着</span>
+                <small>{{ selectedCards.length }} 件 · {{ usedEnergy }} 格</small>
+              </header>
+              <div v-if="selectedCards.length" class="tray-list">
+                <span v-for="card in selectedCards" :key="card.id" class="tray-chip">
+                  {{ card.title }}<b>{{ card.cost }} 格</b>
+                </span>
+              </div>
             </div>
 
             <footer class="panel-actions">
-              <p class="action-hint">写不完也没关系。先保存，之后回来接着写。</p>
+              <p class="action-hint">还有 {{ remainingEnergy }} 格。不用把所有事都塞进去，先看看哪张可以先放下。</p>
               <div class="action-buttons">
-                <button class="btn btn--ghost" type="button" @click="clearTool">清空画布</button>
-                <button class="btn btn--primary" type="button" @click="saveTool('dilemma', $event)">
-                  保存到我的轨迹
-                  <span class="btn-arrow" aria-hidden="true">→</span>
-                </button>
+                <button class="btn btn--ghost" type="button" @click="resetEnergy">重新摆</button>
+                <button class="btn btn--primary" type="button" @click="reviewEnergy">看看今天</button>
               </div>
             </footer>
+
+            <section v-if="reviewing" class="energy-review">
+              <header>
+                <p>今天的取舍</p>
+                <h3>{{ remainingEnergy === 0 ? '电量刚好用完' : '还剩 ' + remainingEnergy + ' 格' }}</h3>
+              </header>
+              <div class="review-grid">
+                <div>
+                  <h4>今天先拿着</h4>
+                  <ul>
+                    <li v-for="card in selectedCards" :key="card.id"><span>{{ card.title }}</span><b>{{ card.cost }} 格</b></li>
+                  </ul>
+                </div>
+                <div>
+                  <h4>可以先放下</h4>
+                  <div class="focus-list">
+                    <button
+                      v-for="card in droppedCards"
+                      :key="card.id"
+                      type="button"
+                      :class="{ 'is-active': energyFocus === card.id }"
+                      :data-focus="card.id"
+                      @click="chooseFocus(card)"
+                    >
+                      {{ card.title }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="focusCard" class="focus-box">
+                <p>你选了「{{ focusCard.title }}」先放下。</p>
+                <div class="reason-chips">
+                  <button
+                    v-for="reason in energyReasons"
+                    :key="reason"
+                    type="button"
+                    :class="{ 'is-active': energyReasonsPicked.includes(reason) }"
+                    @click="toggleReason(reason)"
+                  >
+                    {{ reason }}
+                  </button>
+                </div>
+                <label class="focus-note">
+                  <span>如果要跟谁说一句…</span>
+                  <textarea v-model="energyNote" rows="2" maxlength="120" placeholder="比如：今晚只能做一半，明天再接。"></textarea>
+                  <small>{{ energyNote.length }} / 120</small>
+                </label>
+                <div class="focus-actions">
+                  <button class="btn btn--ghost" type="button" @click="splitEnergy">把这张牌拆开</button>
+                  <button class="btn btn--primary" type="button" @click="saveEnergy($event)">保存今天的取舍</button>
+                </div>
+              </div>
+            </section>
           </section>
 
           <section
@@ -385,10 +474,14 @@ onBeforeUnmount(() => {
             role="tabpanel"
             aria-labelledby="tools-thought-tab"
           >
+            <div v-if="splitContext" class="split-context">
+              <span>正在拆：{{ splitContext }}</span>
+              <button type="button" aria-label="关闭拆解上下文" @click="splitContext = ''">×</button>
+            </div>
             <header class="panel-head">
               <div>
                 <p class="panel-index">02 / THOUGHT CATCHER</p>
-                <h2>想法捕捉器</h2>
+                <h2>{{ splitContext ? '把这张牌拆开' : '把一件事拆开' }}</h2>
               </div>
               <p class="panel-note">约 4 分钟 · 只做觉察，不急着纠正</p>
             </header>
@@ -443,8 +536,8 @@ onBeforeUnmount(() => {
             <footer class="panel-actions">
               <p class="action-hint">三栏都写完后，虚线会连起来。</p>
               <div class="action-buttons">
-                <button class="btn btn--ghost" type="button" @click="clearTool">清空三栏</button>
-                <button class="btn btn--primary" type="button" @click="saveTool('thought', $event)">
+                <button class="btn btn--ghost" type="button" @click="clearThought">清空三栏</button>
+                <button class="btn btn--primary" type="button" @click="saveThought($event)">
                   保存到我的轨迹
                   <span class="btn-arrow" aria-hidden="true">→</span>
                 </button>
@@ -1655,6 +1748,491 @@ onBeforeUnmount(() => {
 
 .tools-support > a:hover {
   text-decoration: underline;
+}
+
+/* 能量牌局 */
+.energy-meter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 24px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.energy-pips {
+  display: flex;
+  gap: 7px;
+}
+
+.energy-pips i {
+  width: 30px;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--line);
+  transition:
+    background-color 260ms ease,
+    transform 260ms var(--ease);
+}
+
+.energy-pips i.is-filled {
+  background: var(--accent);
+  transform: scaleY(1.15);
+}
+
+.energy-meter > div:last-child {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.energy-meter strong {
+  color: var(--ink);
+  font-size: var(--type-heading);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.energy-meter small {
+  color: var(--muted);
+  font-size: var(--type-caption);
+}
+
+.energy-deck {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.energy-card {
+  display: grid;
+  min-height: 78px;
+  align-items: center;
+  gap: 11px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--ink);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  animation: deal-in 440ms var(--ease) both;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms var(--ease);
+}
+
+.energy-card:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-1px);
+}
+
+.energy-card.is-selected {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.energy-card.is-fixed {
+  background: var(--surface-soft);
+}
+
+.energy-card.is-shaking {
+  animation: card-shake 360ms ease;
+}
+
+.energy-cost {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  color: var(--ink);
+  font-size: var(--type-strong);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.energy-cost small {
+  margin-left: 1px;
+  color: var(--muted);
+  font-size: var(--type-caption);
+  font-weight: 500;
+}
+
+.energy-card.is-selected .energy-cost {
+  border-color: var(--accent-line);
+  color: var(--accent);
+  background: var(--surface);
+}
+
+.energy-card-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.energy-card-copy strong {
+  overflow: hidden;
+  font-size: var(--type-body);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.energy-card-copy small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--type-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.energy-state {
+  color: var(--muted);
+  font-size: var(--type-caption);
+  white-space: nowrap;
+}
+
+.energy-card.is-selected .energy-state {
+  color: var(--accent);
+}
+
+.energy-tray {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  background: var(--surface-soft);
+}
+
+.energy-tray > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.energy-tray > header span {
+  color: var(--ink);
+  font-size: var(--type-caption);
+  font-weight: 600;
+}
+
+.energy-tray > header small {
+  color: var(--muted);
+  font-size: var(--type-caption);
+}
+
+.tray-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.tray-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--ink);
+  background: var(--surface);
+  font-size: var(--type-caption);
+  animation: tray-pop 260ms var(--ease) both;
+}
+
+.tray-chip b {
+  color: var(--accent);
+  font-size: var(--type-caption);
+  font-weight: 600;
+}
+
+.energy-review {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  animation: review-in 420ms var(--ease) both;
+}
+
+.energy-review > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.energy-review > header p {
+  color: var(--accent);
+  font-size: var(--type-caption);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.energy-review > header h3 {
+  color: var(--ink);
+  font-size: var(--type-heading);
+  font-weight: 600;
+}
+
+.review-grid {
+  display: grid;
+  gap: 24px;
+  margin-top: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.review-grid h4 {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: var(--type-caption);
+  font-weight: 500;
+}
+
+.review-grid ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review-grid li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  font-size: var(--type-body);
+}
+
+.review-grid li b {
+  color: var(--muted);
+  font-size: var(--type-caption);
+  font-weight: 500;
+}
+
+.focus-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.focus-list button {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--muted);
+  background: var(--surface);
+  font-size: var(--type-caption);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.focus-list button:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.focus-list button.is-active {
+  border-color: var(--accent-line);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.focus-box {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid var(--accent-line);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+}
+
+.focus-box > p {
+  color: var(--ink);
+  font-size: var(--type-body);
+}
+
+.reason-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.reason-chips button {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--accent-line);
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--surface);
+  font-size: var(--type-caption);
+  cursor: pointer;
+}
+
+.reason-chips button.is-active {
+  border-color: var(--accent);
+  color: var(--on-primary);
+  background: var(--accent);
+}
+
+.focus-note {
+  display: block;
+  margin-top: 12px;
+}
+
+.focus-note > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: var(--type-caption);
+}
+
+.focus-note textarea {
+  display: block;
+  width: 100%;
+  min-height: 58px;
+  padding: 8px 9px;
+  resize: vertical;
+  border: 1px solid var(--accent-line);
+  border-radius: 8px;
+  outline: none;
+  color: var(--ink);
+  background: var(--surface);
+  font-size: var(--type-body);
+  line-height: 1.7;
+}
+
+.focus-note textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 10%);
+}
+
+.focus-note small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: var(--type-caption);
+  text-align: right;
+}
+
+.focus-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.split-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 9px 11px;
+  border-left: 2px solid var(--accent);
+  color: var(--muted);
+  background: var(--surface-soft);
+  font-size: var(--type-caption);
+}
+
+.split-context button {
+  padding: 2px 5px;
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+@keyframes deal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes card-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+  75% {
+    transform: translateX(-2px);
+  }
+}
+
+@keyframes tray-pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes review-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 700px) {
+  .energy-deck {
+    grid-template-columns: 1fr;
+  }
+
+  .energy-review > header {
+    display: block;
+  }
+
+  .review-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .focus-actions {
+    flex-direction: column-reverse;
+  }
+
+  .focus-actions .btn {
+    width: 100%;
+  }
 }
 
 [data-theme='sage'] .tools-page {

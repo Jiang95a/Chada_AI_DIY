@@ -126,7 +126,7 @@ describe('工作台外框入口', () => {
 
     expect(wrapper.find('.tools-page').exists()).toBe(true)
     expect(wrapper.find('.public-shell').exists()).toBe(true)
-    expect(wrapper.find('.dilemma-grid').exists()).toBe(true)
+    expect(wrapper.find('.energy-deck').exists()).toBe(true)
     expect(wrapper.find('.trace-rail').exists()).toBe(true)
 
     await wrapper.findAll('.tool-tab')[1]?.trigger('click')
@@ -135,18 +135,23 @@ describe('工作台外框入口', () => {
     wrapper.unmount()
   })
 
-  it('两难梳理能完成并保存到本页轨迹', async () => {
+  it('能量牌局能选择电量并保存今天先放下的事', async () => {
     localStorage.clear()
     const wrapper = await mountAt('/tools')
-    const fields = wrapper.findAll('#panel-dilemma textarea')
 
-    await fields[0]?.setValue('离家近，节奏稳定。')
-    await fields[1]?.setValue('怕自己后悔。')
-    await fields[2]?.setValue('更像我想成为的人。')
-    await fields[3]?.setValue('怕不稳定。')
+    expect(wrapper.findAll('.energy-card').length).toBe(8)
+    await wrapper.find('[data-energy="club"]').trigger('click')
 
-    expect(wrapper.findAll('.choice-card.is-complete').length).toBe(2)
-    await wrapper.find('#panel-dilemma .btn--primary').trigger('click')
+    expect(wrapper.find('.energy-tray').text()).toContain('社团活动')
+    expect(wrapper.findAll('.energy-pips .is-filled').length).toBe(3)
+
+    await wrapper.find('.panel-actions .btn--primary').trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.energy-review').exists()).toBe(true)
+
+    await wrapper.find('[data-focus="group"]').trigger('click')
+    await flushPromises()
+    await wrapper.find('.focus-actions .btn--primary').trigger('click')
     await flushPromises()
 
     expect(wrapper.find('.trace-count').text()).toBe('1')
