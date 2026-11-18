@@ -8,6 +8,21 @@
 
 ---
 
+## 0. 评委快速体验
+
+按 [`5. 本地启动`](#5-本地启动) 跑完迁移与三端后，打开 <http://localhost:5173>：
+
+| 场景 | 怎么看 |
+|---|---|
+| 什么都不用登录 | 首页、心理活动广场（4 场活动）、活动详情与报名、心晴工具箱、心理资源 |
+| 登录看运营侧 | `demo@example.com` / `Campus2026a` |
+| 登录后看什么 | 运营概览、模板库（8 套）、编辑器、发布、数据与导出、我的轨迹与 AI 回看 |
+
+> 演示账号与演示数据由 `docs/sql/002_seed.sql`、`003_seed_fix.sql`、`014_demo_wellbeing_activities.sql` 写入，
+> 不需要自己注册或建活动，跑完迁移即可看到完整界面。
+
+---
+
 ## 1. 为什么做这个
 
 心理社团办一场活动，现在要过这几关：
@@ -111,19 +126,46 @@ server/  Spring Boot 3.4 · MyBatis · MySQL 8      :8080   context-path /api/v1
 ```bash
 # 00 由 root 执行
 mysql -u root -p --default-character-set=utf8mb4 < docs/sql/00_create_database.sql
-# 其余 14 个由 campus_app 执行，顺序见 docs/sql/README.md
+# 其余 15 个由 campus_app 执行，顺序见 docs/sql/README.md
 ```
 
 自查：
 
 ```sql
 SHOW TABLES;                    -- 应为 19 张
-SELECT COUNT(*) FROM templates; -- 应为 18 套（10 通用 + 4 心理 + 4 生涯）
+SELECT COUNT(*) FROM templates; -- 应为 18 套（启用 8 套：4 心理 + 4 生涯）
+SELECT COUNT(*) FROM projects WHERE status='published';  -- 应为 8 场（4 场心理活动 + 4 场通用演示）
 ```
 
 健康检查 <http://127.0.0.1:8080/api/v1/health>，`database.tables` 应为 `19`。
 
-### 5.1 智能体
+### 5.1 演示账号（评委可直接使用）
+
+跑完迁移后，库里已经有一批演示数据，**不需要自己注册**就能看到完整界面：
+
+| 账号 | 密码 | 说明 |
+|---|---|---|
+| `demo@example.com` | `Campus2026a` | 演示账号，拥有全部演示活动的管理权限 |
+
+用这个账号登录后可以看到：运营概览（8 个项目）、模板库（8 套心理与生涯模板）、
+编辑器、发布弹窗、数据页与导出、以及「我的轨迹」里的 AI 回看入口。
+
+**不登录也能看的**：首页、心理活动广场（4 场心理活动）、活动详情页与报名流程、
+心晴工具箱、心理资源。
+
+演示活动一览（均由 `docs/sql/014_demo_wellbeing_activities.sql` 写入）：
+
+| 活动 | 类型 | 看点 |
+|---|---|---|
+| 考试周心晴游园会 | 心晴活动 | 4 页、信息卡、倒计时、匿名报名表单、危机资源页 |
+| 心理知识问答 | 心理科普 | 5 道题、匿名作答、开放期倒计时 |
+| 情绪小测 · 你最近还好吗 | 心理科普 | 6 道题、独立的一套文案与主题色 |
+| 校园心理互助小组 | 心理活动 | 小组活动、保密说明、报名人数限制 |
+
+> 想让 AI 功能（生成活动页 / 读海报 / 回看）可用，还需要配置模型 key，
+> 见 5.2 与 5.5。**不配 key 时这些入口会明确提示不可用并降级**，不会报 500。
+
+### 5.2 智能体
 
 ```powershell
 cd agent
@@ -145,7 +187,7 @@ python selftest.py --live     # 额外真调一次模型
 
 文档 <http://127.0.0.1:8000/docs>
 
-### 5.2 后端
+### 5.3 后端
 
 ```powershell
 cd server
@@ -157,7 +199,7 @@ cd server
 **Active profiles 设成 `dev`** —— 否则会报「缺少 JWT_SECRET」，这是刻意的，
 仓库里不允许存在可直接签 token 的默认密钥。
 
-### 5.3 前端
+### 5.4 前端
 
 ```powershell
 cd web
@@ -167,7 +209,7 @@ corepack pnpm dev
 
 需要 Node `^22.18.0` 或 `>=24.12.0`，包管理器用 **pnpm**（版本见 `web/package.json` 的 `packageManager`）。
 
-### 5.4 回看智能体要配的环境变量
+### 5.5 回看智能体要配的环境变量
 
 只从环境变量读，**不写前端、不进 git、不打日志**：
 
