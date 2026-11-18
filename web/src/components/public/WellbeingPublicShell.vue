@@ -152,17 +152,12 @@ function cycleTheme(): void {
   height: 100%;
   object-fit: cover;
   object-position: center 42%;
-  opacity: 0.5;
-  filter: saturate(0.9) contrast(1.02);
-  -webkit-mask-image: radial-gradient(ellipse at center, #000 0%, rgb(0 0 0 / 82%) 52%, transparent 100%);
-  mask-image: radial-gradient(ellipse at center, #000 0%, rgb(0 0 0 / 82%) 52%, transparent 100%);
+  opacity: 1;
+  filter: none;
 }
 
 .public-atmosphere::after {
-  position: absolute;
-  inset: 0;
-  background: rgb(232 224 210 / 38%);
-  content: '';
+  display: none;
 }
 
 .public-shell > :not(.public-atmosphere):not(.public-nav):not(.public-mobile-nav) {
