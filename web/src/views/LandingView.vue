@@ -1455,37 +1455,4 @@ onMounted(() => {
   }
 }
 
-
-/* 首页每个主板块是一张半透明卡片，既能看出分块，又让固定背景透出来。 */
-.landing-page .hero,
-.landing-page .activities-section,
-.landing-page .trace-section {
-  width: min(1280px, calc(100% - 48px));
-  margin: 18px auto 0;
-  border: 1px solid color-mix(in srgb, var(--line) 88%, transparent);
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--surface) 68%, transparent);
-  box-shadow: 0 24px 60px -52px rgb(24 24 27 / 32%);
-  backdrop-filter: blur(3px);
-}
-
-.landing-page .hero {
-  overflow: hidden;
-}
-
-.landing-page .activities-section,
-.landing-page .trace-section {
-  overflow: hidden;
-}
-
-@media (max-width: 820px) {
-  .landing-page .hero,
-  .landing-page .activities-section,
-  .landing-page .trace-section {
-    width: calc(100% - 24px);
-    margin-top: 12px;
-    border-radius: 14px;
-  }
-}
-
 </style>
