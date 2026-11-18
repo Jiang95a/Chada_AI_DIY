@@ -1031,7 +1031,7 @@ onMounted(() => {
   padding: 54px clamp(28px, 4vw, 56px);
   border-bottom: 0;
   color: var(--ink-900);
-  background: color-mix(in srgb, var(--surface) 92%, var(--bg));
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
 }
 

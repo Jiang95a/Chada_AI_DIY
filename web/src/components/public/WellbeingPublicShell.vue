@@ -151,8 +151,8 @@ function cycleTheme(): void {
   height: 100%;
   object-fit: cover;
   object-position: center 42%;
-  opacity: 0.22;
-  filter: saturate(0.68) contrast(0.94);
+  opacity: 0.42;
+  filter: saturate(0.74) contrast(0.94);
   -webkit-mask-image: radial-gradient(ellipse at center, #000 0%, rgb(0 0 0 / 82%) 52%, transparent 100%);
   mask-image: radial-gradient(ellipse at center, #000 0%, rgb(0 0 0 / 82%) 52%, transparent 100%);
 }
@@ -160,7 +160,7 @@ function cycleTheme(): void {
 .public-atmosphere::after {
   position: absolute;
   inset: 0;
-  background: color-mix(in srgb, var(--bg) 58%, transparent);
+  background: color-mix(in srgb, var(--brand-100) 52%, transparent);
   content: '';
 }
 
