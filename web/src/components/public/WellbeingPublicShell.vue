@@ -86,9 +86,7 @@ function cycleTheme(): void {
       </div>
     </header>
 
-    <div class="public-page-surface" :class="{ 'is-home': route.path === '/' }">
-      <slot />
-    </div>
+    <slot />
 
     <nav class="public-mobile-nav" aria-label="移动端公共导航">
       <RouterLink to="/" :class="{ 'is-active': route.path === '/' }"><Icon name="home" :size="17" />首页</RouterLink>
@@ -169,25 +167,6 @@ function cycleTheme(): void {
 .public-shell > :not(.public-atmosphere) {
   position: relative;
   z-index: 1;
-}
-
-.public-page-surface:not(.is-home) {
-  width: min(1280px, calc(100% - 48px));
-  margin: 18px auto 0;
-  overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--line) 88%, transparent);
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--surface) 72%, transparent);
-  box-shadow: 0 24px 60px -52px rgb(24 24 27 / 32%);
-  backdrop-filter: blur(3px);
-}
-
-@media (max-width: 820px) {
-  .public-page-surface:not(.is-home) {
-    width: calc(100% - 24px);
-    margin-top: 12px;
-    border-radius: 14px;
-  }
 }
 
 .public-nav {
