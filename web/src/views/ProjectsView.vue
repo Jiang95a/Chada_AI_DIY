@@ -6,10 +6,7 @@ import BaseModal from '@/components/ui/BaseModal.vue'
 import Icon from '@/components/ui/Icon.vue'
 import { useToast } from '@/composables/useToast'
 import { useProjectStore, type ProjectRecord, type ProjectStatus } from '@/stores/projects'
-import coverGarden from '@/assets/photos/activity-garden.jpg'
-import coverSelfCare from '@/assets/photos/activity-selfcare.jpg'
-import coverClub from '@/assets/photos/activity-club.jpg'
-import coverQuiet from '@/assets/photos/activity-workshop.jpg'
+import { coverForProject } from '@/utils/projectCover'
 
 const projectStore = useProjectStore()
 const route = useRoute()
@@ -20,12 +17,6 @@ const sortMode = ref<'updated' | 'created' | 'title'>('updated')
 const openMenuId = ref('')
 const actionProjectId = ref('')
 const deleteTarget = ref<ProjectRecord | null>(null)
-const coverImages: Record<string, string> = {
-  read: coverGarden,
-  photo: coverSelfCare,
-  volunteer: coverClub,
-  music: coverQuiet,
-}
 
 onMounted(() => {
   document.addEventListener('click', closeProjectMenu)
@@ -61,7 +52,7 @@ const projects = computed(() =>
       : project.status === 'published'
         ? '暂无提交'
         : '尚未发布',
-    coverImage: coverImages[project.coverTone] ?? coverGarden,
+    coverImage: coverForProject(project),
     updatedAt: formatProjectDate(project.document.updatedAt),
     slug: project.document.slug,
   }))

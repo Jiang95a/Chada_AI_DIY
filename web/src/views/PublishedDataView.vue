@@ -11,10 +11,7 @@ import {
   type SubmissionSummary,
 } from '@/services/submissions'
 import { useProjectStore, type ProjectRecord } from '@/stores/projects'
-import coverGarden from '@/assets/photos/activity-garden.jpg'
-import coverSelfCare from '@/assets/photos/activity-selfcare.jpg'
-import coverClub from '@/assets/photos/activity-club.jpg'
-import coverQuiet from '@/assets/photos/activity-workshop.jpg'
+import { coverForProject } from '@/utils/projectCover'
 
 const REMOTE_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
@@ -28,12 +25,6 @@ const submissions = ref<SubmissionRecord[]>([])
 const submissionSummary = ref<SubmissionSummary | null>(null)
 const submissionLoading = ref(false)
 const submissionError = ref('')
-const coverImages: Record<string, string> = {
-  read: coverGarden,
-  photo: coverSelfCare,
-  volunteer: coverClub,
-  music: coverQuiet,
-}
 
 const publishedProjects = computed(() =>
   projectStore.projects
@@ -98,8 +89,13 @@ function projectSlug(project: ProjectRecord): string {
   return project.publicSlug || project.document.published?.slug || project.document.slug
 }
 
-function coverImageFor(tone: string): string {
-  return coverImages[tone] ?? coverGarden
+function coverImageFor(project: ProjectRecord): string {
+  return coverForProject({
+    id: project.id,
+    title: project.document.title,
+    activityType: project.type,
+    coverTone: project.coverTone,
+  })
 }
 
 function formatTime(timestamp: number): string {
@@ -263,7 +259,7 @@ onMounted(async () => {
               :class="{ 'is-active': project.id === selectedProject?.id }"
               @click="selectProject(project)"
             >
-              <img class="app-cover-image" :src="coverImageFor(project.coverTone)" alt="" loading="lazy" />
+              <img class="app-cover-image" :src="coverImageFor(project)" alt="" loading="lazy" />
               <span class="app-list-copy">
                 <strong>{{ project.document.title }}</strong>
                 <small>{{ project.type }} · {{ formatTime(project.document.updatedAt) }}更新</small>

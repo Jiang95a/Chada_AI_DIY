@@ -6,11 +6,8 @@ import TracePulseCard from '@/components/public/TracePulseCard.vue'
 import { listPublicActivities, type PublicActivitySummary } from '@/services/public'
 import { useProjectStore } from '@/stores/projects'
 import { emptyTrace, type ParticipantTrace } from '@/types/trace'
-import coverGarden from '@/assets/photos/activity-garden.jpg'
-import coverSelfCare from '@/assets/photos/activity-selfcare.jpg'
-import coverClub from '@/assets/photos/activity-club.jpg'
-import coverQuiet from '@/assets/photos/activity-workshop.jpg'
 import campusWalk from '@/assets/photos/hero-campus.jpg'
+import { coverForProject } from '@/utils/projectCover'
 
 const router = useRouter()
 const projectStore = useProjectStore()
@@ -50,12 +47,6 @@ const demoActivities: PublicActivitySummary[] = [
 ]
 
 const visibleActivities = computed(() => activities.value.slice(0, 3))
-const coverImages: Record<string, string> = {
-  read: coverGarden,
-  photo: coverSelfCare,
-  volunteer: coverClub,
-  music: coverQuiet,
-}
 
 function keepsFor(activity: PublicActivitySummary): string {
   const text = `${activity.title} ${activity.description ?? ''} ${activity.activityType ?? ''}`
@@ -98,8 +89,14 @@ const demoTraces: ParticipantTrace[] = [
   },
 ]
 
-function coverImageFor(tone: string | undefined): string {
-  return coverImages[tone ?? ''] ?? coverGarden
+function coverImageFor(activity: PublicActivitySummary): string {
+  return coverForProject({
+    id: activity.slug,
+    title: activity.title,
+    description: activity.description,
+    activityType: activity.activityType,
+    coverTone: activity.coverTone,
+  })
 }
 
 async function loadActivities(): Promise<void> {
@@ -185,7 +182,7 @@ onMounted(() => {
           class="activity-card"
           :class="[`activity-card--${index + 1}`, `tone-${activity.coverTone || 'read'}`]"
         >
-          <img class="activity-cover" :src="coverImageFor(activity.coverTone)" alt="" loading="lazy" />
+          <img class="activity-cover" :src="coverImageFor(activity)" alt="" loading="lazy" />
           <span class="activity-type">{{ activity.activityType || '心晴活动' }}</span>
           <div>
             <small>0{{ index + 1 }}</small>
