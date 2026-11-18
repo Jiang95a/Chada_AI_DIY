@@ -12,39 +12,7 @@ import { coverForProject, uniqueCoversForProjects } from '@/utils/projectCover'
 const router = useRouter()
 const projectStore = useProjectStore()
 const activities = ref<PublicActivitySummary[]>([])
-
-const demoActivities: PublicActivitySummary[] = [
-  {
-    slug: 'heart-garden',
-    title: '考试周心晴游园会',
-    description: '用一场轻松的活动，把压力放下来一点。',
-    activityType: '心晴游园会',
-    coverTone: 'read',
-    coverCode: 'WELLBEING',
-    coverTitle: '给忙碌的心\n留一小块空地',
-    status: 'published',
-  },
-  {
-    slug: 'self-care-21',
-    title: '21 天自我关怀练习',
-    description: '每天完成一个很小的照顾自己的动作。',
-    activityType: '自我关怀',
-    coverTone: 'photo',
-    coverCode: 'SELF CARE',
-    coverTitle: '把照顾自己\n变成一件小事',
-    status: 'published',
-  },
-  {
-    slug: 'mindful-club',
-    title: '心屿心理协会秋季招新',
-    description: '和愿意倾听、也愿意行动的同学相遇。',
-    activityType: '心理社团',
-    coverTone: 'volunteer',
-    coverCode: 'JOIN XINYU',
-    coverTitle: '一起做有温度\n的校园心理活动',
-    status: 'published',
-  },
-]
+const activitiesLoading = ref(true)
 
 const visibleActivities = computed(() => activities.value.slice(0, 3))
 const activityCovers = computed(() =>
@@ -114,6 +82,7 @@ function coverImageFor(activity: PublicActivitySummary): string {
 }
 
 async function loadActivities(): Promise<void> {
+  activitiesLoading.value = true
   try {
     const remote = await listPublicActivities({ pageSize: 12 })
     const relevant = remote.filter((item) =>
@@ -121,31 +90,31 @@ async function loadActivities(): Promise<void> {
         `${item.title} ${item.description ?? ''} ${item.activityType ?? ''}`
       )
     )
-    if (relevant.length) {
-      activities.value = relevant
-      return
-    }
+    activities.value = relevant
   } catch {
-    // 首页断网时继续展示本地内容。
+    activities.value = []
   }
-  const local = projectStore.projects
-    .filter((project) => project.status === 'published')
-    .map((project) => ({
-      slug: project.publicSlug || project.document.slug,
-      title: project.document.title,
-      description: project.type,
-      activityType: project.type,
-      coverTone: project.coverTone,
-      coverCode: project.coverCode,
-      coverTitle: project.coverTitle,
-      status: project.status,
-      updatedAt: new Date(project.document.updatedAt).toISOString(),
-    }))
-  activities.value = local.length ? local : demoActivities
+
+  if (!activities.value.length) {
+    const local = projectStore.projects
+      .filter((project) => project.status === 'published')
+      .map((project) => ({
+        slug: project.publicSlug || project.document.slug,
+        title: project.document.title,
+        description: project.type,
+        activityType: project.type,
+        coverTone: project.coverTone,
+        coverCode: project.coverCode,
+        coverTitle: project.coverTitle,
+        status: project.status,
+        updatedAt: new Date(project.document.updatedAt).toISOString(),
+      }))
+    activities.value = local
+  }
+  activitiesLoading.value = false
 }
 
 onMounted(() => {
-  activities.value = demoActivities
   void loadActivities()
 })
 </script>
@@ -188,7 +157,13 @@ onMounted(() => {
         <RouterLink to="/campus">查看全部 <Icon name="arrow-right" :size="15" /></RouterLink>
       </header>
 
-      <div class="activity-grid" :class="{ 'is-compact': visibleActivities.length < 3 }">
+      <p v-if="activitiesLoading" class="activity-empty">正在加载近期活动…</p>
+
+      <div
+        v-else-if="visibleActivities.length"
+        class="activity-grid"
+        :class="{ 'is-compact': visibleActivities.length < 3 }"
+      >
         <RouterLink
           v-for="(activity, index) in visibleActivities"
           :key="activity.slug"
@@ -206,6 +181,11 @@ onMounted(() => {
           </div>
           <span class="activity-open">了解活动 <Icon name="arrow-right" :size="14" /></span>
         </RouterLink>
+      </div>
+
+      <div v-else class="activity-empty">
+        <p>近期还没有发布的活动。</p>
+        <RouterLink to="/campus">去活动广场看看 <Icon name="arrow-right" :size="14" /></RouterLink>
       </div>
     </section>
 
@@ -514,6 +494,28 @@ onMounted(() => {
   margin-top: 24px;
   grid-auto-rows: 190px;
   grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.activity-empty {
+  display: flex;
+  min-height: 132px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 24px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-600);
+  font-size: 13px;
+}
+
+.activity-empty a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--brand-700);
+  font-weight: 700;
 }
 
 .activity-grid.is-compact {
