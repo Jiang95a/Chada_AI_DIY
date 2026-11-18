@@ -126,7 +126,7 @@ server/  Spring Boot 3.4 · MyBatis · MySQL 8      :8080   context-path /api/v1
 ```bash
 # 00 由 root 执行
 mysql -u root -p --default-character-set=utf8mb4 < docs/sql/00_create_database.sql
-# 其余 15 个由 campus_app 执行，顺序见 docs/sql/README.md
+# 其余 16 个由 campus_app 执行，顺序见 docs/sql/README.md
 ```
 
 自查：
@@ -134,7 +134,8 @@ mysql -u root -p --default-character-set=utf8mb4 < docs/sql/00_create_database.s
 ```sql
 SHOW TABLES;                    -- 应为 19 张
 SELECT COUNT(*) FROM templates; -- 应为 18 套（启用 8 套：4 心理 + 4 生涯）
-SELECT COUNT(*) FROM projects WHERE status='published';  -- 应为 8 场（4 场心理活动 + 4 场通用演示）
+SELECT COUNT(*) FROM projects WHERE status='published' AND deleted_at IS NULL;  -- 应为 4 场心理活动
+SELECT COUNT(*) FROM form_submissions;  -- 应为 8 条（游园会的演示报名）
 ```
 
 健康检查 <http://127.0.0.1:8080/api/v1/health>，`database.tables` 应为 `19`。

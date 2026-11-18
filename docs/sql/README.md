@@ -25,7 +25,8 @@ for f in 001_init 002_seed 003_cover_fields 003_seed_fix 004_more_templates \
          004_projects_cover_columns 005_demo_data 006_feedback \
          007_wellbeing_privacy 008_wellbeing_templates 009_career_and_referral \
          010_poster_generation 011_participant_traces 012_insight_agent \
-         013_hide_general_templates 014_demo_wellbeing_activities; do
+         013_hide_general_templates 014_demo_wellbeing_activities \
+         015_cleanup_demo_projects; do
   mysql -u campus_app -p --default-character-set=utf8mb4 campus_diy < "docs/sql/$f.sql"
 done
 ```
@@ -107,3 +108,4 @@ SHOW TABLES;
 | `012_insight_agent.sql` | DDL | 新增 `tool_records`（能量牌局/三栏落库）与 `insight_runs`（回看调用记录，兼 24h 缓存） |
 | `013_hide_general_templates.sql` | DML | 停用通用模板，模板库只保留心理活动 / 生涯场景 |
 | `014_demo_wellbeing_activities.sql` | DML | 四场内容完整的心理活动（已发布 + 配套版本），避免新库打开广场是空白页 |
+| `015_cleanup_demo_projects.sql` | DML | 软删四场通用演示活动、修复版本链接、给游园会补 8 条演示提交 |
