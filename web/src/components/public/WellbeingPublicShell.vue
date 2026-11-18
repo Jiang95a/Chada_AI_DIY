@@ -134,7 +134,7 @@ function cycleTheme(): void {
 .public-shell {
   position: relative;
   min-height: 100vh;
-  padding-top: 108px;
+  padding-top: 96px;
   background: transparent;
 }
 
@@ -164,7 +164,7 @@ function cycleTheme(): void {
   content: '';
 }
 
-.public-shell > :not(.public-atmosphere) {
+.public-shell > :not(.public-atmosphere):not(.public-nav):not(.public-mobile-nav) {
   position: relative;
   z-index: 1;
 }
@@ -172,7 +172,7 @@ function cycleTheme(): void {
 .public-nav {
   position: fixed;
   z-index: 50;
-  top: 18px;
+  top: 8px;
   left: 50%;
   display: grid;
   width: min(1280px, calc(100% - 36px));

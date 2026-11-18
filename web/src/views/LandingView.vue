@@ -1023,10 +1023,12 @@ onMounted(() => {
 }
 
 .landing-page .hero {
+  width: min(1280px, calc(100% - 36px));
   min-height: 0;
   align-items: center;
   gap: 42px;
-  padding: 54px calc(max(24px, (100vw - 1240px) / 2) + 44px);
+  margin: 0 auto;
+  padding: 54px clamp(28px, 4vw, 56px);
   border-bottom: 0;
   color: var(--ink-900);
   background: color-mix(in srgb, var(--surface) 92%, var(--bg));
