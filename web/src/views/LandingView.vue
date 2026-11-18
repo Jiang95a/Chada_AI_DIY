@@ -1027,9 +1027,9 @@ onMounted(() => {
   align-items: center;
   gap: 42px;
   padding: 54px calc(max(24px, (100vw - 1240px) / 2) + 44px);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 0;
   color: var(--ink-900);
-  background: color-mix(in srgb, var(--surface) 66%, transparent);
+  background: transparent;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
 }
 
@@ -1172,8 +1172,7 @@ onMounted(() => {
   margin: 0;
   padding: 50px calc(max(24px, (100vw - 1240px) / 2) + 44px) 54px;
   border: 0;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface);
+  background: transparent;
 }
 
 .activities-section h2 {
@@ -1320,8 +1319,7 @@ onMounted(() => {
   margin: 0;
   padding: 48px calc(max(24px, (100vw - 1240px) / 2) + 44px);
   border: 0;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-mist);
+  background: transparent;
 }
 
 .trace-demo :deep(.pulse) {
@@ -1339,8 +1337,7 @@ onMounted(() => {
   margin: 0;
   padding: 46px calc(max(24px, (100vw - 1240px) / 2) + 44px);
   border: 0;
-  border-bottom: 1px solid var(--line);
-  background: var(--surface-soft);
+  background: transparent;
 }
 
 .safety-list {
