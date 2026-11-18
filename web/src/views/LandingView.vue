@@ -1031,7 +1031,7 @@ onMounted(() => {
   padding: 54px clamp(28px, 4vw, 56px);
   border-bottom: 0;
   color: var(--ink-900);
-  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  background: color-mix(in srgb, var(--public-card) 78%, transparent);
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
 }
 
@@ -1454,6 +1454,34 @@ onMounted(() => {
   .maker-section h2,
   .safety-section h2 {
     font-size: 28px;
+  }
+}
+
+
+/* 近期活动和个人轨迹保留卡片底色，但半透明，背景图仍能透出来。 */
+.landing-page .activities-section,
+.landing-page .trace-section {
+  width: min(1280px, calc(100% - 36px));
+  margin: 18px auto 0;
+  border: 0;
+  background: color-mix(in srgb, var(--public-card) 78%, transparent);
+}
+
+.landing-page .activities-section {
+  padding: 50px clamp(28px, 4vw, 56px) 54px;
+}
+
+.landing-page .trace-section {
+  padding: 48px clamp(28px, 4vw, 56px);
+}
+
+@media (max-width: 820px) {
+  .landing-page .activities-section,
+  .landing-page .trace-section {
+    width: calc(100% - 24px);
+    margin-top: 12px;
+    padding-right: 18px;
+    padding-left: 18px;
   }
 }
 

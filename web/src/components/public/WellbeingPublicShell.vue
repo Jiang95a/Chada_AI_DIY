@@ -132,6 +132,7 @@ function cycleTheme(): void {
 
 <style scoped>
 .public-shell {
+  --public-card: color-mix(in srgb, var(--brand-100) 52%, var(--surface));
   position: relative;
   min-height: 100vh;
   padding-top: 96px;
@@ -167,6 +168,30 @@ function cycleTheme(): void {
 .public-shell > :not(.public-atmosphere):not(.public-nav):not(.public-mobile-nav) {
   position: relative;
   z-index: 1;
+}
+
+/* 卡片底色保留，但留出一点透明度，背景图不会完全被盖住。 */
+.public-shell :deep(.campus-page),
+.public-shell :deep(.resources-page),
+.public-shell :deep(.about-page),
+.public-shell :deep(.trace-page),
+.public-shell :deep(.tools-page .page) {
+  width: min(1280px, calc(100% - 36px));
+  margin: 18px auto 0;
+  padding-inline: clamp(24px, 4vw, 56px);
+  background: color-mix(in srgb, var(--public-card) 76%, transparent);
+}
+
+@media (max-width: 820px) {
+  .public-shell :deep(.campus-page),
+  .public-shell :deep(.resources-page),
+  .public-shell :deep(.about-page),
+  .public-shell :deep(.trace-page),
+  .public-shell :deep(.tools-page .page) {
+    width: calc(100% - 24px);
+    margin-top: 12px;
+    padding-inline: 18px;
+  }
 }
 
 .public-nav {
