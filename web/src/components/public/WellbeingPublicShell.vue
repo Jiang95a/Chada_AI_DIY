@@ -25,7 +25,7 @@ const themeLabel = computed(
   () => themeOptions.find((item) => item.value === theme.value)?.label ?? '鼠尾草绿'
 )
 const showAtmosphere = computed(() =>
-  ['/', '/campus', '/tools', '/resources', '/about'].includes(route.path)
+  ['/', '/campus', '/tools', '/resources', '/about', '/trace'].includes(route.path)
 )
 
 function goWorkspace(): void {
@@ -134,7 +134,7 @@ function cycleTheme(): void {
 .public-shell {
   position: relative;
   min-height: 100vh;
-  padding-top: 94px;
+  padding-top: 108px;
   background: transparent;
 }
 
@@ -176,10 +176,10 @@ function cycleTheme(): void {
   left: 50%;
   display: grid;
   width: min(1280px, calc(100% - 36px));
-  min-height: 62px;
+  min-height: 74px;
   align-items: center;
   gap: 22px;
-  padding: 0 24px;
+  padding: 0 28px;
   border: 1px solid var(--line);
   border-radius: 10px;
   color: var(--ink-900);
@@ -199,8 +199,8 @@ function cycleTheme(): void {
 .public-brand > span {
   position: relative;
   display: grid;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border-radius: 50% 50% 46% 54%;
   background: var(--brand-400);
   place-items: center;
