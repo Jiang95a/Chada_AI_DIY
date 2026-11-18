@@ -49,8 +49,12 @@ Check "  每条 kind=career" (($career.body.data | Where-Object { $_.kind -ne 'c
 $wb = Call "GET" "/templates?kind=wellbeing" $token
 Check "GET /templates?kind=wellbeing 返回 4 条" ($wb.body.data.Count -eq 4) $wb.body.data.Count
 $gen = Call "GET" "/templates?kind=general" $token
-Check "GET /templates?kind=general 返回 7 条" ($gen.body.data.Count -eq 7) $gen.body.data.Count
-Check "  三者相加 = 全部" (($career.body.data.Count + $wb.body.data.Count + $gen.body.data.Count) -eq $total) "sum=$($career.body.data.Count + $wb.body.data.Count + $gen.body.data.Count) total=$total"
+# 013_hide_general_templates.sql 之后通用模板 is_active=0，不再返回。
+# 这里断言的是「隐藏生效」而不是「7 条」——通用模板仍在库里（只是停用），
+# 已建项目引用它们不受影响，所以不能断言库里没有。
+Check "GET /templates?kind=general 返回 0 条（已停用）" ($gen.body.data.Count -eq 0) $gen.body.data.Count
+Check "  全部模板只剩心理+生涯 = 8 条" ($total -eq 8) "total=$total"
+Check "  career + wellbeing = 全部（无 general 混入）" (($career.body.data.Count + $wb.body.data.Count) -eq $total) "sum=$($career.body.data.Count + $wb.body.data.Count) total=$total"
 $one = Call "GET" "/templates/$($career.body.data[0].id)" $token
 Check "GET /templates/{id} 200" ($one.code -eq 200) $one.code
 
