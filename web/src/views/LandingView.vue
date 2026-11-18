@@ -216,7 +216,7 @@ onMounted(() => {
 <style scoped>
 .landing-page {
   color: var(--ink-900);
-  background: var(--bg);
+  background: transparent;
 }
 
 .hero {
@@ -1019,7 +1019,7 @@ onMounted(() => {
   max-width: none;
   margin: 0;
   color: var(--ink-900);
-  background: var(--bg);
+  background: transparent;
 }
 
 .landing-page .hero {
@@ -1029,7 +1029,7 @@ onMounted(() => {
   padding: 54px calc(max(24px, (100vw - 1240px) / 2) + 44px);
   border-bottom: 1px solid var(--line);
   color: var(--ink-900);
-  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 66%, transparent);
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
 }
 

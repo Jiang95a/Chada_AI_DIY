@@ -637,7 +637,7 @@ onBeforeUnmount(() => {
   --rail: 260px;
   min-height: 100vh;
   color: var(--ink);
-  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 66%, transparent);
   font-family: var(--font);
   font-size: var(--type-body);
   line-height: 1.7;

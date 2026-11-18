@@ -5,6 +5,7 @@ import Icon from '@/components/ui/Icon.vue'
 import { getAccessToken } from '@/services/http'
 import { usePreferences, type ThemePreference } from '@/composables/usePreferences'
 import { useToast } from '@/composables/useToast'
+import atmosphereImage from '@/assets/photos/activity-garden.jpg'
 
 const route = useRoute()
 const router = useRouter()
@@ -23,6 +24,9 @@ const themeOptions: Array<{ value: ThemePreference; label: string }> = [
 const themeLabel = computed(
   () => themeOptions.find((item) => item.value === theme.value)?.label ?? '鼠尾草绿'
 )
+const showAtmosphere = computed(() =>
+  ['/', '/campus', '/tools', '/resources', '/about'].includes(route.path)
+)
 
 function goWorkspace(): void {
   void router.push(authenticated.value ? '/projects' : { path: '/login', query: { redirect: '/projects' } })
@@ -39,6 +43,9 @@ function cycleTheme(): void {
 
 <template>
   <div class="public-shell">
+    <div v-if="showAtmosphere" class="public-atmosphere" aria-hidden="true">
+      <img :src="atmosphereImage" alt="" />
+    </div>
     <header class="public-nav">
       <RouterLink class="public-brand" to="/">
         <span><i /><b /></span>
@@ -125,9 +132,41 @@ function cycleTheme(): void {
 
 <style scoped>
 .public-shell {
+  position: relative;
   min-height: 100vh;
   padding-top: 94px;
-  background: var(--bg);
+  background: transparent;
+}
+
+.public-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.public-atmosphere img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  opacity: 0.3;
+  filter: saturate(0.68) contrast(0.94);
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 0%, rgb(0 0 0 / 82%) 52%, transparent 100%);
+  mask-image: radial-gradient(ellipse at center, #000 0%, rgb(0 0 0 / 82%) 52%, transparent 100%);
+}
+
+.public-atmosphere::after {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--bg) 50%, transparent);
+  content: '';
+}
+
+.public-shell > :not(.public-atmosphere) {
+  position: relative;
+  z-index: 1;
 }
 
 .public-nav {
