@@ -174,7 +174,7 @@ function cycleTheme(): void {
   width: min(1280px, calc(100% - 36px));
   margin: 18px auto 0;
   padding-inline: clamp(24px, 4vw, 56px);
-  background: color-mix(in srgb, var(--public-card) 76%, transparent);
+  background: var(--public-card);
 }
 
 @media (max-width: 820px) {

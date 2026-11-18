@@ -6,7 +6,7 @@ import BaseModal from '@/components/ui/BaseModal.vue'
 import Icon from '@/components/ui/Icon.vue'
 import { useToast } from '@/composables/useToast'
 import { useProjectStore, type ProjectRecord, type ProjectStatus } from '@/stores/projects'
-import { coverForProject } from '@/utils/projectCover'
+import { coverForProject, uniqueCoversForProjects } from '@/utils/projectCover'
 
 const projectStore = useProjectStore()
 const route = useRoute()
@@ -41,6 +41,18 @@ const statusTones: Record<ProjectStatus, string> = {
   archived: 'offline',
 }
 
+const projectCovers = computed(() =>
+  uniqueCoversForProjects(
+    projectStore.projects.map((project) => ({
+      id: project.id,
+      slug: project.document.slug,
+      title: project.document.title,
+      activityType: project.type,
+      coverTone: project.coverTone,
+    }))
+  )
+)
+
 const projects = computed(() =>
   projectStore.projects.map((project) => ({
     ...project,
@@ -52,7 +64,7 @@ const projects = computed(() =>
       : project.status === 'published'
         ? '暂无提交'
         : '尚未发布',
-    coverImage: coverForProject(project),
+    coverImage: projectCovers.value.get(project.id) ?? coverForProject(project),
     updatedAt: formatProjectDate(project.document.updatedAt),
     slug: project.document.slug,
   }))

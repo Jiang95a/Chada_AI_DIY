@@ -26,6 +26,18 @@ const tonePools: Record<string, string[]> = {
   checkin: [selfcare, garden],
 }
 
+export const PROJECT_COVERS = [
+  garden,
+  campusHero,
+  selfcare,
+  workshop,
+  club,
+  careerTalk,
+  careerInterview,
+  careerResume,
+  careerTest,
+]
+
 function hash(value: string): number {
   let result = 0
   for (let index = 0; index < value.length; index += 1) {
@@ -57,4 +69,27 @@ export function coverForProject(project: ProjectCoverInput): string {
   const candidates = pool ?? fallback
   const key = project.id ?? project.slug ?? project.title ?? 'xinyu'
   return candidates[hash(key) % candidates.length] ?? garden
+}
+
+/**
+ * 同一屏里的活动卡用不重复的封面。
+ *
+ * coverForProject 只保证单个项目稳定，不能保证两张卡不撞图；
+ * 这里在结果重复时从整组图里取下一张未使用的，保证一卡一图。
+ */
+export function uniqueCoversForProjects(projects: ProjectCoverInput[]): Map<string, string> {
+  const used = new Set<string>()
+  const result = new Map<string, string>()
+
+  for (const project of projects) {
+    const key = project.slug ?? project.id ?? project.title ?? ''
+    let cover = coverForProject(project)
+    if (used.has(cover)) {
+      cover = PROJECT_COVERS.find((candidate) => !used.has(candidate)) ?? cover
+    }
+    used.add(cover)
+    if (key) result.set(key, cover)
+  }
+
+  return result
 }

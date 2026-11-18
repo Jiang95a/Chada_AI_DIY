@@ -7,7 +7,7 @@ import { listPublicActivities, type PublicActivitySummary } from '@/services/pub
 import { useProjectStore } from '@/stores/projects'
 import { emptyTrace, type ParticipantTrace } from '@/types/trace'
 import campusWalk from '@/assets/photos/hero-campus.jpg'
-import { coverForProject } from '@/utils/projectCover'
+import { coverForProject, uniqueCoversForProjects } from '@/utils/projectCover'
 
 const router = useRouter()
 const projectStore = useProjectStore()
@@ -47,6 +47,17 @@ const demoActivities: PublicActivitySummary[] = [
 ]
 
 const visibleActivities = computed(() => activities.value.slice(0, 3))
+const activityCovers = computed(() =>
+  uniqueCoversForProjects(
+    visibleActivities.value.map((activity) => ({
+      id: activity.slug,
+      title: activity.title,
+      description: activity.description,
+      activityType: activity.activityType,
+      coverTone: activity.coverTone,
+    }))
+  )
+)
 
 function keepsFor(activity: PublicActivitySummary): string {
   const text = `${activity.title} ${activity.description ?? ''} ${activity.activityType ?? ''}`
@@ -90,13 +101,16 @@ const demoTraces: ParticipantTrace[] = [
 ]
 
 function coverImageFor(activity: PublicActivitySummary): string {
-  return coverForProject({
-    id: activity.slug,
-    title: activity.title,
-    description: activity.description,
-    activityType: activity.activityType,
-    coverTone: activity.coverTone,
-  })
+  return (
+    activityCovers.value.get(activity.slug) ??
+    coverForProject({
+      id: activity.slug,
+      title: activity.title,
+      description: activity.description,
+      activityType: activity.activityType,
+      coverTone: activity.coverTone,
+    })
+  )
 }
 
 async function loadActivities(): Promise<void> {
@@ -1031,7 +1045,7 @@ onMounted(() => {
   padding: 54px clamp(28px, 4vw, 56px);
   border-bottom: 0;
   color: var(--ink-900);
-  background: color-mix(in srgb, var(--public-card) 78%, transparent);
+  background: var(--public-card);
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
 }
 
@@ -1464,7 +1478,7 @@ onMounted(() => {
   width: min(1280px, calc(100% - 36px));
   margin: 18px auto 0;
   border: 0;
-  background: color-mix(in srgb, var(--public-card) 78%, transparent);
+  background: var(--public-card);
 }
 
 .landing-page .activities-section {
