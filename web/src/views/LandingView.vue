@@ -1029,7 +1029,7 @@ onMounted(() => {
   padding: 54px calc(max(24px, (100vw - 1240px) / 2) + 44px);
   border-bottom: 0;
   color: var(--ink-900);
-  background: transparent;
+  background: color-mix(in srgb, var(--surface) 92%, var(--bg));
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
 }
 
