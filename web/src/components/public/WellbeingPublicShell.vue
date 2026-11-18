@@ -169,30 +169,6 @@ function cycleTheme(): void {
   z-index: 1;
 }
 
-/* 和首页 Hero 同一档底色：只铺背景，不加卡片、边框或阴影。 */
-.public-shell :deep(.campus-page),
-.public-shell :deep(.resources-page),
-.public-shell :deep(.about-page),
-.public-shell :deep(.trace-page),
-.public-shell :deep(.tools-page .page) {
-  width: min(1280px, calc(100% - 36px));
-  margin: 18px auto 0;
-  padding-inline: clamp(24px, 4vw, 56px);
-  background: color-mix(in srgb, var(--surface) 92%, var(--bg));
-}
-
-@media (max-width: 820px) {
-  .public-shell :deep(.campus-page),
-  .public-shell :deep(.resources-page),
-  .public-shell :deep(.about-page),
-  .public-shell :deep(.trace-page),
-  .public-shell :deep(.tools-page .page) {
-    width: calc(100% - 24px);
-    margin-top: 12px;
-    padding-inline: 18px;
-  }
-}
-
 .public-nav {
   position: fixed;
   z-index: 50;
