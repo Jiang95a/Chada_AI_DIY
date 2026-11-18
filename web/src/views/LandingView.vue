@@ -1191,7 +1191,7 @@ onMounted(() => {
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: 0;
-  background: #fff;
+  background: color-mix(in srgb, var(--surface) 88%, var(--brand-50));
   color: var(--ink-900);
 }
 
